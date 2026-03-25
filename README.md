@@ -37,9 +37,9 @@ cd IntelliOptics2.5\install
 ```
 
 The installer will:
-1. Check prerequisites (Docker, ports, disk space)
-2. Prompt for Supabase credentials
-3. Generate `.env` with auto-generated secrets
+1. Detect and stop any old IntelliOptics 2.0 containers
+2. Check prerequisites (Docker, ports, disk space)
+3. Generate `.env` with pre-configured credentials and auto-generated API secret
 4. Build all Docker images
 5. Start all services
 6. Run health checks

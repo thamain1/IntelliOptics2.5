@@ -25,9 +25,9 @@ cd IntelliOptics2.5\install
 ```
 
 The installer will:
-1. Check prerequisites (Docker, disk space, ports)
-2. Prompt for Supabase credentials
-3. Auto-generate API secret key
+1. Detect and stop any old IntelliOptics 2.0 containers (if running)
+2. Check prerequisites (Docker, disk space, ports)
+3. Generate `.env` with pre-configured Supabase/SendGrid credentials and auto-generated API secret key
 4. Build all 5 Docker images
 5. Start 7 services
 6. Run health checks
@@ -39,15 +39,17 @@ The installer will:
 
 All configuration is in `install/.env` (created from `.env.template` during install).
 
-| Variable | Required | Description |
-|----------|----------|-------------|
+Supabase and SendGrid credentials are **pre-configured** in the template. Only change these if connecting to a different Supabase project.
+
+| Variable | Pre-filled | Description |
+|----------|------------|-------------|
 | `POSTGRES_DSN` | Yes | Supabase PostgreSQL connection string |
 | `SUPABASE_URL` | Yes | Supabase project URL |
 | `SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
 | `SUPABASE_SERVICE_KEY` | Yes | Supabase service role key |
-| `API_SECRET_KEY` | Auto | JWT signing key (auto-generated) |
-| `SENDGRID_API_KEY` | No | Email alerts via SendGrid |
-| `TWILIO_ACCOUNT_SID` | No | SMS alerts via Twilio |
+| `API_SECRET_KEY` | Auto | JWT signing key (auto-generated per install) |
+| `SENDGRID_API_KEY` | Yes | Email alerts via SendGrid |
+| `TWILIO_ACCOUNT_SID` | No | SMS alerts via Twilio (optional) |
 | `CLOUD_HTTP_PORT` | No | Cloud port (default: 80) |
 | `EDGE_PORT` | No | Edge port (default: 30101) |
 | `LOG_LEVEL` | No | Logging level (default: INFO) |
