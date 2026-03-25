@@ -1,4 +1,6 @@
-DEFAULT_QUEUE_BASE_DIR = "/opt/intellioptics/queue"  # Default base directory for escalation queue files.
+import os
+
+DEFAULT_QUEUE_BASE_DIR = os.environ.get("IO_QUEUE_PATH", "/data/queue")  # Base directory for escalation queue files.
 READING_DIR_SUFFIX = "reading"
 WRITING_DIR_SUFFIX = "writing"
 IMAGE_DIR_SUFFIX = "images"

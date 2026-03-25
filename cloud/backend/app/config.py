@@ -56,9 +56,9 @@ class Settings(BaseSettings):
     fallback_token_expiry_minutes: int = Field(60 * 24, alias="FALLBACK_TOKEN_EXPIRY_MINUTES")
     log_level: str = Field("INFO", alias="LOG_LEVEL")
     worker_url: str = Field("http://worker:8081/infer", alias="WORKER_URL")
-    edge_inference_url: str = Field("http://host.docker.internal:8001/infer", alias="EDGE_INFERENCE_URL")
-    yoloworld_worker_url: str = Field("http://host.docker.internal:8001/yoloworld", alias="YOLOWORLD_WORKER_URL")
-    yoloe_worker_url: str = Field("http://host.docker.internal:8001/yoloe", alias="YOLOE_WORKER_URL")
+    edge_inference_url: str = Field("http://edge-inference:8001/infer", alias="EDGE_INFERENCE_URL")
+    yoloworld_worker_url: str = Field("http://edge-inference:8001/yoloworld", alias="YOLOWORLD_WORKER_URL")
+    yoloe_worker_url: str = Field("http://edge-inference:8001/yoloe", alias="YOLOE_WORKER_URL")
     cors_allowed_origins: str = Field("http://localhost:3000,http://localhost:30101", alias="CORS_ALLOWED_ORIGINS")
 
     model_config = SettingsConfigDict(

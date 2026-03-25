@@ -1,78 +1,162 @@
-# IntelliOptics 2.0 - Production Deployment
-# Pulls pre-built images from Azure Container Registry
-# Version: v2.0.0
+# IntelliOptics 2.5 - Unified Production Deployment
+# All cloud + edge services on a single Docker network
+#
+# Usage:
+#   cd install/
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Exposed ports:
+#   80   - Cloud frontend + API (via nginx)
+#   443  - Cloud HTTPS (uncomment TLS in nginx config)
+#   30101 - Edge API gateway
 
 services:
-  nginx:
+  # ============================================================
+  # CLOUD SERVICES
+  # ============================================================
+
+  cloud-nginx:
     image: nginx:1.25-alpine
-    container_name: intellioptics-cloud-nginx
+    container_name: io-cloud-nginx
     ports:
-      - "80:80"
-      - "443:443"
+      - "${CLOUD_HTTP_PORT:-80}:80"
+      - "${CLOUD_HTTPS_PORT:-443}:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx-cloud.conf:/etc/nginx/nginx.conf:ro
       - nginx_logs:/var/log/nginx
     depends_on:
-      - backend
-      - frontend
+      cloud-backend:
+        condition: service_healthy
+      cloud-frontend:
+        condition: service_started
     restart: unless-stopped
     networks:
-      - cloud-net
+      - intellioptics-net
 
-  backend:
-    image: acrintellioptics.azurecr.io/intellioptics/backend:v2.0.3
-    container_name: intellioptics-cloud-backend
-    ports:
-      - "8000:8000"
+  cloud-backend:
+    build:
+      context: ../cloud/backend
+      dockerfile: Dockerfile
+    container_name: io-cloud-backend
     env_file:
       - ./.env
     environment:
-      - SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL:-alerts@intellioptics.com}
-      - BLOB_CONTAINER_NAME=${BLOB_CONTAINER_NAME:-images}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - APP_ENV=${APP_ENV:-production}
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - WORKER_URL=http://cloud-worker:8081/infer
+      - EDGE_INFERENCE_URL=http://edge-inference:8001/infer
+      - YOLOWORLD_WORKER_URL=http://edge-inference:8001/yoloworld
+      - YOLOE_WORKER_URL=http://edge-inference:8001/yoloe
+      - CORS_ALLOWED_ORIGINS=http://localhost,http://localhost:${CLOUD_HTTP_PORT:-80}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - intellioptics-net
+
+  cloud-frontend:
+    build:
+      context: ../cloud/frontend
+      dockerfile: Dockerfile
+    container_name: io-cloud-frontend
+    restart: unless-stopped
+    networks:
+      - intellioptics-net
+
+  cloud-worker:
+    build:
+      context: ../cloud/worker
+      dockerfile: Dockerfile
+    container_name: io-cloud-worker
+    env_file:
+      - ./.env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    networks:
+      - intellioptics-net
+
+  # ============================================================
+  # EDGE SERVICES
+  # ============================================================
+
+  edge-nginx:
+    image: nginx:1.25-alpine
+    container_name: io-edge-nginx
+    ports:
+      - "${EDGE_PORT:-30101}:30101"
+    volumes:
+      - ./config/nginx-edge.conf:/etc/nginx/nginx.conf:ro
+      - edge_nginx_logs:/var/log/nginx
+    depends_on:
+      edge-api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - intellioptics-net
+
+  edge-api:
+    build:
+      context: ../edge/edge-api
+      dockerfile: Dockerfile
+    container_name: io-edge-api
+    environment:
+      - INTELLIOPTICS_API_TOKEN=${INTELLIOPTICS_API_TOKEN:-}
+      - UPSTREAM_CLOUD_API=http://cloud-backend:8000
+      - MODEL_REPOSITORY_PATH=/models
+      - INFERENCE_SERVICE_URL=http://edge-inference:8001
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DEPLOY_DETECTOR_LEVEL_INFERENCE=0
+      - PORT=8718
+    volumes:
+      - ./config/edge-config.yaml:/config/edge-config.yaml:ro
+      - models:/models
+      - edge_data:/data
+    depends_on:
+      edge-inference:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8718/health/live"]
+      interval: 10s
       timeout: 3s
       retries: 3
       start_period: 30s
     restart: unless-stopped
     networks:
-      - cloud-net
+      - intellioptics-net
 
-  frontend:
-    image: acrintellioptics.azurecr.io/intellioptics/frontend:v2.0.2
-    container_name: intellioptics-cloud-frontend
-    ports:
-      - "3000:80"
+  edge-inference:
+    build:
+      context: ../edge/inference
+      dockerfile: Dockerfile
+    container_name: io-edge-inference
     environment:
-      - REACT_APP_API_URL=http://backend:8000
-      - REACT_APP_WS_URL=ws://backend:8000/ws
-    depends_on:
-      - backend
-    restart: unless-stopped
-    networks:
-      - cloud-net
-
-  worker:
-    image: acrintellioptics.azurecr.io/intellioptics/worker:v2.0.0
-    container_name: intellioptics-cloud-worker
-    env_file:
-      - ./.env
-    environment:
-      - MODEL_URL=${MODEL_URL}
-      - QUEUE_IN=image-queries
-      - QUEUE_OUT=inference-results
-      - POSTGRES_DSN=${POSTGRES_DSN}
+      - MODEL_REPOSITORY=/models
+      - INTELLIOPTICS_API_TOKEN=${INTELLIOPTICS_API_TOKEN:-}
+      - IO_IMG_SIZE=${IO_IMG_SIZE:-640}
+      - IO_CONF_THRESH=${IO_CONF_THRESH:-0.25}
+      - IO_NMS_IOU=${IO_NMS_IOU:-0.45}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - models:/models
+      - vlm_models:/vlm-models
+      - videos:/videos
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
     restart: unless-stopped
     networks:
-      - cloud-net
-    # Uncomment for GPU support
+      - intellioptics-net
+    # ---- GPU SUPPORT ----
+    # Uncomment the block below if you have an NVIDIA GPU with
+    # compute capability >= 7.0 (RTX 2060+, Tesla T4+, etc.)
     # deploy:
     #   resources:
     #     reservations:
@@ -81,34 +165,43 @@ services:
     #           count: 1
     #           capabilities: [gpu]
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: intellioptics-cloud-db
-    environment:
-      - POSTGRES_USER=intellioptics
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=intellioptics
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    networks:
-      - cloud-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U intellioptics"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
+  # ---- EDGE POSTGRES (optional) ----
+  # Uncomment if you need a local edge database.
+  # Not required when cloud + edge are co-located.
+  # edge-postgres:
+  #   image: postgres:15-alpine
+  #   container_name: io-edge-db
+  #   environment:
+  #     - POSTGRES_USER=intellioptics
+  #     - POSTGRES_PASSWORD=${EDGE_POSTGRES_PASSWORD:-intellioptics}
+  #     - POSTGRES_DB=intellioptics
+  #   volumes:
+  #     - edge_postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U intellioptics"]
+  #     interval: 5s
+  #     timeout: 3s
+  #     retries: 5
+  #   restart: unless-stopped
+  #   networks:
+  #     - intellioptics-net
 
+# ============================================================
+# VOLUMES
+# ============================================================
 volumes:
   nginx_logs:
-    driver: local
-  postgres_data:
-    driver: local
+  edge_nginx_logs:
+  models:
+  vlm_models:
+  edge_data:
+  videos:
+  # edge_postgres_data:
 
+# ============================================================
+# NETWORK
+# ============================================================
 networks:
-  cloud-net:
+  intellioptics-net:
     driver: bridge
-    name: intellioptics-cloud-network
+    name: intellioptics-net

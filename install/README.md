@@ -1,185 +1,184 @@
-# IntelliOptics 2.0 - Installation Guide
+# IntelliOptics 2.5 - Installation Guide
 
 ## Prerequisites
 
-Before installing, ensure you have:
+- **Windows Server 2019+** or **Windows 10/11 Pro** (Hyper-V capable)
+- **Docker Desktop** 4.x+ with Docker Compose V2
+- **Git** (to clone the repo)
+- **20 GB free disk space** (Docker images + model downloads)
+- **8 GB RAM minimum** (16 GB recommended)
+- **NVIDIA GPU** (optional) with compute capability >= 7.0 for GPU inference
 
-> **Important:** Clone or install to a path **without spaces** (e.g., `C:\intellioptics-2.0` not `C:\intellioptics 2.0`). Spaces in paths can cause issues with Docker and command-line tools.
-
-1. **Docker Desktop** - [Download](https://www.docker.com/products/docker-desktop)
-2. **Azure CLI** - [Install Guide](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-3. **Azure Account** with access to:
-   - Azure Container Registry (acrintellioptics)
-   - Azure Storage Account (for image storage)
-   - Optional: Azure Service Bus (for async processing)
-
-## Quick Start (Windows)
-
-### Option 1: Automated Installation
+## Quick Start
 
 ```powershell
-# Run as Administrator
-.\install-windows.ps1
+# 1. Clone the repository
+git clone https://github.com/thamain1/IntelliOptics2.5.git
+cd IntelliOptics2.5\install
+
+# 2. Run the installer
+.\Install-IntelliOptics.ps1
+
+# 3. Open the app
+# Frontend: http://localhost/
+# Edge API: http://localhost:30101/
 ```
 
-### Option 2: Manual Installation
-
-1. **Login to Azure**
-   ```powershell
-   az login
-   az acr login --name acrintellioptics
-   ```
-
-2. **Pull Images**
-   ```powershell
-   docker pull acrintellioptics.azurecr.io/intellioptics/backend:v2.0.3
-   docker pull acrintellioptics.azurecr.io/intellioptics/frontend:v2.0.2
-   docker pull acrintellioptics.azurecr.io/intellioptics/worker:v2.0.0
-   ```
-
-3. **Configure Environment**
-   ```powershell
-   copy .env.template .env
-   # Edit .env with your credentials
-   ```
-
-4. **Start Services**
-   ```powershell
-   docker compose -f docker-compose.prod.yml up -d
-   ```
-
-5. **Access Application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Docs: http://localhost:8000/docs
+The installer will:
+1. Check prerequisites (Docker, disk space, ports)
+2. Prompt for Supabase credentials
+3. Auto-generate API secret key
+4. Build all 5 Docker images
+5. Start 7 services
+6. Run health checks
+7. Create admin user (`admin@intellioptics.com` / `admin123`)
 
 ## Configuration
 
-### Required Settings
+### Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `POSTGRES_PASSWORD` | Database password (generate secure password) |
-| `AZURE_STORAGE_CONNECTION_STRING` | Azure Storage connection string |
-| `API_SECRET_KEY` | JWT signing key (32+ characters) |
+All configuration is in `install/.env` (created from `.env.template` during install).
 
-### Optional Settings
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `POSTGRES_DSN` | Yes | Supabase PostgreSQL connection string |
+| `SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
+| `SUPABASE_SERVICE_KEY` | Yes | Supabase service role key |
+| `API_SECRET_KEY` | Auto | JWT signing key (auto-generated) |
+| `SENDGRID_API_KEY` | No | Email alerts via SendGrid |
+| `TWILIO_ACCOUNT_SID` | No | SMS alerts via Twilio |
+| `CLOUD_HTTP_PORT` | No | Cloud port (default: 80) |
+| `EDGE_PORT` | No | Edge port (default: 30101) |
+| `LOG_LEVEL` | No | Logging level (default: INFO) |
 
-| Variable | Description |
-|----------|-------------|
-| `SENDGRID_API_KEY` | For email alerts |
-| `TWILIO_*` | For SMS alerts |
-| `SERVICE_BUS_CONN` | For async processing |
+### Edge Configuration
 
-## Management Commands
+Edge behavior is configured in `install/config/edge-config.yaml`:
+- Detector definitions
+- Open-vocabulary detection settings
+- VLM model and dual-track config
+- Vehicle ID and forensic search settings
+- Alert thresholds
+
+### Nginx Configuration
+
+- `install/config/nginx-cloud.conf` — Cloud reverse proxy (frontend + API)
+- `install/config/nginx-edge.conf` — Edge API gateway
+
+## GPU Setup
+
+By default, inference runs on CPU. To enable GPU acceleration:
+
+1. Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+2. Edit `install/docker-compose.prod.yml`
+3. Uncomment the GPU block under `edge-inference`:
+
+```yaml
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+```
+
+4. Restart: `docker compose -f docker-compose.prod.yml up -d edge-inference`
+
+**Note:** GPUs with compute capability < 7.0 (e.g., GTX 1050 Ti) will automatically fall back to CPU even with GPU enabled.
+
+## Services
+
+| Service | Container | Internal Port | Description |
+|---------|-----------|---------------|-------------|
+| Cloud Nginx | io-cloud-nginx | 80/443 | Reverse proxy |
+| Cloud Backend | io-cloud-backend | 8000 | FastAPI API |
+| Cloud Frontend | io-cloud-frontend | 3000 | React UI |
+| Cloud Worker | io-cloud-worker | 8081 | ONNX worker |
+| Edge Nginx | io-edge-nginx | 30101 | Edge gateway |
+| Edge API | io-edge-api | 8718 | Edge endpoint |
+| Edge Inference | io-edge-inference | 8001 | AI inference |
+
+## Common Commands
 
 ```powershell
-# View logs
+cd IntelliOptics2.5\install
+
+# Status
+docker compose -f docker-compose.prod.yml ps
+
+# Logs (all services)
 docker compose -f docker-compose.prod.yml logs -f
 
-# View specific service logs
-docker compose -f docker-compose.prod.yml logs -f backend
+# Logs (specific service)
+docker compose -f docker-compose.prod.yml logs -f cloud-backend
+docker compose -f docker-compose.prod.yml logs -f edge-inference
 
-# Stop all services
-docker compose -f docker-compose.prod.yml down
+# Restart a service
+docker compose -f docker-compose.prod.yml restart cloud-backend
 
-# Restart services
-docker compose -f docker-compose.prod.yml restart
+# Stop everything
+.\scripts\Stop-Services.ps1
 
-# Update to new version
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
+# Start again
+.\scripts\Start-Services.ps1
+
+# Rebuild after code changes
+.\scripts\Build-Images.ps1
+.\scripts\Start-Services.ps1
+
+# Full rebuild (no cache)
+.\scripts\Build-Images.ps1 -NoCache
+```
+
+## Uninstall
+
+```powershell
+# Stop and remove containers (keeps images + data)
+.\Uninstall-IntelliOptics.ps1
+
+# Full removal (containers + images + volumes + .env)
+.\Uninstall-IntelliOptics.ps1 -RemoveAll
 ```
 
 ## Troubleshooting
 
+### Port already in use
+Change `CLOUD_HTTP_PORT` or `EDGE_PORT` in `.env`:
+```
+CLOUD_HTTP_PORT=8080
+EDGE_PORT=30102
+```
+
 ### Backend won't start
-- Check database connection: `docker compose -f docker-compose.prod.yml logs postgres`
-- Verify `.env` has correct `POSTGRES_PASSWORD`
-
-### Can't pull images
-- Ensure Azure CLI is logged in: `az login`
-- Ensure ACR access: `az acr login --name acrintellioptics`
-
-### Health check fails
-- Wait 30 seconds for services to fully start
-- Check logs: `docker compose -f docker-compose.prod.yml logs backend`
-
-### .env file not found
-- Ensure `.env` file exists in the `install` folder (same folder as `docker-compose.prod.yml`)
-- Copy from template: `copy .env.template .env`
-- On Windows, check for hidden `.txt` extension: `dir .env*`
-- **If path contains spaces:** Rename folder to remove spaces (e.g., `C:\intellioptics-2.0` instead of `C:\intellioptics 2.0`)
-
-### Database connection refused
-If you see `connection to server at "pg-intellioptics.postgres.database.azure.com" ... Connection refused`:
-
-The `.env` file is configured for Azure PostgreSQL instead of the local Docker database.
-
-**Check current config:**
+Check Supabase credentials:
 ```powershell
-type "C:\intellioptics-2.0\install\.env" | findstr POSTGRES
+docker compose -f docker-compose.prod.yml logs cloud-backend | Select-String -Pattern "error"
 ```
 
-**Fix:** Edit `.env` and set:
-```
-POSTGRES_PASSWORD=YourSecurePassword123!
-POSTGRES_DSN=postgresql://intellioptics:${POSTGRES_PASSWORD}@postgres:5432/intellioptics
-```
-
-Then restart:
+### Edge inference slow to start
+The inference service downloads YOLOE and VLM models on first run. This can take 2-5 minutes. Check progress:
 ```powershell
-docker compose -f docker-compose.prod.yml down
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml logs -f edge-inference
 ```
 
-### Cannot login / No admin user
-After fresh install, create the admin user:
+### Frontend shows blank page
+Check that cloud-nginx is routing correctly:
 ```powershell
-docker exec -it intellioptics-cloud-backend python /app/app/create_admin.py
+docker compose -f docker-compose.prod.yml logs cloud-nginx
 ```
 
-Default credentials:
-- Email: `jmorgan@4wardmotions.com`
-- Password: `g@za8560EYAS`
-
-### User creation fails / Detector won't save
-Ensure you're running the latest images:
+### Health check timeout
+Models take time to load. Wait 2-3 minutes, then check:
 ```powershell
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d --force-recreate
+docker compose -f docker-compose.prod.yml ps
+curl http://localhost/api/health
+curl http://localhost:30101/health
 ```
 
-### Old UI showing after update
-Browser may cache old JavaScript. Fix:
-1. Hard refresh: `Ctrl + Shift + R`
-2. Or open incognito/private window
-3. Or clear browser cache completely
-
-### Verify image versions
+### Rebuild a single service
 ```powershell
-docker images | findstr intellioptics
+docker compose -f docker-compose.prod.yml build cloud-frontend
+docker compose -f docker-compose.prod.yml up -d cloud-frontend
 ```
-
-### Force update to latest images
-```powershell
-docker compose -f docker-compose.prod.yml down
-docker image rm acrintellioptics.azurecr.io/intellioptics/backend:v2.0.3
-docker image rm acrintellioptics.azurecr.io/intellioptics/frontend:v2.0.2
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
-```
-
-## Image Versions
-
-| Image | Version | Registry |
-|-------|---------|----------|
-| backend | v2.0.3 | acrintellioptics.azurecr.io/intellioptics/backend |
-| frontend | v2.0.2 | acrintellioptics.azurecr.io/intellioptics/frontend |
-| worker | v2.0.0 | acrintellioptics.azurecr.io/intellioptics/worker |
-
-## Support
-
-For issues, check:
-- [Deployment Guide](../docs/DEPLOYMENT_GUIDE.md)
-- [Quick Start](../docs/QUICKSTART.md)

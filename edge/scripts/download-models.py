@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 
 
-def download_yolo_model(detector_id: str, model_size: str = "n", base_path: str = "/opt/intellioptics/models"):
+def download_yolo_model(detector_id: str, model_size: str = "n", base_path: str = os.environ.get("MODEL_REPOSITORY", "/models")):
     """
     Download YOLOv8 model and export to ONNX format
 
@@ -64,7 +64,7 @@ def download_yolo_model(detector_id: str, model_size: str = "n", base_path: str 
 
 
 def download_from_url(url: str, detector_id: str, model_type: str = "primary",
-                      base_path: str = "/opt/intellioptics/models"):
+                      base_path: str = os.environ.get("MODEL_REPOSITORY", "/models")):
     """
     Download ONNX model from URL
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
                        help="YOLOv8 model size (n=nano, s=small, m=medium, l=large, x=xlarge)")
     parser.add_argument("--from-url", help="Download from direct URL instead")
     parser.add_argument("--oodd-url", help="URL for OODD model (if different)")
-    parser.add_argument("--base-path", default="/opt/intellioptics/models",
+    parser.add_argument("--base-path", default=os.environ.get("MODEL_REPOSITORY", "/models"),
                        help="Base path for models")
 
     args = parser.parse_args()

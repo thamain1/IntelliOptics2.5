@@ -174,7 +174,7 @@ class ActivityRetriever:
 @lru_cache(maxsize=1)  # Singleton
 def _tracker() -> FilesystemActivityTrackingHelper:
     """Get the activity tracker."""
-    return FilesystemActivityTrackingHelper(base_dir="/opt/intellioptics/device/edge-metrics")
+    return FilesystemActivityTrackingHelper(base_dir=os.environ.get("IO_METRICS_PATH", "/data/metrics"))
 
 
 def record_activity_for_metrics(detector_id: str, activity_type: str):

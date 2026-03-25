@@ -1,0 +1,85 @@
+# IntelliOptics 2.5 - Edge Configuration (Production)
+# Detector-centric configuration with confidence-based escalation
+
+global_config:
+  refresh_rate: 60.0
+  confident_audit_rate: 0.00001
+  central_web_app_url: "http://cloud-backend:8000"
+
+# Edge inference configuration profiles
+edge_inference_configs:
+  default:
+    enabled: true
+    api_token: ${INTELLIOPTICS_API_TOKEN}
+    always_return_edge_prediction: false
+    disable_cloud_escalation: false
+    min_time_between_escalations: 2.0
+
+  offline:
+    enabled: true
+    api_token: ${INTELLIOPTICS_API_TOKEN}
+    always_return_edge_prediction: true
+    disable_cloud_escalation: true
+    min_time_between_escalations: 0
+
+# Detector configurations
+# Add your detectors here. Example:
+detectors: {}
+  # det_example_001:
+  #   detector_id: det_example_001
+  #   name: "Example Detector"
+  #   edge_inference_config: default
+  #   confidence_threshold: 0.85
+  #   patience_time: 30.0
+  #   mode: OPEN_VOCAB
+  #   class_names: ["object"]
+  #   hrm_enabled: false
+
+# RTSP camera streams (empty = no streams)
+streams: {}
+
+# SendGrid email alert configuration
+alerts:
+  sendgrid:
+    enabled: false
+    api_key_env: "SENDGRID_API_KEY"
+    from_email: "alerts@intellioptics.com"
+    reviewer_emails: []
+  confidence_threshold: 0.8
+  batch_size: 10
+  batch_interval_minutes: 15
+
+# Open-vocabulary detection
+open_vocab_config:
+  yoloe_model: "yoloe-v8s-seg.pt"
+  default_confidence: 0.25
+  default_nms_iou: 0.45
+
+# Visual Language Model (Moondream)
+vlm_config:
+  model: "moondream-0.5b"
+  vlm_interval_frames: 15
+  dual_track_enabled: true
+
+# Vehicle identification
+vehicle_id_config:
+  enabled: true
+  detection_prompts: ["vehicle", "car", "truck", "van", "suv", "license plate"]
+  plate_ocr_enabled: true
+  color_query_enabled: true
+  type_query_enabled: true
+
+# Forensic search (BOLO)
+forensic_search_config:
+  enabled: true
+  frame_interval_sec: 1.0
+  confidence_threshold: 0.3
+  max_concurrent_jobs: 2
+  result_storage_path: /data/forensic-results
+
+# Model management
+models:
+  auto_download: true
+  cache_max_models: 5
+  cache_model_versions: 2
+  repository_path: /models

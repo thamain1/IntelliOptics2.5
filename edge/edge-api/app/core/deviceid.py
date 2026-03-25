@@ -20,7 +20,7 @@ from datetime import datetime
 
 from app.core.utils import prefixed_ksuid
 
-WELL_KNOWN_PATH = "/opt/intellioptics/device/"
+WELL_KNOWN_PATH = os.environ.get("IO_DEVICE_PATH", "/data/device")
 DEVICE_ID_FILE = f"{WELL_KNOWN_PATH}/id.json"
 
 logger = logging.getLogger(__name__)
