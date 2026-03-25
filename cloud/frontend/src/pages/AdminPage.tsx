@@ -560,7 +560,7 @@ const AdminPage: React.FC = () => {
               </button>
               {exportResult && (
                 <a
-                  href={`http://localhost:8000${exportResult.download_url}`}
+                  href={`/api${exportResult.download_url}`}
                   className="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded transition"
                   download
                 >

@@ -18,7 +18,7 @@ from PIL import Image
 logger = logging.getLogger(__name__)
 
 # Model path (set via VLM_MODEL_PATH env or Docker volume)
-VLM_MODEL_PATH = os.getenv("VLM_MODEL_PATH", "/vlm-models/moondream-0_5b-int4.mf.gz")
+VLM_MODEL_PATH = os.getenv("VLM_MODEL_PATH", "/vlm-models/moondream-2b-int8.mf.gz")
 
 _vlm_instance: Optional["MoondreamVLM"] = None
 
@@ -37,7 +37,7 @@ class MoondreamVLM:
     """Moondream Visual Language Model for image understanding.
 
     Uses the official moondream pip package (ONNX Runtime backend).
-    Model: moondream-0_5b-int4.mf.gz (~442MB) from vikhyatk/moondream2.
+    Model: moondream-2b-int8.mf.gz (~1.2GB) from vikhyatk/moondream2.
 
     Supports:
     - Visual Q&A (ask questions about an image)

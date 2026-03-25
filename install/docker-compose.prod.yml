@@ -142,7 +142,7 @@ services:
       - IO_NMS_IOU=${IO_NMS_IOU:-0.45}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - YOLOE_MODEL_DIR=/models/yoloworld
-      - VLM_MODEL_PATH=/vlm-models/moondream-0_5b-int4.mf.gz
+      - VLM_MODEL_PATH=/vlm-models/moondream-2b-int8.mf.gz
     volumes:
       - models:/models
       - vlm_models:/vlm-models
@@ -157,15 +157,14 @@ services:
     networks:
       - intellioptics-net
     # ---- GPU SUPPORT ----
-    # Uncomment the block below if you have an NVIDIA GPU with
-    # compute capability >= 7.0 (RTX 2060+, Tesla T4+, etc.)
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    # ONNX Runtime GPU supports compute capability 3.5+ (GTX 900+)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   # ---- EDGE POSTGRES (optional) ----
   # Uncomment if you need a local edge database.

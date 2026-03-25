@@ -31,20 +31,25 @@ RUN pip install --no-cache-dir huggingface_hub
 
 RUN python -c "\
 from huggingface_hub import hf_hub_download; \
-hf_hub_download('vikhyatk/moondream2', 'moondream-0_5b-int4.mf.gz', \
+hf_hub_download('vikhyatk/moondream2', 'moondream-2b-int8.mf.gz', \
     local_dir='/vlm-models', revision='onnx')"
 
-# ── Stage 3: Runtime (lean) ─────────────────────────────────
-FROM python:3.11-slim
+# ── Stage 3: Runtime (GPU-enabled) ────────────────────────────
+# CUDA 12.6 base with cuDNN 9 — supports compute capability 3.5+ (GTX 900+)
+FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
-# Runtime system dependencies only (no build-essential, no git)
+# Install Python 3.11 + runtime system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 python3.11-venv python3-pip \
     curl libgomp1 libgl1 libglib2.0-0 \
+    && ln -sf /usr/bin/python3.11 /usr/bin/python \
+    && ln -sf /usr/bin/python3.11 /usr/bin/python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
