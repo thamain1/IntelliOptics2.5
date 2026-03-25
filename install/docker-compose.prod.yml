@@ -141,6 +141,8 @@ services:
       - IO_CONF_THRESH=${IO_CONF_THRESH:-0.25}
       - IO_NMS_IOU=${IO_NMS_IOU:-0.45}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - YOLOE_MODEL_DIR=/models/yoloworld
+      - VLM_MODEL_PATH=/vlm-models/moondream-0_5b-int4.mf.gz
     volumes:
       - models:/models
       - vlm_models:/vlm-models

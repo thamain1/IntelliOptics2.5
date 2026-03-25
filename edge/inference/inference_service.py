@@ -260,56 +260,8 @@ async def infer(
 
 
 # ====================
-# YOLOWorld Open-Vocabulary Detection
+# YOLOWorld Open-Vocabulary Detection (delegates to YOLOE ONNX)
 # ====================
-
-# YOLOWorld model (lazy loaded)
-yoloworld_model = None
-
-def _get_safe_device():
-    """Return 'cuda' only if GPU compute capability >= 7.0, else 'cpu'."""
-    import torch
-    if torch.cuda.is_available():
-        try:
-            cap = torch.cuda.get_device_capability(0)
-            if cap[0] >= 7:
-                return "cuda"
-            logger.warning(f"GPU compute capability {cap[0]}.{cap[1]} < 7.0. Using CPU.")
-        except Exception:
-            pass
-    return "cpu"
-
-def get_yoloworld_model():
-    """Load YOLOWorld model (lazy initialization)"""
-    global yoloworld_model
-    if yoloworld_model is None:
-        try:
-            import torch
-
-            # Patch torch.load to use weights_only=False for ultralytics models
-            # This is needed for PyTorch 2.6+ compatibility with older model weights
-            original_torch_load = torch.load
-
-            def patched_torch_load(*args, **kwargs):
-                kwargs['weights_only'] = False
-                return original_torch_load(*args, **kwargs)
-
-            torch.load = patched_torch_load
-
-            from ultralytics import YOLO
-            device = _get_safe_device()
-            logger.info(f"Loading YOLOWorld model on {device} (downloading if needed)...")
-            yoloworld_model = YOLO("yolov8s-world.pt")
-            yoloworld_model.to(device)
-            logger.info("YOLOWorld model loaded successfully")
-
-            # Restore original torch.load
-            torch.load = original_torch_load
-        except Exception as e:
-            logger.error(f"Failed to load YOLOWorld model: {e}")
-            raise
-    return yoloworld_model
-
 
 @app.post("/yoloworld")
 async def yoloworld_inference(
@@ -317,80 +269,34 @@ async def yoloworld_inference(
     prompts: str = Query(..., description="Comma-separated list of objects to detect")
 ):
     """
-    Run YOLOWorld open-vocabulary detection.
-
-    Args:
-        image: Image file to analyze
-        prompts: Comma-separated list of things to detect (e.g., "person, car, fire")
-
-    Returns:
-        - detections: List of detected objects with labels and confidence
+    Run YOLOWorld open-vocabulary detection (delegates to YOLOE ONNX model).
+    Kept for backwards compatibility — identical to /yoloe.
     """
+    import time
     try:
-        # Parse prompts
         prompt_list = [p.strip() for p in prompts.split(',') if p.strip()]
         if not prompt_list:
             raise HTTPException(status_code=400, detail="No valid prompts provided")
 
-        logger.info(f"YOLOWorld inference with prompts: {prompt_list}")
+        logger.info(f"YOLOWorld inference (via YOLOE ONNX) with prompts: {prompt_list}")
 
-        # Load model
-        model = get_yoloworld_model()
-
-        # Set the classes to detect
-        model.set_classes(prompt_list)
-
-        # Read image
+        model = get_yoloe()
         image_bytes = await image.read()
 
-        # Save to temp file (ultralytics requires file path or numpy array)
-        import tempfile
-        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
-            tmp.write(image_bytes)
-            tmp_path = tmp.name
+        pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image_np = np.array(pil_image)
 
-        try:
-            # Run inference
-            results = model.predict(tmp_path, conf=CONF_THRESH, iou=NMS_IOU, verbose=False, device=_get_safe_device())
+        start = time.perf_counter()
+        detections = model.detect(image_np, prompt_list, conf=CONF_THRESH, iou=NMS_IOU)
+        latency_ms = (time.perf_counter() - start) * 1000
 
-            # Parse results
-            detections = []
-            for result in results:
-                orig_h, orig_w = result.orig_shape  # (height, width)
-                boxes = result.boxes
-                if boxes is not None:
-                    for i in range(len(boxes)):
-                        box = boxes[i]
-                        cls_id = int(box.cls[0])
-                        conf = float(box.conf[0])
-                        xyxy = box.xyxy[0].tolist()
+        logger.info(f"YOLOWorld detected {len(detections)} objects via YOLOE ONNX")
 
-                        # Get class name from prompt list
-                        label = prompt_list[cls_id] if cls_id < len(prompt_list) else f"class_{cls_id}"
-
-                        # Normalize bbox to 0-1 range for frontend overlay
-                        detections.append({
-                            "label": label,
-                            "confidence": conf,
-                            "bbox": [
-                                xyxy[0] / orig_w,
-                                xyxy[1] / orig_h,
-                                xyxy[2] / orig_w,
-                                xyxy[3] / orig_h,
-                            ]
-                        })
-
-            logger.info(f"YOLOWorld detected {len(detections)} objects")
-
-            return JSONResponse({
-                "detections": detections,
-                "prompts_used": prompt_list
-            })
-
-        finally:
-            # Clean up temp file
-            import os
-            os.unlink(tmp_path)
+        return JSONResponse({
+            "detections": [d.to_normalized(pil_image.width, pil_image.height) for d in detections],
+            "prompts_used": prompt_list,
+            "latency_ms": int(latency_ms),
+        })
 
     except HTTPException:
         raise
@@ -597,7 +503,6 @@ async def health_check():
     return {
         "status": "healthy",
         "cached_models": len(model_cache),
-        "yoloworld_loaded": yoloworld_model is not None,
         "yoloe_loaded": yoloe_instance is not None,
         "vlm_loaded": vlm_instance is not None,
     }
