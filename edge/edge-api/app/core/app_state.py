@@ -1,0 +1,196 @@
+import logging
+import os
+import time
+from functools import lru_cache
+
+import cachetools
+import yaml
+from fastapi import Request
+
+# IntelliOptics SDK import (optional - for cloud integration)
+try:
+    from intellioptics import IntelliOptics
+    from model import Detector
+    INTELLIOPTICS_SDK_AVAILABLE = True
+except ImportError:
+    INTELLIOPTICS_SDK_AVAILABLE = False
+    IntelliOptics = None  # Placeholder
+    Detector = None  # Placeholder
+    logging.warning("IntelliOptics SDK not available. Cloud integration features will be disabled.")
+
+from .configs import EdgeInferenceConfig, RootEdgeConfig
+from .database import DatabaseManager
+from .edge_inference import EdgeInferenceManager
+from .file_paths import DEFAULT_EDGE_CONFIG_PATH
+from .utils import TimestampedCache, safe_call_sdk
+
+logger = logging.getLogger(__name__)
+
+MAX_SDK_INSTANCES_CACHE_SIZE = 1000
+MAX_DETECTOR_IDS_CACHE_SIZE = 1000
+STALE_METADATA_THRESHOLD_SEC = 30  # 30 seconds
+
+
+def load_edge_config() -> RootEdgeConfig:
+    """
+    Reads the edge config from the EDGE_CONFIG environment variable if it exists.
+    If EDGE_CONFIG is not set, reads the default edge config file.
+    """
+    yaml_config = os.environ.get("EDGE_CONFIG", "").strip()
+    if yaml_config:
+        return _load_config_from_yaml(yaml_config)
+
+    logger.warning("EDGE_CONFIG environment variable not set. Checking default locations.")
+
+    if os.path.exists(DEFAULT_EDGE_CONFIG_PATH):
+        logger.info(f"Loading edge config from {DEFAULT_EDGE_CONFIG_PATH}")
+        with open(DEFAULT_EDGE_CONFIG_PATH, "r") as f:
+            return _load_config_from_yaml(f)
+
+    raise FileNotFoundError(f"Could not find edge config file in default location: {DEFAULT_EDGE_CONFIG_PATH}")
+
+
+def _load_config_from_yaml(yaml_config) -> RootEdgeConfig:
+    """
+    Creates a `RootEdgeConfig` from the config yaml. Raises an error if there are duplicate detector ids.
+    """
+    config = yaml.safe_load(yaml_config)
+
+    detectors = config.get("detectors", {})
+    streams = config.get("streams", {})
+
+    # Handle both dict and list formats for detectors
+    if isinstance(detectors, dict):
+        # Detectors already in dict format
+        detector_ids = list(detectors.keys())
+    else:
+        # Detectors in list format - convert to dict
+        detector_ids = [det["detector_id"] for det in detectors]
+        # Check for duplicate detector IDs
+        if len(detector_ids) != len(set(detector_ids)):
+            raise ValueError("Duplicate detector IDs found in the configuration. Each detector should only have one entry.")
+        config["detectors"] = {det["detector_id"]: det for det in detectors}
+
+    # Handle both dict and list formats for streams
+    if isinstance(streams, dict):
+        # Streams already in dict format
+        pass
+    else:
+        # Streams in list format - convert to dict
+        config["streams"] = {stream["name"]: stream for stream in streams}
+
+    return RootEdgeConfig(**config)
+
+
+def get_detector_inference_configs(
+    root_edge_config: RootEdgeConfig,
+) -> dict[str, EdgeInferenceConfig] | None:
+    """
+    Produces a dict mapping detector IDs to their associated `EdgeInferenceConfig`.
+    Returns None if there are no detectors in the config file.
+    """
+    # Mapping of config names to EdgeInferenceConfig objects
+    edge_inference_configs: dict[str, EdgeInferenceConfig] = root_edge_config.edge_inference_configs
+
+    # Filter out detectors whose ID's are empty strings
+    detectors = {det_id: detector for det_id, detector in root_edge_config.detectors.items() if det_id != ""}
+
+    detector_to_inference_config: dict[str, EdgeInferenceConfig] | None = None
+    if detectors:
+        detector_to_inference_config = {
+            detector_id: edge_inference_configs[detector_config.edge_inference_config]
+            for detector_id, detector_config in detectors.items()
+        }
+
+    return detector_to_inference_config
+
+
+@lru_cache(maxsize=MAX_SDK_INSTANCES_CACHE_SIZE)
+def _get_intellioptics_sdk_instance_internal(api_token: str):
+    if not INTELLIOPTICS_SDK_AVAILABLE:
+        raise RuntimeError("IntelliOptics SDK is not available. Cloud integration features are disabled.")
+    return IntelliOptics(api_token=api_token)
+
+
+def get_intellioptics_sdk_instance(request: Request):
+    """
+    Returns a (cached) IntelliOptics SDK instance given an API token.
+    The SDK handles validation of the API token token itself, so there's no
+    need to do that here.
+
+    Raises RuntimeError if IntelliOptics SDK is not available.
+    """
+    if not INTELLIOPTICS_SDK_AVAILABLE:
+        raise RuntimeError("IntelliOptics SDK is not available. Cloud integration features are disabled.")
+    api_token = request.headers.get("x-api-token")
+    return _get_intellioptics_sdk_instance_internal(api_token)
+
+
+def refresh_detector_metadata_if_needed(detector_id: str, io: IntelliOptics) -> None:
+    """
+    Check if detector metadata needs refreshing based on age of cached value and refresh it if it's too old.
+    If the refresh fails, the stale cached metadata is restored.
+
+    Does nothing if IntelliOptics SDK is not available.
+    """
+    if not INTELLIOPTICS_SDK_AVAILABLE:
+        logger.warning(f"Cannot refresh detector metadata for {detector_id=} - IntelliOptics SDK is not available.")
+        return
+
+    metadata_cache: TimestampedCache = get_detector_metadata.cache
+    cached_value_timestamp = metadata_cache.get_timestamp(detector_id)
+    if cached_value_timestamp is not None:
+        cached_value_age = time.monotonic() - cached_value_timestamp
+        if cached_value_age > STALE_METADATA_THRESHOLD_SEC:
+            logger.info(f"Detector metadata for {detector_id=} is stale. Attempting to refresh...")
+            metadata_cache.suspend_cached_value(detector_id)
+
+            try:
+                # Repopulate the cache with fresh metadata
+                get_detector_metadata(detector_id=detector_id, io=io)
+                metadata_cache.delete_suspended_value(detector_id)
+                logger.info(f"Detector metadata for {detector_id=} refreshed successfully.")
+            except KeyError:
+                # This shouldn't happen, but if we fail to delete the suspended value we don't want to try to restore it
+                logger.warning(
+                    f"After fetching new metadata, did not successfully delete suspended value for {detector_id=}. "
+                    "This is unexpected."
+                )
+            except Exception as e:
+                logger.error(
+                    f"Failed to refresh detector metadata for {detector_id=}: {e}. Restoring stale cached metadata."
+                )
+                metadata_cache.restore_suspended_value(detector_id)
+
+
+@cachetools.cached(
+    cache=TimestampedCache(maxsize=MAX_DETECTOR_IDS_CACHE_SIZE),
+    key=lambda detector_id, io: detector_id,
+)
+def get_detector_metadata(detector_id: str, io: IntelliOptics) -> Detector:
+    """
+    Returns detector metadata from the IntelliOptics API.
+    Caches the result so that we don't have to make an expensive API call every time.
+
+    Raises RuntimeError if IntelliOptics SDK is not available.
+    """
+    if not INTELLIOPTICS_SDK_AVAILABLE:
+        raise RuntimeError("IntelliOptics SDK is not available. Cannot fetch detector metadata from cloud.")
+    detector = safe_call_sdk(io.get_detector, id=detector_id)
+    return detector
+
+
+class AppState:
+    def __init__(self):
+        self.edge_config = load_edge_config()
+        detector_inference_configs = get_detector_inference_configs(root_edge_config=self.edge_config)
+        self.edge_inference_manager = EdgeInferenceManager(detector_inference_configs=detector_inference_configs)
+        self.db_manager = DatabaseManager()
+        self.stream_configs = self.edge_config.streams
+        self.is_ready = False
+
+
+def get_app_state(request: Request) -> AppState:
+    if not hasattr(request.app.state, "app_state"):
+        raise RuntimeError("App state is not initialized.")
+    return request.app.state.app_state

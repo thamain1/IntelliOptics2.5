@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IntelliOptics Alert</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a2e;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1a2e; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="500" cellpadding="0" cellspacing="0" style="background-color: #16213e; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
+                    <!-- Header with Logo -->
+                    <tr>
+                        <td align="center" style="padding: 30px 20px 20px 20px;">
+                            <img src="{{ logo_url }}" alt="IntelliOptics" style="height: 40px; margin-bottom: 15px;" onerror="this.style.display='none'">
+                            <div style="display: inline-block; background-color: #0066cc; color: white; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; letter-spacing: 1px;">
+                                INTELLIOPTICS ALERT
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Alert Title -->
+                    <tr>
+                        <td align="center" style="padding: 10px 20px 20px 20px;">
+                            <h1 style="color: #ffffff; font-size: 22px; font-weight: 600; margin: 0;">
+                                {{ alert_title }}
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- Detection Image -->
+                    {% if image_url %}
+                    <tr>
+                        <td align="center" style="padding: 0 20px 20px 20px;">
+                            <img src="{{ image_url }}" alt="Detection Image" style="max-width: 100%; border-radius: 8px; border: 1px solid #2d3748;">
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- Alert Details -->
+                    <tr>
+                        <td style="padding: 0 20px 25px 20px;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                {% if location %}
+                                <tr>
+                                    <td style="color: #a0aec0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748;">
+                                        <strong>Location</strong>
+                                    </td>
+                                    <td style="color: #e2e8f0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748; text-align: right;">
+                                        {{ location }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+
+                                {% if detector_name %}
+                                <tr>
+                                    <td style="color: #a0aec0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748;">
+                                        <strong>Detector</strong>
+                                    </td>
+                                    <td style="color: #e2e8f0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748; text-align: right;">
+                                        {{ detector_name }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+
+                                {% if detection_label %}
+                                <tr>
+                                    <td style="color: #a0aec0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748;">
+                                        <strong>Detection</strong>
+                                    </td>
+                                    <td style="color: #e2e8f0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748; text-align: right;">
+                                        {{ detection_label }}{% if confidence %} ({{ confidence }}% confidence){% endif %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+
+                                {% if camera_name %}
+                                <tr>
+                                    <td style="color: #a0aec0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748;">
+                                        <strong>Camera</strong>
+                                    </td>
+                                    <td style="color: #e2e8f0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748; text-align: right;">
+                                        {{ camera_name }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+
+                                <tr>
+                                    <td style="color: #a0aec0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748;">
+                                        <strong>Time</strong>
+                                    </td>
+                                    <td style="color: #e2e8f0; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #2d3748; text-align: right;">
+                                        {{ timestamp }}
+                                    </td>
+                                </tr>
+
+                                {% if query_id %}
+                                <tr>
+                                    <td style="color: #a0aec0; font-size: 14px; padding: 8px 0;">
+                                        <strong>Image Query ID</strong>
+                                    </td>
+                                    <td style="color: #718096; font-size: 12px; padding: 8px 0; text-align: right; font-family: monospace;">
+                                        {{ query_id }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Custom Message -->
+                    {% if custom_message %}
+                    <tr>
+                        <td style="padding: 0 20px 25px 20px;">
+                            <div style="background-color: #1a202c; border-radius: 8px; padding: 15px; color: #e2e8f0; font-size: 14px; line-height: 1.5;">
+                                {{ custom_message }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- Severity Badge -->
+                    <tr>
+                        <td align="center" style="padding: 0 20px 25px 20px;">
+                            {% if severity == 'critical' %}
+                            <span style="background-color: #c53030; color: white; padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+                                Critical Alert
+                            </span>
+                            {% elif severity == 'warning' %}
+                            <span style="background-color: #d69e2e; color: white; padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+                                Warning Alert
+                            </span>
+                            {% else %}
+                            <span style="background-color: #3182ce; color: white; padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+                                Info Alert
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="padding: 20px; background-color: #0f172a; border-top: 1px solid #2d3748;">
+                            <p style="color: #718096; font-size: 12px; margin: 0;">
+                                This alert was generated by IntelliOptics AI Vision Platform
+                            </p>
+                            <p style="color: #4a5568; font-size: 11px; margin: 8px 0 0 0;">
+                                Powered by 4wardmotion Solutions, Inc
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

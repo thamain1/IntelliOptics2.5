@@ -1,0 +1,145 @@
+# IntelliOptics 2.0 - Edge Configuration
+# Detector-centric configuration with confidence-based escalation
+
+global_config:
+  # Model update check interval (seconds)
+  refresh_rate: 60.0
+
+  # Random audit rate for high-confidence results (for model improvement)
+  confident_audit_rate: 0.00001  # 0.001% of confident results sent to cloud for audit
+
+  # Central web app endpoint for escalations
+  central_web_app_url: "https://central-web-app.example.com"
+
+# Edge inference configurations (profiles)
+edge_inference_configs:
+  # Default: Edge-first with cloud escalation
+  default:
+    enabled: true
+    api_token: ${INTELLIOPTICS_API_TOKEN}
+    always_return_edge_prediction: false
+    disable_cloud_escalation: false
+    min_time_between_escalations: 2.0  # Cooldown between escalations (seconds)
+
+  # Offline: No cloud escalation, always return edge result
+  offline:
+    enabled: true
+    api_token: ${INTELLIOPTICS_API_TOKEN}
+    always_return_edge_prediction: true
+    disable_cloud_escalation: true
+    min_time_between_escalations: 0
+
+  # Aggressive: Lower threshold for escalation
+  aggressive:
+    enabled: true
+    api_token: ${INTELLIOPTICS_API_TOKEN}
+    always_return_edge_prediction: false
+    disable_cloud_escalation: false
+    min_time_between_escalations: 0.5
+
+# Detector configurations
+# Each detector controls AI engagement via confidence thresholds and OODD ground truth
+detectors:
+  # Test detector (matches /opt/intellioptics/models/det_test_001/)
+  det_test_001:
+    detector_id: det_test_001
+    name: "Test Detector - Binary Classification"
+    edge_inference_config: default
+    confidence_threshold: 0.85  # Escalate if confidence < 0.85
+    patience_time: 30.0
+    mode: BINARY  # BINARY, MULTICLASS, COUNTING, BOUNDING_BOX, TEXT
+    class_names: ["pass", "fail"]
+    hrm_enabled: false  # Set to true when HRM Phase 2 is ready
+
+  # Example: Binary quality inspection detector
+  det_quality_check_001:
+    detector_id: det_quality_check_001
+    name: "Quality Check - Main Line"
+    edge_inference_config: default
+    confidence_threshold: 0.85  # Escalate if confidence < 0.85
+    patience_time: 30.0
+    mode: BINARY  # BINARY, MULTICLASS, COUNTING, BOUNDING_BOX, TEXT
+    class_names: ["pass", "defect"]
+    hrm_enabled: false  # Set to true when HRM Phase 2 is ready
+
+  # Example: Multiclass defect type detector
+  det_defect_classifier_002:
+    detector_id: det_defect_classifier_002
+    name: "Defect Type Classifier"
+    edge_inference_config: default
+    confidence_threshold: 0.90
+    patience_time: 30.0
+    mode: MULTICLASS
+    class_names: ["crack", "scratch", "discoloration", "dent", "good"]
+    hrm_enabled: false
+
+  # Example: Offline-capable detector (no cloud dependency)
+  det_offline_003:
+    detector_id: det_offline_003
+    name: "Offline Quality Check"
+    edge_inference_config: offline
+    confidence_threshold: 0.80
+    patience_time: 15.0
+    mode: BINARY
+    class_names: ["pass", "fail"]
+    hrm_enabled: false
+
+# RTSP camera streams configuration
+# Uncomment and configure streams when real cameras are available
+# See docs for full example configs with camera health monitoring
+streams: {}
+
+# SendGrid email alert configuration
+alerts:
+  sendgrid:
+    enabled: true
+    api_key_env: "SENDGRID_API_KEY"
+    from_email: "alerts@intellioptics.com"
+    reviewer_emails:
+      - "reviewer1@company.com"
+      - "reviewer2@company.com"
+
+  # Alert thresholds
+  confidence_threshold: 0.8  # Send alert if confidence < 0.8
+  batch_size: 10  # Batch alerts (send every 10 escalations)
+  batch_interval_minutes: 15  # Or send every 15 minutes
+
+# Open-vocabulary detection configuration
+open_vocab_config:
+  yoloe_model: "yoloe-v8s-seg.pt"
+  default_confidence: 0.25
+  default_nms_iou: 0.45
+
+# VLM (Visual Language Model) configuration
+vlm_config:
+  model: "moondream-0.5b"  # or "moondream-2b" for higher accuracy
+  vlm_interval_frames: 15   # Run VLM every N frames in dual-track mode
+  dual_track_enabled: true   # Enable YOLOE fast + VLM smart dual-track
+
+# Vehicle identification configuration
+vehicle_id_config:
+  enabled: true
+  detection_prompts: ["vehicle", "car", "truck", "van", "suv", "license plate"]
+  plate_ocr_enabled: true
+  color_query_enabled: true
+  type_query_enabled: true
+
+# Forensic search (BOLO) configuration
+forensic_search_config:
+  enabled: true
+  frame_interval_sec: 1.0       # Extract frames at 1 second intervals
+  confidence_threshold: 0.3     # YOLOE confidence threshold for candidate frames
+  max_concurrent_jobs: 2        # Max parallel search jobs
+  result_storage_path: /data/forensic-results
+
+# Model management
+models:
+  # Automatic model download from central web app
+  auto_download: true
+
+  # Model caching strategy
+  cache_max_models: 5  # Keep up to 5 models in memory (LRU)
+  cache_model_versions: 2  # Keep latest 2 versions per detector
+
+  # Model repository path (mounted volume)
+  repository_path: /models

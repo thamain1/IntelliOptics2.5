@@ -1,0 +1,30 @@
+# Camera Inspection Worker Dockerfile
+# Optimized for ARM64 (Raspberry Pi) and AMD64
+
+FROM python:3.11-slim
+
+# Install system dependencies for OpenCV
+RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install dependencies
+COPY requirements-camera-inspection.txt .
+RUN pip install --no-cache-dir -r requirements-camera-inspection.txt
+
+# Copy worker code
+COPY camera_inspection_worker.py .
+
+# Copy .env file if exists (optional)
+COPY .env* ./ 2>/dev/null || true
+
+# Run worker
+CMD ["python", "camera_inspection_worker.py"]

@@ -1,0 +1,94 @@
+version: '3.8'
+
+# IntelliOptics 2.0 - Central Web Application
+# Human escalation, detector management, and model retraining
+
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: intellioptics-cloud-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - cloud-net
+
+  backend:
+    build: ./backend
+    container_name: intellioptics-cloud-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    environment:
+      - SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL:-alerts@intellioptics.com}
+      - BLOB_CONTAINER_NAME=${BLOB_CONTAINER_NAME:-images}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - APP_ENV=testing
+      - YOLOWORLD_WORKER_URL=http://host.docker.internal:8001/yoloworld
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - cloud-net
+
+  frontend:
+    build: ./frontend
+    container_name: intellioptics-cloud-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://backend:8000
+      - REACT_APP_WS_URL=ws://backend:8000/ws
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - cloud-net
+
+  worker:
+    build: ./worker
+    container_name: intellioptics-cloud-worker
+    env_file:
+      - ./.env
+    environment:
+      - MODEL_URL=${MODEL_URL}
+      - QUEUE_IN=image-queries
+      - QUEUE_OUT=inference-results
+      - POSTGRES_DSN=${POSTGRES_DSN}  # Supabase PostgreSQL from .env
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    networks:
+      - cloud-net
+    # Uncomment for GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # postgres: removed — using Supabase PostgreSQL (see .env POSTGRES_DSN)
+
+volumes:
+  nginx_logs:
+    driver: local
+
+networks:
+  cloud-net:
+    driver: bridge
+    name: intellioptics-cloud-network

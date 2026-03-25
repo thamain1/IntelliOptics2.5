@@ -1,0 +1,1303 @@
+{
+    "openapi":  "3.1.0",
+    "info":  {
+                 "title":  "IntelliOptics Backend",
+                 "version":  "0.3.2"
+             },
+    "paths":  {
+                  "/v1/status":  {
+                                     "get":  {
+                                                 "summary":  "V1 Status",
+                                                 "operationId":  "v1_status_v1_status_get",
+                                                 "responses":  {
+                                                                   "200":  {
+                                                                               "description":  "Successful Response",
+                                                                               "content":  {
+                                                                                               "application/json":  "@{schema=}"
+                                                                                           }
+                                                                           }
+                                                               }
+                                             }
+                                 },
+                  "/v1/detectors":  {
+                                        "post":  {
+                                                     "tags":  [
+                                                                  "Detectors"
+                                                              ],
+                                                     "summary":  "Create Detector",
+                                                     "operationId":  "create_detector_v1_detectors_post",
+                                                     "parameters":  [
+                                                                        {
+                                                                            "name":  "authorization",
+                                                                            "in":  "header",
+                                                                            "required":  false,
+                                                                            "schema":  {
+                                                                                           "anyOf":  " ",
+                                                                                           "title":  "Authorization"
+                                                                                       }
+                                                                        }
+                                                                    ],
+                                                     "requestBody":  {
+                                                                         "required":  true,
+                                                                         "content":  {
+                                                                                         "application/json":  {
+                                                                                                                  "schema":  "@{$ref=#/components/schemas/DetectorCreate}"
+                                                                                                              }
+                                                                                     }
+                                                                     },
+                                                     "responses":  {
+                                                                       "200":  {
+                                                                                   "description":  "Successful Response",
+                                                                                   "content":  {
+                                                                                                   "application/json":  "@{schema=}"
+                                                                                               }
+                                                                               },
+                                                                       "422":  {
+                                                                                   "description":  "Validation Error",
+                                                                                   "content":  {
+                                                                                                   "application/json":  "@{schema=}"
+                                                                                               }
+                                                                               }
+                                                                   }
+                                                 },
+                                        "get":  {
+                                                    "tags":  [
+                                                                 "Detectors"
+                                                             ],
+                                                    "summary":  "List Detectors",
+                                                    "operationId":  "list_detectors_v1_detectors_get",
+                                                    "parameters":  [
+                                                                       {
+                                                                           "name":  "limit",
+                                                                           "in":  "query",
+                                                                           "required":  false,
+                                                                           "schema":  {
+                                                                                          "type":  "integer",
+                                                                                          "maximum":  200,
+                                                                                          "minimum":  1,
+                                                                                          "default":  50,
+                                                                                          "title":  "Limit"
+                                                                                      }
+                                                                       },
+                                                                       {
+                                                                           "name":  "offset",
+                                                                           "in":  "query",
+                                                                           "required":  false,
+                                                                           "schema":  {
+                                                                                          "type":  "integer",
+                                                                                          "minimum":  0,
+                                                                                          "default":  0,
+                                                                                          "title":  "Offset"
+                                                                                      }
+                                                                       },
+                                                                       {
+                                                                           "name":  "q",
+                                                                           "in":  "query",
+                                                                           "required":  false,
+                                                                           "schema":  {
+                                                                                          "anyOf":  " ",
+                                                                                          "description":  "search in name or group",
+                                                                                          "title":  "Q"
+                                                                                      },
+                                                                           "description":  "search in name or group"
+                                                                       },
+                                                                       {
+                                                                           "name":  "group",
+                                                                           "in":  "query",
+                                                                           "required":  false,
+                                                                           "schema":  {
+                                                                                          "anyOf":  " ",
+                                                                                          "title":  "Group"
+                                                                                      }
+                                                                       },
+                                                                       {
+                                                                           "name":  "mode",
+                                                                           "in":  "query",
+                                                                           "required":  false,
+                                                                           "schema":  {
+                                                                                          "anyOf":  " ",
+                                                                                          "title":  "Mode"
+                                                                                      }
+                                                                       },
+                                                                       {
+                                                                           "name":  "status",
+                                                                           "in":  "query",
+                                                                           "required":  false,
+                                                                           "schema":  {
+                                                                                          "anyOf":  " ",
+                                                                                          "title":  "Status"
+                                                                                      }
+                                                                       },
+                                                                       {
+                                                                           "name":  "authorization",
+                                                                           "in":  "header",
+                                                                           "required":  false,
+                                                                           "schema":  {
+                                                                                          "anyOf":  " ",
+                                                                                          "title":  "Authorization"
+                                                                                      }
+                                                                       }
+                                                                   ],
+                                                    "responses":  {
+                                                                      "200":  {
+                                                                                  "description":  "Successful Response",
+                                                                                  "content":  {
+                                                                                                  "application/json":  "@{schema=}"
+                                                                                              }
+                                                                              },
+                                                                      "422":  {
+                                                                                  "description":  "Validation Error",
+                                                                                  "content":  {
+                                                                                                  "application/json":  "@{schema=}"
+                                                                                              }
+                                                                              }
+                                                                  }
+                                                }
+                                    },
+                  "/v1/detectors/{detector_id}":  {
+                                                      "get":  {
+                                                                  "tags":  [
+                                                                               "Detectors"
+                                                                           ],
+                                                                  "summary":  "Get Detector",
+                                                                  "operationId":  "get_detector_v1_detectors__detector_id__get",
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "detector_id",
+                                                                                         "in":  "path",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "string",
+                                                                                                        "description":  "Detector UUID",
+                                                                                                        "title":  "Detector Id"
+                                                                                                    },
+                                                                                         "description":  "Detector UUID"
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "authorization",
+                                                                                         "in":  "header",
+                                                                                         "required":  false,
+                                                                                         "schema":  {
+                                                                                                        "anyOf":  " ",
+                                                                                                        "title":  "Authorization"
+                                                                                                    }
+                                                                                     }
+                                                                                 ],
+                                                                  "responses":  {
+                                                                                    "200":  {
+                                                                                                "description":  "Successful Response",
+                                                                                                "content":  {
+                                                                                                                "application/json":  "@{schema=}"
+                                                                                                            }
+                                                                                            },
+                                                                                    "422":  {
+                                                                                                "description":  "Validation Error",
+                                                                                                "content":  {
+                                                                                                                "application/json":  "@{schema=}"
+                                                                                                            }
+                                                                                            }
+                                                                                }
+                                                              },
+                                                      "patch":  {
+                                                                    "tags":  [
+                                                                                 "Detectors"
+                                                                             ],
+                                                                    "summary":  "Patch Detector",
+                                                                    "operationId":  "patch_detector_v1_detectors__detector_id__patch",
+                                                                    "parameters":  [
+                                                                                       {
+                                                                                           "name":  "detector_id",
+                                                                                           "in":  "path",
+                                                                                           "required":  true,
+                                                                                           "schema":  {
+                                                                                                          "type":  "string",
+                                                                                                          "title":  "Detector Id"
+                                                                                                      }
+                                                                                       },
+                                                                                       {
+                                                                                           "name":  "authorization",
+                                                                                           "in":  "header",
+                                                                                           "required":  false,
+                                                                                           "schema":  {
+                                                                                                          "anyOf":  " ",
+                                                                                                          "title":  "Authorization"
+                                                                                                      }
+                                                                                       }
+                                                                                   ],
+                                                                    "requestBody":  {
+                                                                                        "required":  true,
+                                                                                        "content":  {
+                                                                                                        "application/json":  {
+                                                                                                                                 "schema":  "@{type=object; additionalProperties=True; title=Patch}"
+                                                                                                                             }
+                                                                                                    }
+                                                                                    },
+                                                                    "responses":  {
+                                                                                      "200":  {
+                                                                                                  "description":  "Successful Response",
+                                                                                                  "content":  {
+                                                                                                                  "application/json":  "@{schema=}"
+                                                                                                              }
+                                                                                              },
+                                                                                      "422":  {
+                                                                                                  "description":  "Validation Error",
+                                                                                                  "content":  {
+                                                                                                                  "application/json":  "@{schema=}"
+                                                                                                              }
+                                                                                              }
+                                                                                  }
+                                                                },
+                                                      "delete":  {
+                                                                     "tags":  [
+                                                                                  "Detectors"
+                                                                              ],
+                                                                     "summary":  "Delete Detector",
+                                                                     "operationId":  "delete_detector_v1_detectors__detector_id__delete",
+                                                                     "parameters":  [
+                                                                                        {
+                                                                                            "name":  "detector_id",
+                                                                                            "in":  "path",
+                                                                                            "required":  true,
+                                                                                            "schema":  {
+                                                                                                           "type":  "string",
+                                                                                                           "title":  "Detector Id"
+                                                                                                       }
+                                                                                        },
+                                                                                        {
+                                                                                            "name":  "authorization",
+                                                                                            "in":  "header",
+                                                                                            "required":  false,
+                                                                                            "schema":  {
+                                                                                                           "anyOf":  " ",
+                                                                                                           "title":  "Authorization"
+                                                                                                       }
+                                                                                        }
+                                                                                    ],
+                                                                     "responses":  {
+                                                                                       "200":  {
+                                                                                                   "description":  "Successful Response",
+                                                                                                   "content":  {
+                                                                                                                   "application/json":  "@{schema=}"
+                                                                                                               }
+                                                                                               },
+                                                                                       "422":  {
+                                                                                                   "description":  "Validation Error",
+                                                                                                   "content":  {
+                                                                                                                   "application/json":  "@{schema=}"
+                                                                                                               }
+                                                                                               }
+                                                                                   }
+                                                                 }
+                                                  },
+                  "/v1/detectors/{detector_id}/metrics":  {
+                                                              "get":  {
+                                                                          "tags":  [
+                                                                                       "Detectors"
+                                                                                   ],
+                                                                          "summary":  "Detector Metrics",
+                                                                          "operationId":  "detector_metrics_v1_detectors__detector_id__metrics_get",
+                                                                          "parameters":  [
+                                                                                             {
+                                                                                                 "name":  "detector_id",
+                                                                                                 "in":  "path",
+                                                                                                 "required":  true,
+                                                                                                 "schema":  {
+                                                                                                                "type":  "string",
+                                                                                                                "title":  "Detector Id"
+                                                                                                            }
+                                                                                             },
+                                                                                             {
+                                                                                                 "name":  "bins",
+                                                                                                 "in":  "query",
+                                                                                                 "required":  false,
+                                                                                                 "schema":  {
+                                                                                                                "type":  "integer",
+                                                                                                                "maximum":  100,
+                                                                                                                "minimum":  5,
+                                                                                                                "default":  20,
+                                                                                                                "title":  "Bins"
+                                                                                                            }
+                                                                                             },
+                                                                                             {
+                                                                                                 "name":  "authorization",
+                                                                                                 "in":  "header",
+                                                                                                 "required":  false,
+                                                                                                 "schema":  {
+                                                                                                                "anyOf":  " ",
+                                                                                                                "title":  "Authorization"
+                                                                                                            }
+                                                                                             }
+                                                                                         ],
+                                                                          "responses":  {
+                                                                                            "200":  {
+                                                                                                        "description":  "Successful Response",
+                                                                                                        "content":  {
+                                                                                                                        "application/json":  "@{schema=}"
+                                                                                                                    }
+                                                                                                    },
+                                                                                            "422":  {
+                                                                                                        "description":  "Validation Error",
+                                                                                                        "content":  {
+                                                                                                                        "application/json":  "@{schema=}"
+                                                                                                                    }
+                                                                                                    }
+                                                                                        }
+                                                                      }
+                                                          },
+                  "/v1/detectors/{detector_id}/examples":  {
+                                                               "get":  {
+                                                                           "tags":  [
+                                                                                        "Detectors"
+                                                                                    ],
+                                                                           "summary":  "Detector Examples",
+                                                                           "operationId":  "detector_examples_v1_detectors__detector_id__examples_get",
+                                                                           "parameters":  [
+                                                                                              {
+                                                                                                  "name":  "detector_id",
+                                                                                                  "in":  "path",
+                                                                                                  "required":  true,
+                                                                                                  "schema":  {
+                                                                                                                 "type":  "string",
+                                                                                                                 "title":  "Detector Id"
+                                                                                                             }
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "answer",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "anyOf":  " ",
+                                                                                                                 "description":  "Filter by answer: YES|NO|UNCLEAR|\u003cempty for unlabeled\u003e",
+                                                                                                                 "title":  "Answer"
+                                                                                                             },
+                                                                                                  "description":  "Filter by answer: YES|NO|UNCLEAR|\u003cempty for unlabeled\u003e"
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "status",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "anyOf":  " ",
+                                                                                                                 "description":  "Filter by status (e.g., pending,labeled)",
+                                                                                                                 "title":  "Status"
+                                                                                                             },
+                                                                                                  "description":  "Filter by status (e.g., pending,labeled)"
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "min_conf",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "anyOf":  " ",
+                                                                                                                 "description":  "first_confidence \u003e= min_conf",
+                                                                                                                 "title":  "Min Conf"
+                                                                                                             },
+                                                                                                  "description":  "first_confidence \u003e= min_conf"
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "max_conf",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "anyOf":  " ",
+                                                                                                                 "description":  "first_confidence \u003c= max_conf",
+                                                                                                                 "title":  "Max Conf"
+                                                                                                             },
+                                                                                                  "description":  "first_confidence \u003c= max_conf"
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "since",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "anyOf":  " ",
+                                                                                                                 "title":  "Since"
+                                                                                                             }
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "until",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "anyOf":  " ",
+                                                                                                                 "title":  "Until"
+                                                                                                             }
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "sort",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "type":  "string",
+                                                                                                                 "pattern":  "^(recent|low_conf)$",
+                                                                                                                 "default":  "recent",
+                                                                                                                 "title":  "Sort"
+                                                                                                             }
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "limit",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "type":  "integer",
+                                                                                                                 "maximum":  100,
+                                                                                                                 "minimum":  1,
+                                                                                                                 "default":  12,
+                                                                                                                 "title":  "Limit"
+                                                                                                             }
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "offset",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "type":  "integer",
+                                                                                                                 "minimum":  0,
+                                                                                                                 "default":  0,
+                                                                                                                 "title":  "Offset"
+                                                                                                             }
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "with_empty",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "type":  "boolean",
+                                                                                                                 "description":  "If true, include rows with neither image_uri nor blob_url",
+                                                                                                                 "default":  false,
+                                                                                                                 "title":  "With Empty"
+                                                                                                             },
+                                                                                                  "description":  "If true, include rows with neither image_uri nor blob_url"
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "web_only",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "type":  "boolean",
+                                                                                                                 "description":  "If true (default), only return previews with http(s) URIs",
+                                                                                                                 "default":  true,
+                                                                                                                 "title":  "Web Only"
+                                                                                                             },
+                                                                                                  "description":  "If true (default), only return previews with http(s) URIs"
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "authorization",
+                                                                                                  "in":  "header",
+                                                                                                  "required":  false,
+                                                                                                  "schema":  {
+                                                                                                                 "anyOf":  " ",
+                                                                                                                 "title":  "Authorization"
+                                                                                                             }
+                                                                                              }
+                                                                                          ],
+                                                                           "responses":  {
+                                                                                             "200":  {
+                                                                                                         "description":  "Successful Response",
+                                                                                                         "content":  {
+                                                                                                                         "application/json":  "@{schema=}"
+                                                                                                                     }
+                                                                                                     },
+                                                                                             "422":  {
+                                                                                                         "description":  "Validation Error",
+                                                                                                         "content":  {
+                                                                                                                         "application/json":  "@{schema=}"
+                                                                                                                     }
+                                                                                                     }
+                                                                                         }
+                                                                       }
+                                                           },
+                  "/v1/image-queries":  {
+                                            "post":  {
+                                                         "tags":  [
+                                                                      "ImageQueries"
+                                                                  ],
+                                                         "summary":  "Create Image Query",
+                                                         "operationId":  "create_image_query_v1_image_queries_post",
+                                                         "parameters":  [
+                                                                            {
+                                                                                "name":  "authorization",
+                                                                                "in":  "header",
+                                                                                "required":  false,
+                                                                                "schema":  {
+                                                                                               "anyOf":  " ",
+                                                                                               "title":  "Authorization"
+                                                                                           }
+                                                                            }
+                                                                        ],
+                                                         "requestBody":  {
+                                                                             "required":  true,
+                                                                             "content":  {
+                                                                                             "application/json":  {
+                                                                                                                      "schema":  "@{$ref=#/components/schemas/ImageQueryCreate}"
+                                                                                                                  }
+                                                                                         }
+                                                                         },
+                                                         "responses":  {
+                                                                           "200":  {
+                                                                                       "description":  "Successful Response",
+                                                                                       "content":  {
+                                                                                                       "application/json":  "@{schema=}"
+                                                                                                   }
+                                                                                   },
+                                                                           "422":  {
+                                                                                       "description":  "Validation Error",
+                                                                                       "content":  {
+                                                                                                       "application/json":  "@{schema=}"
+                                                                                                   }
+                                                                                   }
+                                                                       }
+                                                     },
+                                            "get":  {
+                                                        "tags":  [
+                                                                     "ImageQueries"
+                                                                 ],
+                                                        "summary":  "List Image Queries",
+                                                        "operationId":  "list_image_queries_v1_image_queries_get",
+                                                        "parameters":  [
+                                                                           {
+                                                                               "name":  "detector_id",
+                                                                               "in":  "query",
+                                                                               "required":  false,
+                                                                               "schema":  {
+                                                                                              "anyOf":  " ",
+                                                                                              "description":  "Filter by detector UUID",
+                                                                                              "title":  "Detector Id"
+                                                                                          },
+                                                                               "description":  "Filter by detector UUID"
+                                                                           },
+                                                                           {
+                                                                               "name":  "status",
+                                                                               "in":  "query",
+                                                                               "required":  false,
+                                                                               "schema":  {
+                                                                                              "anyOf":  " ",
+                                                                                              "description":  "Filter by status (e.g., pending, labeled)",
+                                                                                              "title":  "Status"
+                                                                                          },
+                                                                               "description":  "Filter by status (e.g., pending, labeled)"
+                                                                           },
+                                                                           {
+                                                                               "name":  "since",
+                                                                               "in":  "query",
+                                                                               "required":  false,
+                                                                               "schema":  {
+                                                                                              "anyOf":  " ",
+                                                                                              "description":  "Filter ts \u003e= since (ISO 8601)",
+                                                                                              "title":  "Since"
+                                                                                          },
+                                                                               "description":  "Filter ts \u003e= since (ISO 8601)"
+                                                                           },
+                                                                           {
+                                                                               "name":  "until",
+                                                                               "in":  "query",
+                                                                               "required":  false,
+                                                                               "schema":  {
+                                                                                              "anyOf":  " ",
+                                                                                              "description":  "Filter ts \u003c until (ISO 8601)",
+                                                                                              "title":  "Until"
+                                                                                          },
+                                                                               "description":  "Filter ts \u003c until (ISO 8601)"
+                                                                           },
+                                                                           {
+                                                                               "name":  "limit",
+                                                                               "in":  "query",
+                                                                               "required":  false,
+                                                                               "schema":  {
+                                                                                              "type":  "integer",
+                                                                                              "maximum":  200,
+                                                                                              "minimum":  1,
+                                                                                              "default":  50,
+                                                                                              "title":  "Limit"
+                                                                                          }
+                                                                           },
+                                                                           {
+                                                                               "name":  "offset",
+                                                                               "in":  "query",
+                                                                               "required":  false,
+                                                                               "schema":  {
+                                                                                              "type":  "integer",
+                                                                                              "minimum":  0,
+                                                                                              "default":  0,
+                                                                                              "title":  "Offset"
+                                                                                          }
+                                                                           },
+                                                                           {
+                                                                               "name":  "sort",
+                                                                               "in":  "query",
+                                                                               "required":  false,
+                                                                               "schema":  {
+                                                                                              "type":  "string",
+                                                                                              "pattern":  "^(asc|desc)$",
+                                                                                              "default":  "desc",
+                                                                                              "title":  "Sort"
+                                                                                          }
+                                                                           },
+                                                                           {
+                                                                               "name":  "authorization",
+                                                                               "in":  "header",
+                                                                               "required":  false,
+                                                                               "schema":  {
+                                                                                              "anyOf":  " ",
+                                                                                              "title":  "Authorization"
+                                                                                          }
+                                                                           }
+                                                                       ],
+                                                        "responses":  {
+                                                                          "200":  {
+                                                                                      "description":  "Successful Response",
+                                                                                      "content":  {
+                                                                                                      "application/json":  "@{schema=}"
+                                                                                                  }
+                                                                                  },
+                                                                          "422":  {
+                                                                                      "description":  "Validation Error",
+                                                                                      "content":  {
+                                                                                                      "application/json":  "@{schema=}"
+                                                                                                  }
+                                                                                  }
+                                                                      }
+                                                    }
+                                        },
+                  "/v1/image-queries/{image_query_id}":  {
+                                                             "get":  {
+                                                                         "tags":  [
+                                                                                      "ImageQueries"
+                                                                                  ],
+                                                                         "summary":  "Get Image Query",
+                                                                         "operationId":  "get_image_query_v1_image_queries__image_query_id__get",
+                                                                         "parameters":  [
+                                                                                            {
+                                                                                                "name":  "image_query_id",
+                                                                                                "in":  "path",
+                                                                                                "required":  true,
+                                                                                                "schema":  {
+                                                                                                               "type":  "string",
+                                                                                                               "title":  "Image Query Id"
+                                                                                                           }
+                                                                                            },
+                                                                                            {
+                                                                                                "name":  "authorization",
+                                                                                                "in":  "header",
+                                                                                                "required":  false,
+                                                                                                "schema":  {
+                                                                                                               "anyOf":  " ",
+                                                                                                               "title":  "Authorization"
+                                                                                                           }
+                                                                                            }
+                                                                                        ],
+                                                                         "responses":  {
+                                                                                           "200":  {
+                                                                                                       "description":  "Successful Response",
+                                                                                                       "content":  {
+                                                                                                                       "application/json":  "@{schema=}"
+                                                                                                                   }
+                                                                                                   },
+                                                                                           "422":  {
+                                                                                                       "description":  "Validation Error",
+                                                                                                       "content":  {
+                                                                                                                       "application/json":  "@{schema=}"
+                                                                                                                   }
+                                                                                                   }
+                                                                                       }
+                                                                     }
+                                                         },
+                  "/v1/email/send":  {
+                                         "post":  {
+                                                      "tags":  [
+                                                                   "email"
+                                                               ],
+                                                      "summary":  "Send Email",
+                                                      "description":  "Send an email alert. Prefers SendGrid Web API with inline images (CID).\nLayout shows only the centered query pill above the image (no large headline).",
+                                                      "operationId":  "send_email_v1_email_send_post",
+                                                      "requestBody":  {
+                                                                          "content":  {
+                                                                                          "application/json":  {
+                                                                                                                   "schema":  "@{$ref=#/components/schemas/EmailSendRequest}"
+                                                                                                               }
+                                                                                      },
+                                                                          "required":  true
+                                                                      },
+                                                      "responses":  {
+                                                                        "200":  {
+                                                                                    "description":  "Successful Response",
+                                                                                    "content":  {
+                                                                                                    "application/json":  "@{schema=}"
+                                                                                                }
+                                                                                },
+                                                                        "422":  {
+                                                                                    "description":  "Validation Error",
+                                                                                    "content":  {
+                                                                                                    "application/json":  "@{schema=}"
+                                                                                                }
+                                                                                }
+                                                                    }
+                                                  }
+                                     },
+                  "/v1/alerts/events/recent":  {
+                                                   "get":  {
+                                                               "tags":  [
+                                                                            "Alerts"
+                                                                        ],
+                                                               "summary":  "Alerts Recent",
+                                                               "operationId":  "alerts_recent_v1_alerts_events_recent_get",
+                                                               "parameters":  [
+                                                                                  {
+                                                                                      "name":  "detector_id",
+                                                                                      "in":  "query",
+                                                                                      "required":  false,
+                                                                                      "schema":  {
+                                                                                                     "anyOf":  " ",
+                                                                                                     "title":  "Detector Id"
+                                                                                                 }
+                                                                                  },
+                                                                                  {
+                                                                                      "name":  "limit",
+                                                                                      "in":  "query",
+                                                                                      "required":  false,
+                                                                                      "schema":  {
+                                                                                                     "type":  "integer",
+                                                                                                     "maximum":  100,
+                                                                                                     "minimum":  1,
+                                                                                                     "default":  10,
+                                                                                                     "title":  "Limit"
+                                                                                                 }
+                                                                                  }
+                                                                              ],
+                                                               "responses":  {
+                                                                                 "200":  {
+                                                                                             "description":  "Successful Response",
+                                                                                             "content":  {
+                                                                                                             "application/json":  "@{schema=}"
+                                                                                                         }
+                                                                                         },
+                                                                                 "422":  {
+                                                                                             "description":  "Validation Error",
+                                                                                             "content":  {
+                                                                                                             "application/json":  "@{schema=}"
+                                                                                                         }
+                                                                                         }
+                                                                             }
+                                                           }
+                                               },
+                  "/v1/alerts/simulate":  {
+                                              "post":  {
+                                                           "tags":  [
+                                                                        "Alerts"
+                                                                    ],
+                                                           "summary":  "Alerts Simulate",
+                                                           "operationId":  "alerts_simulate_v1_alerts_simulate_post",
+                                                           "requestBody":  {
+                                                                               "content":  {
+                                                                                               "application/json":  {
+                                                                                                                        "schema":  "@{$ref=#/components/schemas/AlertSimulateIn}"
+                                                                                                                    }
+                                                                                           },
+                                                                               "required":  true
+                                                                           },
+                                                           "responses":  {
+                                                                             "200":  {
+                                                                                         "description":  "Successful Response",
+                                                                                         "content":  {
+                                                                                                         "application/json":  "@{schema=}"
+                                                                                                     }
+                                                                                     },
+                                                                             "422":  {
+                                                                                         "description":  "Validation Error",
+                                                                                         "content":  {
+                                                                                                         "application/json":  "@{schema=}"
+                                                                                                     }
+                                                                                     }
+                                                                         }
+                                                       }
+                                          },
+                  "/__db_ping__":  {
+                                       "get":  {
+                                                   "summary":  "Db Ping",
+                                                   "operationId":  "db_ping___db_ping___get",
+                                                   "responses":  {
+                                                                     "200":  {
+                                                                                 "description":  "Successful Response",
+                                                                                 "content":  {
+                                                                                                 "application/json":  "@{schema=}"
+                                                                                             }
+                                                                             }
+                                                                 }
+                                               }
+                                   },
+                  "/__db_schema__":  {
+                                         "get":  {
+                                                     "summary":  "Db Schema",
+                                                     "operationId":  "db_schema___db_schema___get",
+                                                     "responses":  {
+                                                                       "200":  {
+                                                                                   "description":  "Successful Response",
+                                                                                   "content":  {
+                                                                                                   "application/json":  "@{schema=}"
+                                                                                               }
+                                                                               }
+                                                                   }
+                                                 }
+                                     },
+                  "/":  {
+                            "get":  {
+                                        "summary":  "Root",
+                                        "operationId":  "root__get",
+                                        "responses":  {
+                                                          "200":  {
+                                                                      "description":  "Successful Response",
+                                                                      "content":  {
+                                                                                      "application/json":  "@{schema=}"
+                                                                                  }
+                                                                  }
+                                                      }
+                                    }
+                        },
+                  "/__routes__":  {
+                                      "get":  {
+                                                  "summary":  "  Routes  ",
+                                                  "operationId":  "__routes_____routes___get",
+                                                  "responses":  {
+                                                                    "200":  {
+                                                                                "description":  "Successful Response",
+                                                                                "content":  {
+                                                                                                "application/json":  "@{schema=}"
+                                                                                            }
+                                                                            }
+                                                                }
+                                              }
+                                  }
+              },
+    "components":  {
+                       "schemas":  {
+                                       "AlertSimulateIn":  {
+                                                               "properties":  {
+                                                                                  "detector_id":  {
+                                                                                                      "type":  "string",
+                                                                                                      "title":  "Detector Id"
+                                                                                                  },
+                                                                                  "image_query_id":  {
+                                                                                                         "anyOf":  [
+                                                                                                                       "@{type=string}",
+                                                                                                                       "@{type=null}"
+                                                                                                                   ],
+                                                                                                         "title":  "Image Query Id"
+                                                                                                     },
+                                                                                  "answer":  {
+                                                                                                 "type":  "string",
+                                                                                                 "title":  "Answer",
+                                                                                                 "description":  "YES|NO|UNCLEAR"
+                                                                                             },
+                                                                                  "confidence":  {
+                                                                                                     "anyOf":  [
+                                                                                                                   "@{type=number}",
+                                                                                                                   "@{type=null}"
+                                                                                                               ],
+                                                                                                     "title":  "Confidence"
+                                                                                                 },
+                                                                                  "count":  {
+                                                                                                "anyOf":  [
+                                                                                                              "@{type=number}",
+                                                                                                              "@{type=null}"
+                                                                                                          ],
+                                                                                                "title":  "Count"
+                                                                                            },
+                                                                                  "query_text":  {
+                                                                                                     "anyOf":  [
+                                                                                                                   "@{type=string}",
+                                                                                                                   "@{type=null}"
+                                                                                                               ],
+                                                                                                     "title":  "Query Text"
+                                                                                                 },
+                                                                                  "public_url":  {
+                                                                                                     "anyOf":  [
+                                                                                                                   "@{type=string}",
+                                                                                                                   "@{type=null}"
+                                                                                                               ],
+                                                                                                     "title":  "Public Url"
+                                                                                                 },
+                                                                                  "snapshot_url":  {
+                                                                                                       "anyOf":  [
+                                                                                                                     "@{type=string}",
+                                                                                                                     "@{type=null}"
+                                                                                                                 ],
+                                                                                                       "title":  "Snapshot Url"
+                                                                                                   },
+                                                                                  "extra":  {
+                                                                                                "anyOf":  [
+                                                                                                              "@{additionalProperties=True; type=object}",
+                                                                                                              "@{type=null}"
+                                                                                                          ],
+                                                                                                "title":  "Extra"
+                                                                                            }
+                                                                              },
+                                                               "type":  "object",
+                                                               "required":  [
+                                                                                "detector_id",
+                                                                                "answer"
+                                                                            ],
+                                                               "title":  "AlertSimulateIn"
+                                                           },
+                                       "DetectorCreate":  {
+                                                              "properties":  {
+                                                                                 "id":  {
+                                                                                            "anyOf":  [
+                                                                                                          "@{type=string}",
+                                                                                                          "@{type=null}"
+                                                                                                      ],
+                                                                                            "title":  "Id",
+                                                                                            "description":  "UUID string; generated if omitted"
+                                                                                        },
+                                                                                 "org_id":  {
+                                                                                                "anyOf":  [
+                                                                                                              "@{type=string}",
+                                                                                                              "@{type=null}"
+                                                                                                          ],
+                                                                                                "title":  "Org Id"
+                                                                                            },
+                                                                                 "name":  {
+                                                                                              "type":  "string",
+                                                                                              "title":  "Name"
+                                                                                          },
+                                                                                 "query_type":  {
+                                                                                                    "anyOf":  [
+                                                                                                                  "@{type=string}",
+                                                                                                                  "@{type=null}"
+                                                                                                              ],
+                                                                                                    "title":  "Query Type",
+                                                                                                    "description":  "binary|count|custom",
+                                                                                                    "default":  "binary"
+                                                                                                },
+                                                                                 "query_text":  {
+                                                                                                    "anyOf":  [
+                                                                                                                  "@{type=string}",
+                                                                                                                  "@{type=null}"
+                                                                                                              ],
+                                                                                                    "title":  "Query Text"
+                                                                                                },
+                                                                                 "mode":  {
+                                                                                              "anyOf":  [
+                                                                                                            "@{type=string}",
+                                                                                                            "@{type=null}"
+                                                                                                        ],
+                                                                                              "title":  "Mode",
+                                                                                              "default":  "presence"
+                                                                                          },
+                                                                                 "threshold":  {
+                                                                                                   "anyOf":  [
+                                                                                                                 "@{type=number}",
+                                                                                                                 "@{type=null}"
+                                                                                                             ],
+                                                                                                   "title":  "Threshold",
+                                                                                                   "default":  0.75
+                                                                                               },
+                                                                                 "group":  {
+                                                                                               "anyOf":  [
+                                                                                                             "@{type=string}",
+                                                                                                             "@{type=null}"
+                                                                                                         ],
+                                                                                               "title":  "Group"
+                                                                                           },
+                                                                                 "status":  {
+                                                                                                "anyOf":  [
+                                                                                                              "@{type=string}",
+                                                                                                              "@{type=null}"
+                                                                                                          ],
+                                                                                                "title":  "Status",
+                                                                                                "default":  "active"
+                                                                                            },
+                                                                                 "created_by":  {
+                                                                                                    "anyOf":  [
+                                                                                                                  "@{type=string}",
+                                                                                                                  "@{type=null}"
+                                                                                                              ],
+                                                                                                    "title":  "Created By"
+                                                                                                }
+                                                                             },
+                                                              "type":  "object",
+                                                              "required":  [
+                                                                               "name"
+                                                                           ],
+                                                              "title":  "DetectorCreate"
+                                                          },
+                                       "DetectorOut":  {
+                                                           "properties":  {
+                                                                              "id":  {
+                                                                                         "type":  "string",
+                                                                                         "title":  "Id"
+                                                                                     },
+                                                                              "org_id":  {
+                                                                                             "anyOf":  [
+                                                                                                           "@{type=string}",
+                                                                                                           "@{type=null}"
+                                                                                                       ],
+                                                                                             "title":  "Org Id"
+                                                                                         },
+                                                                              "name":  {
+                                                                                           "type":  "string",
+                                                                                           "title":  "Name"
+                                                                                       },
+                                                                              "query_type":  {
+                                                                                                 "anyOf":  [
+                                                                                                               "@{type=string}",
+                                                                                                               "@{type=null}"
+                                                                                                           ],
+                                                                                                 "title":  "Query Type"
+                                                                                             },
+                                                                              "query_text":  {
+                                                                                                 "anyOf":  [
+                                                                                                               "@{type=string}",
+                                                                                                               "@{type=null}"
+                                                                                                           ],
+                                                                                                 "title":  "Query Text"
+                                                                                             },
+                                                                              "mode":  {
+                                                                                           "anyOf":  [
+                                                                                                         "@{type=string}",
+                                                                                                         "@{type=null}"
+                                                                                                     ],
+                                                                                           "title":  "Mode"
+                                                                                       },
+                                                                              "threshold":  {
+                                                                                                "anyOf":  [
+                                                                                                              "@{type=number}",
+                                                                                                              "@{type=null}"
+                                                                                                          ],
+                                                                                                "title":  "Threshold"
+                                                                                            },
+                                                                              "group":  {
+                                                                                            "anyOf":  [
+                                                                                                          "@{type=string}",
+                                                                                                          "@{type=null}"
+                                                                                                      ],
+                                                                                            "title":  "Group"
+                                                                                        },
+                                                                              "status":  {
+                                                                                             "anyOf":  [
+                                                                                                           "@{type=string}",
+                                                                                                           "@{type=null}"
+                                                                                                       ],
+                                                                                             "title":  "Status"
+                                                                                         },
+                                                                              "created_by":  {
+                                                                                                 "anyOf":  [
+                                                                                                               "@{type=string}",
+                                                                                                               "@{type=null}"
+                                                                                                           ],
+                                                                                                 "title":  "Created By"
+                                                                                             },
+                                                                              "created_at":  {
+                                                                                                 "type":  "string",
+                                                                                                 "format":  "date-time",
+                                                                                                 "title":  "Created At"
+                                                                                             }
+                                                                          },
+                                                           "type":  "object",
+                                                           "required":  [
+                                                                            "id",
+                                                                            "name",
+                                                                            "created_at"
+                                                                        ],
+                                                           "title":  "DetectorOut"
+                                                       },
+                                       "EmailSendRequest":  {
+                                                                "properties":  {
+                                                                                   "to":  {
+                                                                                              "items":  {
+                                                                                                            "type":  "string"
+                                                                                                        },
+                                                                                              "type":  "array",
+                                                                                              "title":  "To",
+                                                                                              "description":  "List of recipient emails"
+                                                                                          },
+                                                                                   "subject":  {
+                                                                                                   "type":  "string",
+                                                                                                   "title":  "Subject",
+                                                                                                   "description":  "Email subject"
+                                                                                               },
+                                                                                   "detector_id":  {
+                                                                                                       "type":  "string",
+                                                                                                       "title":  "Detector Id",
+                                                                                                       "description":  "Detector ID"
+                                                                                                   },
+                                                                                   "query_text":  {
+                                                                                                      "type":  "string",
+                                                                                                      "title":  "Query Text",
+                                                                                                      "description":  "Detector query text"
+                                                                                                  },
+                                                                                   "answer":  {
+                                                                                                  "type":  "string",
+                                                                                                  "title":  "Answer",
+                                                                                                  "description":  "Answer label such as YES/NO/COUNT"
+                                                                                              },
+                                                                                   "consecutive":  {
+                                                                                                       "anyOf":  [
+                                                                                                                     "@{type=integer}",
+                                                                                                                     "@{type=null}"
+                                                                                                                 ],
+                                                                                                       "title":  "Consecutive",
+                                                                                                       "description":  "Streak count if applicable"
+                                                                                                   },
+                                                                                   "snapshot_url":  {
+                                                                                                        "anyOf":  [
+                                                                                                                      "@{type=string; maxLength=2083; minLength=1; format=uri}",
+                                                                                                                      "@{type=null}"
+                                                                                                                  ],
+                                                                                                        "title":  "Snapshot Url",
+                                                                                                        "description":  "SAS or public URL to snapshot image"
+                                                                                                    },
+                                                                                   "extra":  {
+                                                                                                 "anyOf":  [
+                                                                                                               "@{additionalProperties=True; type=object}",
+                                                                                                               "@{type=null}"
+                                                                                                           ],
+                                                                                                 "title":  "Extra"
+                                                                                             }
+                                                                               },
+                                                                "type":  "object",
+                                                                "required":  [
+                                                                                 "to",
+                                                                                 "subject",
+                                                                                 "detector_id",
+                                                                                 "query_text",
+                                                                                 "answer"
+                                                                             ],
+                                                                "title":  "EmailSendRequest"
+                                                            },
+                                       "HTTPValidationError":  {
+                                                                   "properties":  {
+                                                                                      "detail":  {
+                                                                                                     "items":  {
+                                                                                                                   "$ref":  "#/components/schemas/ValidationError"
+                                                                                                               },
+                                                                                                     "type":  "array",
+                                                                                                     "title":  "Detail"
+                                                                                                 }
+                                                                                  },
+                                                                   "type":  "object",
+                                                                   "title":  "HTTPValidationError"
+                                                               },
+                                       "ImageQueryCreate":  {
+                                                                "properties":  {
+                                                                                   "detector_id":  {
+                                                                                                       "type":  "string",
+                                                                                                       "title":  "Detector Id"
+                                                                                                   },
+                                                                                   "image_uri":  {
+                                                                                                     "anyOf":  [
+                                                                                                                   "@{type=string}",
+                                                                                                                   "@{type=null}"
+                                                                                                               ],
+                                                                                                     "title":  "Image Uri",
+                                                                                                     "description":  "HTTP(S) URL or storage URI"
+                                                                                                 }
+                                                                               },
+                                                                "type":  "object",
+                                                                "required":  [
+                                                                                 "detector_id"
+                                                                             ],
+                                                                "title":  "ImageQueryCreate"
+                                                            },
+                                       "ImageQueryOut":  {
+                                                             "properties":  {
+                                                                                "id":  {
+                                                                                           "type":  "string",
+                                                                                           "title":  "Id"
+                                                                                       },
+                                                                                "detector_id":  {
+                                                                                                    "type":  "string",
+                                                                                                    "title":  "Detector Id"
+                                                                                                },
+                                                                                "image_uri":  {
+                                                                                                  "anyOf":  [
+                                                                                                                "@{type=string}",
+                                                                                                                "@{type=null}"
+                                                                                                            ],
+                                                                                                  "title":  "Image Uri"
+                                                                                              },
+                                                                                "ts":  {
+                                                                                           "type":  "string",
+                                                                                           "format":  "date-time",
+                                                                                           "title":  "Ts"
+                                                                                       },
+                                                                                "first_confidence":  {
+                                                                                                         "anyOf":  [
+                                                                                                                       "@{type=number}",
+                                                                                                                       "@{type=null}"
+                                                                                                                   ],
+                                                                                                         "title":  "First Confidence"
+                                                                                                     },
+                                                                                "answer":  {
+                                                                                               "anyOf":  [
+                                                                                                             "@{type=string}",
+                                                                                                             "@{type=null}"
+                                                                                                         ],
+                                                                                               "title":  "Answer"
+                                                                                           },
+                                                                                "labeler_type":  {
+                                                                                                     "anyOf":  [
+                                                                                                                   "@{type=string}",
+                                                                                                                   "@{type=null}"
+                                                                                                               ],
+                                                                                                     "title":  "Labeler Type"
+                                                                                                 },
+                                                                                "latency_ms":  {
+                                                                                                   "anyOf":  [
+                                                                                                                 "@{type=integer}",
+                                                                                                                 "@{type=null}"
+                                                                                                             ],
+                                                                                                   "title":  "Latency Ms"
+                                                                                               },
+                                                                                "model_version":  {
+                                                                                                      "anyOf":  [
+                                                                                                                    "@{type=string}",
+                                                                                                                    "@{type=null}"
+                                                                                                                ],
+                                                                                                      "title":  "Model Version"
+                                                                                                  },
+                                                                                "status":  {
+                                                                                               "anyOf":  [
+                                                                                                             "@{type=string}",
+                                                                                                             "@{type=null}"
+                                                                                                         ],
+                                                                                               "title":  "Status"
+                                                                                           }
+                                                                            },
+                                                             "type":  "object",
+                                                             "required":  [
+                                                                              "id",
+                                                                              "detector_id",
+                                                                              "ts"
+                                                                          ],
+                                                             "title":  "ImageQueryOut"
+                                                         },
+                                       "ValidationError":  {
+                                                               "properties":  {
+                                                                                  "loc":  {
+                                                                                              "items":  {
+                                                                                                            "anyOf":  " "
+                                                                                                        },
+                                                                                              "type":  "array",
+                                                                                              "title":  "Location"
+                                                                                          },
+                                                                                  "msg":  {
+                                                                                              "type":  "string",
+                                                                                              "title":  "Message"
+                                                                                          },
+                                                                                  "type":  {
+                                                                                               "type":  "string",
+                                                                                               "title":  "Error Type"
+                                                                                           }
+                                                                              },
+                                                               "type":  "object",
+                                                               "required":  [
+                                                                                "loc",
+                                                                                "msg",
+                                                                                "type"
+                                                                            ],
+                                                               "title":  "ValidationError"
+                                                           }
+                                   }
+                   }
+}
+PS C:\intellioptics>

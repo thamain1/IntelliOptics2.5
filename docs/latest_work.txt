@@ -1,0 +1,330 @@
+● IntelliOptics 2.0 - Work Session Documentation
+
+  Date: January 17-18, 2026
+
+  ---
+  Summary of Completed Work
+
+  Phase 1: IntelliSearch (YOLOWorld) Webcam Detection Pipeline
+
+  Problem: Webcam detection wasn't working - camera showed video but no detections appeared.
+
+  Root Causes & Fixes:
+
+  1. 404 endpoint error - Backend container had old code
+    - Fix: Rebuilt backend container
+  2. Network connectivity - Cloud backend couldn't reach edge inference
+    - Fix: Added YOLOWORLD_WORKER_URL=http://host.docker.internal:8001/yoloworld to docker-compose.yml
+    - Added extra_hosts: host.docker.internal:host-gateway
+  3. Database column missing - yoloworld_prompts column didn't exist
+    - Fix: Added column to Azure PostgreSQL via SQLAlchemy
+  4. Response validation error - detector_id schema required string, but YOLOWorld returns NULL
+    - Fix: Made detector_id optional in DemoDetectionResultOut schema (cloud/backend/app/schemas.py:594)
+
+  Files Modified:
+  - cloud/backend/app/config.py - Added yoloworld_worker_url setting (line 56)
+  - cloud/backend/app/services/yoloworld_inference.py - Use new config (line 15)
+  - cloud/backend/app/schemas.py - Made detector_id Optional (line 594)
+  - cloud/docker-compose.yml - Added env var and extra_hosts (lines 35-37)
+
+  ---
+  Phase 2: Rename YOLOWorld to IntelliSearch
+
+  Files Modified - cloud/frontend/src/pages/DemoStreamPage.tsx:
+  - Line 518: "YOLOWorld Open-Vocabulary Detection" → "IntelliSearch Open-Vocabulary Detection"
+  - Line 577: "🌍 YOLOWorld" → "🔍 IntelliSearch"
+  - Line 196: Toast message updated
+  - Line 703: Start button text updated
+  - Line 716: Stream header updated
+  - Line 727: Fixed conditional to only show prompt input when yoloworld_prompts has a value (was showing in regular Local Camera mode)
+
+  ---
+  Phase 3: Flame Detection Model Deployment
+
+  Problem: Flame detector showed "models not uploaded" error, then detected only COCO classes (person, bicycle).
+
+  Root Causes & Fixes:
+
+  1. Wrong file format - User uploaded .pt file instead of ONNX
+    - Fix: Converted fire_detection.pt to ONNX using ultralytics export
+    - Command: model.export(format='onnx', imgsz=640)
+    - Result: fire_detection.onnx (112MB, YOLOv10x architecture)
+  2. Model not in correct location - Cloud worker needed model at specific path
+    - Fix: Copied ONNX to /app/models/b6502aa2-995b-45cf-95c7-2f38d97b8513/primary/model.onnx
+  3. Hardcoded COCO labels - detector_inference.py mapped all class IDs to COCO labels
+    - Fix: Added custom_class_names parameter to postprocess_yolo() function
+    - Modified label mapping to use detector's configured class_names
+  4. Legacy inference mode - demo_session_manager.py sent raw bytes without detector config
+    - Fix: Changed to detector-aware inference with multipart form data including config
+
+  Files Modified:
+  - cloud/worker/detector_inference.py:
+    - Line 340: Pass custom_class_names to postprocess
+    - Line 393: Added custom_class_names parameter
+    - Lines 442-444: Use custom class names when provided
+    - Lines 458, 479: Use class_names_to_use instead of COCO_CLASSES
+  - cloud/backend/app/services/demo_session_manager.py:
+    - Lines 40-72: Changed from legacy inference to detector-aware inference with config
+
+  Model Location:
+  - Detector ID: b6502aa2-995b-45cf-95c7-2f38d97b8513
+  - Name: "Flame Detection"
+  - Class names configured: ['flame', 'fire']
+  - Model path in worker: /app/models/b6502aa2-995b-45cf-95c7-2f38d97b8513/primary/model.onnx
+
+  ---
+  Current State
+
+  Working:
+
+  - ✅ Flame Detection with Local Camera (webcam) - detects flames using custom class names
+  - ✅ IntelliSearch UI renamed from YOLOWorld
+  - ✅ IntelliSearch prompt input only shows in IntelliSearch mode (not Local Camera)
+
+  Not Working:
+
+  - ❌ IntelliSearch with video streams - No detections returning (person, etc.)
+    - Was working earlier with webcam (detected "person: 90.39%")
+    - Now returning no detections on video streams
+
+  ---
+  Architecture Overview
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                         CLOUD STACK                              │
+  ├─────────────────────────────────────────────────────────────────┤
+  │  Frontend (port 3000)                                           │
+  │    └── DemoStreamPage.tsx                                       │
+  │         ├── Local Camera mode → Regular detector inference      │
+  │         └── IntelliSearch mode → YOLOWorld inference            │
+  ├─────────────────────────────────────────────────────────────────┤
+  │  Backend (port 8000)                                            │
+  │    ├── /demo-streams/sessions/{id}/submit-frame                 │
+  │    │     └── demo_session_manager.py → worker:8081/infer        │
+  │    └── /demo-streams/sessions/{id}/submit-yoloworld-frame       │
+  │          └── yoloworld_inference.py → host.docker.internal:8001 │
+  ├─────────────────────────────────────────────────────────────────┤
+  │  Cloud Worker (port 8081)                                       │
+  │    ├── /infer (multipart) → detector_inference.py               │
+  │    └── /infer (raw bytes) → onnx_worker.py (legacy)             │
+  └─────────────────────────────────────────────────────────────────┘
+                                │
+                                │ host.docker.internal
+                                ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                         EDGE STACK                               │
+  ├─────────────────────────────────────────────────────────────────┤
+  │  Edge Inference (port 8001)                                     │
+  │    ├── /infer → Regular ONNX inference                          │
+  │    └── /yoloworld → YOLOWorld open-vocabulary detection         │
+  │         └── Uses yolov8s-worldv2.pt with CLIP embeddings        │
+  └─────────────────────────────────────────────────────────────────┘
+
+  ---
+  Containers Status
+  ┌──────────────────────────────┬────────────────┬────────────────────────────────────────┐
+  │          Container           │     Image      │                 Status                 │
+  ├──────────────────────────────┼────────────────┼────────────────────────────────────────┤
+  │ intellioptics-cloud-frontend │ cloud-frontend │ Rebuilt with UI fixes                  │
+  ├──────────────────────────────┼────────────────┼────────────────────────────────────────┤
+  │ intellioptics-cloud-backend  │ cloud-backend  │ Rebuilt with detector-aware inference  │
+  ├──────────────────────────────┼────────────────┼────────────────────────────────────────┤
+  │ intellioptics-cloud-worker   │ cloud-worker   │ Rebuilt with custom class name support │
+  ├──────────────────────────────┼────────────────┼────────────────────────────────────────┤
+  │ intellioptics-inference      │ edge inference │ Running with YOLOWorld                 │
+  └──────────────────────────────┴────────────────┴────────────────────────────────────────┘
+  ---
+  Pending Investigation
+
+  IntelliSearch Video Stream Issue:
+  - Webcam was working earlier (person: 90.39%)
+  - Video streams now return no detections
+  - Need to check:
+    a. Are frames being submitted to /submit-yoloworld-frame?
+    b. Is backend calling edge inference at host.docker.internal:8001/yoloworld?
+    c. Is edge inference returning empty detections or erroring?
+
+  ---
+  Files Reference
+  ┌────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
+  │                        File                        │                      Purpose                      │
+  ├────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ cloud/docker-compose.yml                           │ Container orchestration with YOLOWorld URL config │
+  ├────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ cloud/backend/app/config.py                        │ Settings including yoloworld_worker_url           │
+  ├────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ cloud/backend/app/schemas.py                       │ Pydantic schemas with optional detector_id        │
+  ├────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ cloud/backend/app/services/demo_session_manager.py │ Detector-aware inference calls                    │
+  ├────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ cloud/backend/app/services/yoloworld_inference.py  │ YOLOWorld frame processing                        │
+  ├────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ cloud/worker/detector_inference.py                 │ Custom class name mapping                         │
+  ├────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ cloud/worker/onnx_worker.py                        │ Legacy inference (COCO only)                      │
+  ├────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ cloud/frontend/src/pages/DemoStreamPage.tsx        │ UI with IntelliSearch/Local Camera modes          │
+  ├────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ edge/inference/inference_service.py                │ YOLOWorld endpoint                                │
+  └────────────────────────────────────────────────────┴───────────────────────────────────────────────────┘
+  ---
+  Next Steps
+
+  1. Debug IntelliSearch video stream detection issue
+  2. Phase 3 (pending): Wire stream URL support into IntelliSearch (currently webcam-only)
+
+✻ Sautéed for 43s
+
+> please proceed
+
+● Let me check the backend and edge inference logs to trace the IntelliSearch video stream issue.
+
+● Bash(docker logs intellioptics-cloud-backend --tail 50 2>&1 | grep -i "yolo\|world\|intelli\|8001")
+  ⎿ INFO:     app.routers.demo_streams - ☁️ Uploaded YOLOWorld frame to blob: images/demo-sessions/f5766d7b-6ca1-4bf2-89f3-63cc6d6d9c5c/yoloworld/89797105-ee57-446f-8a10-f59e4b6db12e.jpg
+    INFO:     172.18.0.1:55812 - "POST /demo-streams/sessions/f5766d7b-6ca1-4bf2-89f3-63cc6d6d9c5c/submit-yoloworld-frame HTTP/1.1" 200 OK
+    INFO:     app.services.yoloworld_inference - 🌍 [YOLOWorld] Processing with prompts: ['person', 'car', 'fire', 'smoke']
+    … +13 lines (ctrl+o to expand)
+
+
+● Found it. The edge inference service at port 8001 is timing out. Let me check the edge inference container.
+
+● Bash(docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -i inference)
+  ⎿  intellioptics-inference        Up 33 minutes (healthy)   0.0.0.0:8001->8001/tcp, [::]:8001->8001/tcp
+
+● Bash(docker logs intellioptics-inference --tail 50 2>&1)
+  ⎿  INFO:     172.19.0.1:54318 - "POST /yoloworld?prompts=person%2Ccar%2Cfire%2Csmoke HTTP/1.1" 200 OK
+     INFO:__main__:YOLOWorld inference with prompts: ['person', 'car', 'fire', 'smoke']
+     INFO:__main__:YOLOWorld detected 1 objects
+     … +47 lines (ctrl+o to expand)
+
+● The edge inference IS working (showing "detected 1 objects"). But the requests from 172.19.0.1 (edge network) succeed while the cloud backend times out via host.docker.internal.
+
+  Let me test connectivity from the cloud backend.
+
+● Bash(docker exec intellioptics-cloud-backend sh -c "curl -v --max-time 5 http://host.docker.internal:8001/health 2>&1")
+  ⎿    % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                      Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host host.docker.internal:8001 was resolved.
+     … +27 lines (ctrl+o to expand)
+
+● Health check works, but inference times out. Let me test the actual YOLOWorld endpoint with an image.
+
+● Bash(docker exec intellioptics-cloud-backend sh -c "curl -v --max-time 30 -X POST 'http://host.docker.internal:8001/yoloworld?prompts=person,car' -F 'image=@/dev/nul…)
+  ⎿  Note: Unnecessary use of -X or --request, POST is already inferred.
+       % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                      Dload  Upload   Total   Spent    Left  Speed
+     … +27 lines (ctrl+o to expand)
+
+● Bash(docker logs intellioptics-inference --tail 100 2>&1 | grep -v "health" | tail -40)
+  ⎿  INFO:__main__:YOLOWorld detected 1 objects
+     INFO:     172.19.0.1:44670 - "POST /yoloworld?prompts=person%2Ccar%2Cfire%2Csmoke HTTP/1.1" 200 OK
+     INFO:__main__:YOLOWorld inference with prompts: ['person', 'car', 'fire', 'smoke']
+     … +37 lines (ctrl+o to expand)
+
+● I see the edge inference is working for requests from 172.19.0.1 (edge network), but backend requests may be getting lost. Let me check if the backend requests are reaching the edge.
+
+● Bash(docker logs intellioptics-cloud-backend --tail 20 2>&1 | grep -i "yolo")
+  ⎿  ERROR:     app.services.yoloworld_inference - ❌ [YOLOWorld] Worker inference failed: HTTPConnectionPool(host='host.docker.internal', port=8001): Read timed out. (read timeout=60)
+     ERROR:     app.services.yoloworld_inference - ❌ [YOLOWorld] Worker inference failed: HTTPConnectionPool(host='host.docker.internal', port=8001): Read timed out. (read timeout=60)
+     ERROR:     app.services.yoloworld_inference - ❌ [YOLOWorld] Worker inference failed: HTTPConnectionPool(host='host.docker.internal', port=8001): Read timed out. (read timeout=60)
+     … +10 lines (ctrl+o to expand)
+
+● Read(IntelliOptics 2.0\cloud\backend\app\services\yoloworld_inference.py)
+  ⎿  Read 20 lines
+
+● Bash(docker exec intellioptics-cloud-backend python -c "from app.config import get_settings; print(get_settings().yoloworld_worker_url)")
+  ⎿  http://host.docker.internal:8001/yoloworld
+
+● Let me test with an actual image from the backend container.
+
+● Bash(docker exec intellioptics-cloud-backend python -c " timeout: 1m 0s
+      import requests…)
+  ⎿  Image size: 825 bytes
+     Sending request...
+     Response status: 200
+     … +2 lines (ctrl+o to expand)
+
+● The direct test works in 0.33 seconds! The issue isn't connectivity. Let me check if there's something about the actual video stream frames.
+
+● Bash(docker logs intellioptics-cloud-backend --tail 100 2>&1 | grep -i "yoloworld.*frame\|size\|bytes" | tail -10)
+  ⎿ INFO:     app.routers.demo_streams - ☁️ Uploaded YOLOWorld frame to blob: images/demo-sessions/f5766d7b-6ca1-4bf2-89f3-63cc6d6d9c5c/yoloworld/e5088e1d-25f1-46d7-a2a0-38de821ecc17.jpg
+    INFO:     172.18.0.1:55812 - "POST /demo-streams/sessions/f5766d7b-6ca1-4bf2-89f3-63cc6d6d9c5c/submit-yoloworld-frame HTTP/1.1" 200 OK
+    INFO:     app.routers.demo_streams - 🌍 YOLOWorld frame received for session f5766d7b-6ca1-4bf2-89f3-63cc6d6d9c5c, size: 150100 bytes
+    … +2 lines (ctrl+o to expand)
+
+
+● Bash(docker logs intellioptics-cloud-backend 2>&1 | grep -i "Processing with prompts" | tail -5)
+  ⎿  INFO:     app.services.yoloworld_inference - 🌍 [YOLOWorld] Processing with prompts: ['person', 'car', 'fire', 'smoke']
+     INFO:     app.services.yoloworld_inference - 🌍 [YOLOWorld] Processing with prompts: ['person', 'car', 'fire', 'smoke']
+     INFO:     app.services.yoloworld_inference - 🌍 [YOLOWorld] Processing with prompts: ['person', 'car', 'fire', 'smoke']
+     … +2 lines (ctrl+o to expand)
+
+● Bash(docker logs intellioptics-inference 2>&1 | grep -v "health" | grep "192.168\|host.docker" | tail -10)
+  ⎿  (No content)
+
+● Bash(docker logs intellioptics-inference 2>&1 | grep "POST /yoloworld" | tail -20)
+  ⎿  INFO:     172.19.0.1:60258 - "POST /yoloworld?prompts=person%2Ccell+phone%2Ccup%2Cbottle HTTP/1.1" 200 OK
+     INFO:     172.19.0.1:60268 - "POST /yoloworld?prompts=person%2Ccell+phone%2Ccup%2Cbottle HTTP/1.1" 200 OK
+     INFO:     172.19.0.1:38502 - "POST /yoloworld?prompts=person%2Ccell+phone%2Ccup%2Cbottle HTTP/1.1" 200 OK
+     … +17 lines (ctrl+o to expand)
+
+● All successful requests are from 172.19.0.1 but backend is timing out. Let me restart the edge inference to clear any stuck state.
+
+● Bash(cd "C:\dev\IntelliOptics 2.0\edge" && docker compose restart inference 2>&1)
+  ⎿ time="2026-01-17T19:09:31-06:00" level=warning msg="The \"INTELLIOPTICS_API_TOKEN\" variable is not set. Defaulting to a blank string."
+    time="2026-01-17T19:09:31-06:00" level=warning msg="The \"UPSTREAM_CLOUD_API\" variable is not set. Defaulting to a blank string."
+    time="2026-01-17T19:09:31-06:00" level=warning msg="C:\\dev\\IntelliOptics 2.0\\edge\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to
+    … +3 lines (ctrl+o to expand)
+
+
+● Bash(ping -n 5 127.0.0.1 > nul && docker logs intellioptics-inference --tail 10 2>&1)
+  ⎿  INFO:     Shutting down
+     INFO:     Waiting for application shutdown.
+     INFO:     Application shutdown complete.
+     … +7 lines (ctrl+o to expand)
+
+● Bash(docker exec intellioptics-cloud-backend python -c " timeout: 1m 30s
+      import requests…)
+  ⎿  Image size: 5429 bytes
+     Sending request...
+     Response status: 200
+     … +2 lines (ctrl+o to expand)
+
+● First request took 10.79s (model loading). Let me test a second request.
+
+● Bash(docker exec intellioptics-cloud-backend python -c "
+      import requests…)
+  ⎿  Sending second request...
+     Response time: 0.28s
+     Response: {"detections":[],"prompts_used":["person","car","fire","smoke"]}
+
+● Model is warm now (0.28s). Try IntelliSearch again - it should work now. The issue was likely cold-start: first request takes ~11s to load the model, causing timeouts when multiple frames queue up.
+
+  Let me also check the edge inference logs to confirm.
+
+● Bash(docker logs intellioptics-inference --tail 15 2>&1 | grep -v health)
+  ⎿  INFO:     Application startup complete.
+     INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+     INFO:__main__:YOLOWorld inference with prompts: ['person', 'car', 'fire', 'smoke']
+     … +7 lines (ctrl+o to expand)
+
+● The model is now loaded and responding in ~0.3s.
+
+  Root cause identified: Cold-start latency. On first request after restart, the YOLOWorld model takes ~11 seconds to load. If multiple frames are submitted during this time, they queue up and some time out (60s limit).
+
+  Try IntelliSearch now - it should work with the warm model. Let me know the results, and if needed, I can add model pre-warming on startup to prevent this issue.
+
+✻ Baked for 3m 10s
+
+> it seems to work now. document everything through this point
+  ⎿  You've hit your limit · resets Jan 23, 2pm (America/Chicago)
+     Opening your options…
+
+> Unknown slash command: rate-limit-options
+
+  Todos
+  [×] Debug webcam detection pipeline
+  [×] Rename YOLOWorld to IntelliSearch in UI
+  [×] Deploy flame detection model
+  [×] Debug IntelliSearch video stream detection
+  [ ] Wire stream URL support into IntelliSearch

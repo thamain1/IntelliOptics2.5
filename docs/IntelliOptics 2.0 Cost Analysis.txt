@@ -1,0 +1,53 @@
+Based on the centralized SaaS architecture we just designed, the cost structure is incredibly efficient because the heavy lifting (inference) is done on the client's hardware, not your
+  cloud.
+
+  Here is the breakdown of your operational costs:
+
+  1. The Marginal Cost (Cost to add "One More Client")
+  This is the direct cost incurred for every new hub you deploy.
+  Estimated Cost: $1.50 - $3.00 per month
+
+   * Compute (Inference): $0.00 (Runs on Client's Edge/Jetson).
+   * Storage (Images): ~$0.10 (Only "Failed/Alert" images are uploaded. Assuming 5GB/mo per client @ $0.02/GB).
+   * Database (Metadata): ~$0.05 (Text rows for logs/heartbeats are tiny).
+   * Bandwidth (Egress): ~$0.50 (Docker updates + Image viewing).
+   * Notifications (SendGrid/Twilio): ~$1.00 (Variable based on alert volume).
+
+  ---
+
+  2. The "Keep the Lights On" Cost (Base Platform)
+  This is your fixed monthly cost to have the Azure environment running, whether you have 1 client or 50.
+
+
+  ┌────────────────────┬─────────────────────────────────────┬─────────────────┐
+  │ Component          │ Service Tier                        │ Monthly Cost    │
+  ├────────────────────┼─────────────────────────────────────┼─────────────────┤
+  │ Database           │ Postgres Flexible (B1ms)            │ ~$25.00         │
+  │ Backend API        │ Container Apps (0.5 vCPU / 1GB RAM) │ ~$25.00         │
+  │ Frontend           │ Static Web Apps (Standard)          │ $9.00           │
+  │ Message Bus        │ Service Bus (Standard)              │ $10.00          │
+  │ Container Registry │ ACR (Basic)                         │ $5.00           │
+  │ Total Fixed Cost   │                                     │ ~$74.00 / month │
+  └────────────────────┴─────────────────────────────────────┴─────────────────┘
+
+
+  Note: If your existing APIM is on the "Consumption" tier, it adds $0 fixed cost. If it's "Developer" or "Basic," add ~$48 or ~$147 to this base.
+
+  ---
+
+  3. Total Cost Analysis (Scale Scenarios)
+  The more clients you add, the cheaper it gets per client (economies of scale).
+
+   * With 1 Client:
+       * Fixed ($74) + Variable ($2) = $76.00 / month (effectively $76/client).
+   * With 10 Clients:
+       * Fixed ($74) + Variable ($20) = $94.00 / month ($9.40/client).
+   * With 100 Clients:
+       * Fixed ($74) + Scale-up API ($25) + Variable ($200) = $299.00 / month ($2.99/client).
+
+  Summary
+  Because you have moved the expensive GPU compute to the Edge, your cloud footprint is essentially just a management dashboard and storage locker.
+
+  Your break-even point is extremely low. If you charge a client $20/month for the service:
+   * You cover your entire Azure bill with just 4 clients.
+   * Every client after #4 is 90% profit margin.

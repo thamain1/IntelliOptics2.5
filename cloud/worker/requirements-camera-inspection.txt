@@ -1,0 +1,18 @@
+# Camera Inspection Worker Requirements
+# CPU-only, Raspberry Pi compatible (no GPU/ML dependencies)
+
+# Core dependencies
+opencv-python-headless==4.8.1.78  # Headless OpenCV (no GUI, smaller size)
+numpy==1.24.3
+scikit-image==0.21.0              # For SSIM calculation
+httpx==0.25.0                     # Async HTTP client
+python-dotenv==1.0.0              # Environment variables
+
+# Email notifications
+sendgrid==6.10.0
+
+# Azure Blob Storage (for baseline images)
+azure-storage-blob==12.19.0
+
+# Optional: Pillow for additional image processing
+Pillow==10.1.0

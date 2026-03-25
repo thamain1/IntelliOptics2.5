@@ -1,0 +1,10 @@
+$ns    = 'io-site-exec-pro-santamonica'
+$user  = '4wardmotion'
+$pass  = 'M1ghty0n3%21'              # encode "!" -> %21
+$host  = 'camera-host'               # <-- replace with your camera’s host/IP
+$path  = 'stream1'                   # <-- replace if different
+$RTSP  = "rtsp://$user:$pass@$host:554/$path"
+
+kubectl -n $ns delete secret edge-rtsp --ignore-not-found
+kubectl -n $ns create secret generic edge-rtsp --from-literal=RTSP_URL="$RTSP"
+kubectl -n $ns get secret edge-rtsp -o jsonpath="{.metadata.name}{': '}{.type}{'\n'}"

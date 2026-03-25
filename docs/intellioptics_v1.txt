@@ -1,0 +1,916 @@
+# -*- coding: utf-8 -*-
+# motion_gateway.py — motion gate → keyframe → (LOCAL YOLO person gate) → Blob → ImageQuery → SB → (YES/CONF gate) → email
+import os
+import sys
+import json
+import subprocess
+import datetime
+import hashlib
+import traceback
+import time
+
+# --- Config from env ---
+RTSP_URL    = os.environ.get("RTSP_URL", "")
+DETECTOR_ID = os.environ.get("DETECTOR_ID", "")
+SITE_CODE   = os.environ.get("SITE_CODE", "exec-pro-santamonica")
+
+API_BASE  = (os.environ.get("API_BASE") or "http://127.0.0.1:18080") + "/v1"
+API_TOKEN = (
+    os.environ.get("API_TOKEN")
+    or os.environ.get("INTELLIOPTICS_API_TOKEN")
+    or ""
+)
+
+SB_CONN = (
+    os.environ.get("AZURE_SERVICE_BUS_CONNECTION_STRING")
+    or os.environ.get("AZURE_SERVICEBUS_CONNECTION_STRING")
+    or os.environ.get("SERVICE_BUS_CONN")
+    or os.environ.get("SB_CONN")
+    or os.environ.get("AZ_SB_CONN_STR")
+    or ""
+)
+
+SB_IMAGE_QUEUE = (
+    os.environ.get("SERVICE_BUS_QUEUE_IMAGE_QUERIES")
+    or os.environ.get("IMAGE_QUERIES_QUEUE")
+    or os.environ.get("SB_IMAGE_QUEUE")
+    or os.environ.get("SB_QUEUE_PUBLISH")
+    or "image-queries.exec-pro-santamonica"
+)
+
+AZ_STORAGE_CONN = os.environ.get("AZURE_STORAGE_CONNECTION_STRING") or ""
+BLOB_CONTAINER  = os.environ.get("BLOB_CONTAINER") or "public"
+
+# Email
+SENDGRID_API_KEY = (
+    os.environ.get("SENDGRID_API_KEY")
+    or os.environ.get("SENDGRID_API_TOKEN")
+    or ""
+)
+
+# Default to BOTH recipients, but allow override via ALERT_EMAIL_TO env var
+ALERT_TO       = os.environ.get(
+    "ALERT_EMAIL_TO",
+    "jmorgan@4wardmotions.com,jmireles@execproinc.com",
+)
+ALERT_FROM     = os.environ.get("ALERT_FROM", "alerts@4wardmotions.com")
+ALERT_LOCATION = os.environ.get("ALERT_LOCATION", "Loading Dock")
+
+# Title & subject
+ALERT_TITLE = os.environ.get("ALERT_TITLE") or f"Activity Detected in {ALERT_LOCATION}"
+ALERT_SUBJ  = os.environ.get(
+    "ALERT_SUBJECT",
+    f"[IntelliOptics] {ALERT_TITLE} ({SITE_CODE})"
+)
+
+# Inference YES/CONF gating
+ANSWER_TIMEOUT_SEC = float(os.environ.get("ANSWER_TIMEOUT_SEC", "30"))
+POLL_INTERVAL_SEC  = float(os.environ.get("POLL_INTERVAL_SEC", "1"))
+EMAIL_MIN_CONF     = float(os.environ.get("EMAIL_MIN_CONF", "0.70"))
+
+# Motion gating (local)
+MOTION_ENABLE   = (os.environ.get("MOTION_ENABLE", "true").lower() not in ("0", "false", "no"))
+MOTION_WARM_MS  = int(os.environ.get("MOTION_WARM_MS", "650"))
+MOTION_THRESH   = int(os.environ.get("MOTION_THRESH", "10"))
+MOTION_MIN_AREA = int(os.environ.get("MOTION_MIN_AREA", "400"))
+MOTION_DILATE   = int(os.environ.get("MOTION_DILATE", "4"))
+
+# Local YOLO person-confirm gate
+PERSON_LOCAL_ENABLE   = (os.environ.get("PERSON_LOCAL_ENABLE", "true").lower() not in ("0", "false", "no"))
+YOLO_MODEL_PATH       = os.environ.get("YOLO_MODEL_PATH") or os.path.join(os.getcwd(), "models", "intellioptics-yolov10n.onnx")
+YOLO_INPUT_SIZE       = int(os.environ.get("YOLO_INPUT_SIZE", "640"))
+PERSON_CLASS_ID       = int(os.environ.get("PERSON_CLASS_ID", "0"))  # COCO 'person'
+LOCAL_PERSON_MIN_CONF = float(os.environ.get("LOCAL_PERSON_MIN_CONF", "0.70"))
+YOLO_NMS_IOU          = float(os.environ.get("YOLO_NMS_IOU", "0.45"))
+
+# Drawing controls (visual only)
+LOCAL_DRAW_BOXES    = os.environ.get("LOCAL_DRAW_BOXES", "").lower() in ("1", "true", "yes")
+LOCAL_DRAW_MIN_CONF = float(os.environ.get("LOCAL_DRAW_MIN_CONF", "0.20"))
+
+
+def fail(msg, code=2):
+    print(json.dumps({"error": msg}, ensure_ascii=False))
+    sys.exit(code)
+
+
+# Guards
+if not RTSP_URL:
+    fail("RTSP_URL not set")
+if not DETECTOR_ID:
+    fail("DETECTOR_ID not set")
+if not API_TOKEN:
+    fail("API_TOKEN / INTELLIOPTICS_API_TOKEN not set")
+if not AZ_STORAGE_CONN:
+    fail("AZURE_STORAGE_CONNECTION_STRING not set")
+if not SB_CONN:
+    fail("Service Bus connection string not set")
+
+print(
+    json.dumps(
+        {
+            "startup": "ok",
+            "rtsp": RTSP_URL,
+            "detector_id": DETECTOR_ID,
+            "site": SITE_CODE,
+            "queue": SB_IMAGE_QUEUE,
+        },
+        ensure_ascii=False,
+    )
+)
+
+
+def account_from_conn(cs: str) -> str:
+    parts = dict(p.split("=", 1) for p in cs.split(";") if "=" in p)
+    return parts.get("AccountName", "").strip()
+
+
+def _grab_frame(rtsp: str, key_only: bool) -> bytes:
+    if key_only:
+        cmd = [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-rtsp_transport",
+            "tcp",
+            "-skip_frame",
+            "nokey",
+            "-i",
+            rtsp,
+            "-frames:v",
+            "1",
+            "-f",
+            "image2pipe",
+            "-",
+        ]
+        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+        if p.returncode == 0 and p.stdout:
+            return p.stdout
+
+    cmd2 = [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-rtsp_transport",
+        "tcp",
+        "-i",
+        rtsp,
+        "-frames:v",
+        "1",
+        "-f",
+        "image2pipe",
+        "-",
+    ]
+    p2 = subprocess.run(cmd2, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+    if p2.returncode != 0 or not p2.stdout:
+        err = (p2.stderr or b"").decode(errors="ignore")[:400]
+        raise RuntimeError(f"ffmpeg failed: {err}")
+    return p2.stdout
+
+
+def grab_keyframe(rtsp: str) -> bytes:
+    return _grab_frame(rtsp, key_only=True)
+
+
+def grab_anyframe(rtsp: str) -> bytes:
+    return _grab_frame(rtsp, key_only=False)
+
+
+def _imdecode(jpg: bytes):
+    import numpy as np
+    import cv2
+
+    a = np.frombuffer(jpg, dtype=np.uint8)
+    img = cv2.imdecode(a, cv2.IMREAD_COLOR)
+    return img
+
+
+def detect_motion(rtsp: str, warm_ms: int, thr: int, min_area: int, dilate_iter: int):
+    """
+    MOG2 background model. Returns (has_motion: bool, max_area: int).
+    Env tunables (optional):
+      - MOTION_MOG2_HISTORY (default 200)
+      - MOTION_MOG2_VARTHRESH (default 16)
+      - MOTION_MOG2_DETECT_SHADOWS (default true)
+      - MOTION_SAMPLES (frames to evaluate after warmup, default 30)
+    """
+    import time
+    import cv2
+    import numpy as np  # noqa: F401  (kept in case we extend logic later)
+
+    try:
+        H = int(os.environ.get("MOTION_MOG2_HISTORY", "200"))
+        VAR = float(os.environ.get("MOTION_MOG2_VARTHRESH", "16"))
+        SH = os.environ.get("MOTION_MOG2_DETECT_SHADOWS", "true").lower() not in ("0", "false", "no")
+        SAMPLES = int(os.environ.get("MOTION_SAMPLES", "30"))
+
+        cap = cv2.VideoCapture(rtsp, cv2.CAP_FFMPEG)
+        try:
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        except Exception:
+            pass
+
+        if not cap.isOpened():
+            # fallback to two-frame method
+            f1 = grab_anyframe(rtsp)
+            time.sleep(max(warm_ms, 0) / 1000.0)
+            f2 = grab_anyframe(rtsp)
+            i1 = _imdecode(f1)
+            i2 = _imdecode(f2)
+            if i1 is None or i2 is None:
+                return True, -1
+            g1 = cv2.cvtColor(i1, cv2.COLOR_BGR2GRAY)
+            g2 = cv2.cvtColor(i2, cv2.COLOR_BGR2GRAY)
+            g1 = cv2.GaussianBlur(g1, (5, 5), 0)
+            g2 = cv2.GaussianBlur(g2, (5, 5), 0)
+            diff = cv2.absdiff(g1, g2)
+            _, mask = cv2.threshold(diff, thr, 255, cv2.THRESH_BINARY)
+            mask = cv2.dilate(mask, None, iterations=max(dilate_iter, 0))
+            cnts, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            max_area = max((int(cv2.contourArea(c)) for c in cnts), default=0)
+            return (max_area >= min_area), max_area
+
+        # Warmup background for warm_ms
+        end_warm = time.time() + max(warm_ms, 0) / 1000.0
+        mog2 = cv2.createBackgroundSubtractorMOG2(history=H, varThreshold=VAR, detectShadows=SH)
+        while time.time() < end_warm:
+            ok, frame = cap.read()
+            if not ok:
+                break
+            mog2.apply(frame)  # update background
+
+        # Evaluate SAMPLES frames
+        max_area_seen = 0
+        frames_read = 0
+        while frames_read < max(1, SAMPLES):
+            ok, frame = cap.read()
+            if not ok:
+                time.sleep(0.02)
+                continue
+            frames_read += 1
+            fg = mog2.apply(frame, learningRate=0)  # no bg update during decision
+
+            if SH:
+                _, fg = cv2.threshold(fg, 127, 255, cv2.THRESH_BINARY)
+
+            if dilate_iter and dilate_iter > 0:
+                fg = cv2.dilate(fg, None, iterations=dilate_iter)
+
+            cnts, _ = cv2.findContours(fg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            area_here = max((int(cv2.contourArea(c)) for c in cnts), default=0)
+            if area_here > max_area_seen:
+                max_area_seen = area_here
+
+        cap.release()
+        return (max_area_seen >= min_area), max_area_seen
+    except Exception:
+        # Defensive fallback to previous simple method
+        try:
+            f1 = grab_anyframe(rtsp)
+            time.sleep(max(warm_ms, 0) / 1000.0)
+            f2 = grab_anyframe(rtsp)
+            import cv2 as _cv2
+
+            i1 = _imdecode(f1)
+            i2 = _imdecode(f2)
+            if i1 is None or i2 is None:
+                return True, -1
+            g1 = _cv2.cvtColor(i1, _cv2.COLOR_BGR2GRAY)
+            g2 = _cv2.cvtColor(i2, _cv2.COLOR_BGR2GRAY)
+            g1 = _cv2.GaussianBlur(g1, (5, 5), 0)
+            g2 = _cv2.GaussianBlur(g2, (5, 5), 0)
+            diff = _cv2.absdiff(g1, g2)
+            _, mask = _cv2.threshold(diff, thr, 255, _cv2.THRESH_BINARY)
+            mask = _cv2.dilate(mask, None, iterations=max(dilate_iter, 0))
+            cnts, _ = _cv2.findContours(mask, _cv2.RETR_EXTERNAL, _cv2.CHAIN_APPROX_SIMPLE)
+            max_area = max((int(_cv2.contourArea(c)) for c in cnts), default=0)
+            return (max_area >= min_area), max_area
+        except Exception:
+            return True, -2
+
+
+def _letterbox(img, new_size=640, color=(114, 114, 114)):
+    import cv2
+    import numpy as np
+
+    h, w = img.shape[:2]
+    r = min(new_size / h, new_size / w)
+    nh, nw = int(round(h * r)), int(round(w * r))
+    pad = (new_size - nw, new_size - nh)
+    dw, dh = pad[0] // 2, pad[1] // 2
+    resized = cv2.resize(img, (nw, nh), interpolation=cv2.INTER_LINEAR)
+    canvas = np.full((new_size, new_size, 3), color, dtype=np.uint8)
+    canvas[dh:dh + nh, dw:dw + nw] = resized
+    return canvas, r, dw, dh, (w, h)
+
+
+def _xywh2xyxy(xywh):
+    x, y, w, h = xywh
+    return [x - w / 2, y - h / 2, x + w / 2, y + h / 2]
+
+
+def _nms(boxes, scores, iou_thr=0.45):
+    import numpy as np
+
+    if len(boxes) == 0:
+        return []
+    boxes = np.asarray(boxes, dtype=np.float32)
+    scores = np.asarray(scores, dtype=np.float32)
+    idxs = scores.argsort()[::-1]
+    keep = []
+    while idxs.size > 0:
+        i = idxs[0]
+        keep.append(i)
+        if idxs.size == 1:
+            break
+        xx1 = np.maximum(boxes[i, 0], boxes[idxs[1:], 0])
+        yy1 = np.maximum(boxes[i, 1], boxes[idxs[1:], 1])
+        xx2 = np.minimum(boxes[i, 2], boxes[idxs[1:], 2])
+        yy2 = np.minimum(boxes[i, 3], boxes[idxs[1:], 3])
+        w = np.maximum(0.0, xx2 - xx1)
+        h = np.maximum(0.0, yy2 - yy1)
+        inter = w * h
+        area_i = (boxes[i, 2] - boxes[i, 0]) * (boxes[i, 3] - boxes[i, 1])
+        area_j = (boxes[idxs[1:], 2] - boxes[idxs[1:], 0]) * (boxes[idxs[1:], 3] - boxes[idxs[1:], 1])
+        iou = inter / (area_i + area_j - inter + 1e-6)
+        idxs = idxs[1:][iou <= iou_thr]
+    return keep
+
+
+def _draw_boxes_on_jpg(jpg: bytes, detections, min_conf=None) -> bytes:
+    """
+    Draw bounding boxes on a JPEG and return a new JPEG bytes blob.
+
+    Only boxes with conf >= min_conf are drawn. min_conf defaults to
+    LOCAL_DRAW_MIN_CONF if not provided.
+    """
+    import cv2
+    import numpy as np
+
+    if min_conf is None:
+        min_conf = LOCAL_DRAW_MIN_CONF
+
+    img = _imdecode(jpg)
+    if img is None:
+        return jpg
+
+    h, w = img.shape[:2]
+
+    for det in detections or []:
+        try:
+            conf = float(det.get("conf", 0.0))
+        except Exception:
+            conf = 0.0
+        if conf < min_conf:
+            continue
+
+        x1 = int(det.get("x1", 0))
+        y1 = int(det.get("y1", 0))
+        x2 = int(det.get("x2", 0))
+        y2 = int(det.get("y2", 0))
+
+        x1 = max(0, min(w - 1, x1))
+        x2 = max(0, min(w - 1, x2))
+        y1 = max(0, min(h - 1, y1))
+        y2 = max(0, min(h - 1, y2))
+
+        label = det.get("label", "person")
+        text = f"{label} {conf:.2f}"
+
+        cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        cv2.putText(
+            img,
+            text,
+            (x1, max(0, y1 - 5)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 255, 0),
+            1,
+            cv2.LINE_AA,
+        )
+
+    ok, buf = cv2.imencode(".jpg", img)
+    if not ok:
+        return jpg
+    return buf.tobytes()
+
+
+def local_yolo_person_conf(jpg: bytes):
+    """
+    Returns (ok: bool, person_conf: float, count: int, detections: list[dict]).
+    Supports YOLOv10-style Nx6 output: [x1, y1, x2, y2, score, class_id].
+    Falls back to previous parser for other layouts (no detections list then).
+    """
+    try:
+        import numpy as np
+        import cv2
+        import onnxruntime as ort
+
+        img = _imdecode(jpg)
+        if img is None:
+            return True, 0.0, 0, []
+
+        lb, r, dw, dh, (w0, h0) = _letterbox(img, new_size=YOLO_INPUT_SIZE)
+        rgb = cv2.cvtColor(lb, cv2.COLOR_BGR2RGB)
+        x = rgb.astype(np.float32) / 255.0
+        x = np.transpose(x, (2, 0, 1))[None, ...]
+
+        sess = ort.InferenceSession(YOLO_MODEL_PATH, providers=["CPUExecutionProvider"])
+        in_name = sess.get_inputs()[0].name
+        outs = sess.run(None, {in_name: x})
+        arr = outs[0]
+        a = np.squeeze(arr)
+
+        detections = []
+
+        # Preferred path: Nx6 ([x1,y1,x2,y2,score,class_id])
+        if a.ndim == 2 and a.shape[1] == 6:
+            boxes = a[:, 0:4]
+            scores = a[:, 4]
+            cls_id = a[:, 5]
+            cls_int = np.rint(cls_id).astype(int)
+            mask = cls_int == PERSON_CLASS_ID
+
+            if mask.any():
+                boxes_p = boxes[mask]
+                scores_p = scores[mask]
+
+                for (x1, y1, x2, y2), sc in zip(boxes_p, scores_p):
+                    x1 = (x1 - dw) / r
+                    x2 = (x2 - dw) / r
+                    y1 = (y1 - dh) / r
+                    y2 = (y2 - dh) / r
+
+                    x1 = max(0.0, min(w0 - 1.0, x1))
+                    x2 = max(0.0, min(w0 - 1.0, x2))
+                    y1 = max(0.0, min(h0 - 1.0, y1))
+                    y2 = max(0.0, min(h0 - 1.0, y2))
+
+                    detections.append(
+                        {
+                            "label": "person",
+                            "conf": float(sc),
+                            "x1": int(round(x1)),
+                            "y1": int(round(y1)),
+                            "x2": int(round(x2)),
+                            "y2": int(round(y2)),
+                        }
+                    )
+
+                best = float(scores_p.max())
+                cnt = int(scores_p.size)
+                return True, best, cnt, detections
+
+            # No person rows: still return max score for observability
+            best = float(scores.max()) if scores.size else 0.0
+            return True, best, 0, []
+
+        # Fallback parser (older YOLO exports)
+        if a.ndim == 3:
+            a = a[0]
+            if a.shape[0] in (84, 85):
+                a = a.T
+        if a.ndim != 2 or a.shape[1] < 6:
+            return False, 0.0, 0, []
+
+        obj = 1.0 / (1.0 + np.exp(-a[:, 4]))
+        cls = 1.0 / (1.0 + np.exp(-a[:, 5:]))
+        if PERSON_CLASS_ID >= cls.shape[1]:
+            return False, 0.0, 0, []
+        scores = obj * cls[:, PERSON_CLASS_ID]
+
+        keep = scores >= max(0.05, min(LOCAL_PERSON_MIN_CONF, 0.5))
+        best = float(scores[keep].max()) if keep.any() else (float(scores.max()) if scores.size else 0.0)
+        cnt = int(keep.sum()) if keep.any() else 0
+        return True, best, cnt, []
+    except Exception:
+        return False, 0.0, 0, []
+
+
+def upload_to_blob(jpg: bytes):
+    from azure.storage.blob import BlobServiceClient, ContentSettings
+
+    svc = BlobServiceClient.from_connection_string(AZ_STORAGE_CONN)
+    cont = svc.get_container_client(BLOB_CONTAINER)
+    try:
+        cont.create_container()
+    except Exception:
+        pass
+    ts = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    sha = hashlib.sha256(jpg).hexdigest()[:12]
+    blob_name = f"{SITE_CODE}/snapshots/{ts}_{sha}.jpg"
+    blob = cont.get_blob_client(blob_name)
+    blob.upload_blob(
+        jpg,
+        overwrite=True,
+        content_settings=ContentSettings(content_type="image/jpeg"),
+    )
+    acct = account_from_conn(AZ_STORAGE_CONN)
+    url = f"https://{acct}.blob.core.windows.net/{BLOB_CONTAINER}/{blob_name}"
+    return url, sha
+
+
+def api_create_image_query(detector_id: str, image_url: str) -> str:
+    import requests
+
+    headers = {
+        "Authorization": f"Bearer {API_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    payload = {"detector_id": detector_id, "image_uri": image_url}
+    r = requests.post(f"{API_BASE}/image-queries", headers=headers, json=payload, timeout=20)
+    if r.status_code >= 300:
+        raise RuntimeError(f"API create failed {r.status_code}: {r.text[:300]}")
+    j = r.json()
+    return j.get("id") or j.get("image_query_id") or j.get("imageQueryId")
+
+
+def api_get_image_query(iqid: str) -> dict:
+    import requests
+
+    headers = {"Authorization": f"Bearer {API_TOKEN}"}
+    r = requests.get(f"{API_BASE}/image-queries/{iqid}", headers=headers, timeout=15)
+    if r.status_code == 200:
+        return r.json()
+    raise RuntimeError(f"API get image-query failed {r.status_code}: {r.text[:300]}")
+
+
+def wait_for_answer(iqid: str, timeout: float = ANSWER_TIMEOUT_SEC, poll_every: float = POLL_INTERVAL_SEC) -> dict:
+    """
+    Polls the API until the image_query has an answer or we time out.
+
+    Returns:
+      {
+        "answer": "YES" | "NO" | "",
+        "confidence": float | None
+      }
+    """
+    deadline = time.time() + timeout
+
+    while time.time() < deadline:
+        j = api_get_image_query(iqid)
+
+        # Normalize answer
+        ans = (j.get("answer") or j.get("label") or "").strip().upper()
+
+        # Try to extract a confidence-like value, but allow it to be missing
+        conf_raw = j.get("confidence")
+        if conf_raw is None:
+            conf_raw = j.get("first_confidence")
+        if conf_raw is None:
+            conf_raw = j.get("score")
+
+        if conf_raw is None or conf_raw == "":
+            conf = None
+        else:
+            try:
+                conf = float(conf_raw)
+            except Exception:
+                conf = None
+
+        if ans:
+            return {"answer": ans, "confidence": conf}
+
+        time.sleep(poll_every)
+
+    return {"answer": "", "confidence": None}
+
+
+def sb_publish(conn: str, queue: str, msg: dict):
+    from azure.servicebus import ServiceBusClient, ServiceBusMessage
+
+    with ServiceBusClient.from_connection_string(conn) as client:
+        with client.get_queue_sender(queue_name=queue) as sender:
+            sender.send_messages(ServiceBusMessage(json.dumps(msg)))
+
+
+def build_alert_html(location: str, title: str, subtitle: str, snapshot_url: str, image_query_id: str) -> str:
+    """Build HTML body for IntelliOptics alert email (Courtyard Gate instance).
+
+    Layout:
+      - Black page background
+      - Centered card with logo
+      - Pill reading "IntelliOptics Alert"
+      - Main title (e.g. "Activity Detected in Courtyard Gate")
+      - Snapshot image
+      - Simple Location + Image Query ID rows
+    """
+
+    import html  # safe even if already imported; Python will reuse the module
+
+    # This gateway is dedicated to Courtyard Gate, so default to that if missing
+    location = location or "Courtyard Gate"
+    title = title or f"Activity Detected in {location}"
+    # subtitle is intentionally unused now (we’ve removed the smaller repeated line)
+
+    snapshot_url_escaped = html.escape(snapshot_url or "")
+    location_escaped = html.escape(location)
+    title_escaped = html.escape(title)
+    iq_text = html.escape(image_query_id) if image_query_id else ""
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{title_escaped}</title>
+  </head>
+  <body style="margin:0;padding:32px;background-color:#111827;
+               font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0"
+                 style="background-color:#000000;border-radius:16px;padding:32px;color:#F9FAFB;">
+            <tr>
+              <td align="center" style="padding-bottom:16px;">
+                <img src="https://intelliopticsweb37558.blob.core.windows.net/public/image.png"
+                     alt="IntelliOptics"
+                     style="max-width:180px;display:block;">
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding-bottom:16px;">
+                <span style="display:inline-block;padding:6px 18px;border-radius:999px;
+                             background-color:#1D4ED8;font-size:12px;font-weight:600;
+                             letter-spacing:.08em;text-transform:uppercase;color:#E5E7EB;">
+                  IntelliOptics Alert
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding-bottom:24px;">
+                <h1 style="margin:0;font-size:20px;line-height:1.4;font-weight:700;color:#F9FAFB;">
+                  {title_escaped}
+                </h1>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding-bottom:24px;">
+                <img src="{snapshot_url_escaped}"
+                     alt="Snapshot from {location_escaped}"
+                     style="width:100%;max-width:540px;border-radius:12px;display:block;">
+              </td>
+            </tr>
+            <tr>
+              <td style="font-size:13px;color:#9CA3AF;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                       style="border-collapse:collapse;">
+                  <tr>
+                    <td style="padding-top:4px;font-weight:500;width:120px;color:#D1D5DB;">Location</td>
+                    <td style="padding-top:4px;">{location_escaped}</td>
+                  </tr>
+                  {"<tr><td style='padding-top:4px;font-weight:500;width:120px;color:#D1D5DB;'>Image Query ID</td><td style='padding-top:4px;'>" + iq_text + "</td></tr>" if iq_text else ""}
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>"""
+    return html
+
+
+def _parse_recipients(to_str: str):
+    """
+    Parse ALERT_TO into a list of {"email": "..."} dicts for SendGrid.
+    Supports comma- or semicolon-separated lists.
+    """
+    recipients = []
+    if not to_str:
+        return recipients
+    parts = to_str.replace(";", ",").split(",")
+    for part in parts:
+        email = part.strip()
+        if email:
+            recipients.append({"email": email})
+    return recipients
+
+
+def try_api_email(image_url: str, iqid: str) -> bool:
+    import requests
+
+    headers = {
+        "Authorization": f"Bearer {API_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    subject = ALERT_SUBJ
+    html = build_alert_html(ALERT_LOCATION, ALERT_TITLE, "", image_url, iqid)
+    body = {"to": ALERT_TO, "subject": subject, "html": html, "image_url": image_url}
+    for path in ("/emails/send", "/alerts/email", "/alerts/send"):
+        url = f"{API_BASE}{path}"
+        resp = requests.post(url, headers=headers, json=body, timeout=20)
+        if resp.status_code in (200, 202):
+            return True
+        if resp.status_code != 404:
+            raise RuntimeError(f"API email failed {resp.status_code}: {resp.text[:300]}")
+    return False
+
+
+def sendgrid_email(image_url: str, iqid: str):
+    import requests
+
+    if not SENDGRID_API_KEY:
+        raise RuntimeError("SENDGRID_API_KEY not set")
+
+    subject = ALERT_SUBJ
+    html = build_alert_html(ALERT_LOCATION, ALERT_TITLE, "", image_url, iqid)
+
+    to_list = _parse_recipients(ALERT_TO)
+    if not to_list:
+        raise RuntimeError("No valid ALERT_TO recipients parsed for SendGrid")
+
+    payload = {
+        "personalizations": [{"to": to_list}],
+        "from": {"email": ALERT_FROM},
+        "subject": subject,
+        "content": [
+            {
+                "type": "text/html",
+                "value": html,
+            }
+        ],
+    }
+    r = requests.post(
+        "https://api.sendgrid.com/v3/mail/send",
+        headers={
+            "Authorization": f"Bearer {SENDGRID_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=20,
+    )
+    if r.status_code not in (200, 202):
+        raise RuntimeError(f"SendGrid failed {r.status_code}: {r.text[:300]}")
+
+
+def main():
+    try:
+        # Motion gate
+        if MOTION_ENABLE:
+            has, area = detect_motion(
+                RTSP_URL,
+                MOTION_WARM_MS,
+                MOTION_THRESH,
+                MOTION_MIN_AREA,
+                MOTION_DILATE,
+            )
+            print(
+                json.dumps(
+                    {
+                        "motion": "yes" if has else "none",
+                        "area": area,
+                        "thr": MOTION_THRESH,
+                        "min_area": MOTION_MIN_AREA,
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            if not has:
+                print(json.dumps({"skipped": "no_motion"}, ensure_ascii=False))
+                return
+
+        # Grab keyframe
+        jpg = grab_keyframe(RTSP_URL)
+        print(json.dumps({"frame": "ok", "bytes": len(jpg)}, ensure_ascii=False))
+
+        dets = []
+
+        # Local YOLO gate
+        if PERSON_LOCAL_ENABLE:
+            ok, pconf, cnt, dets = local_yolo_person_conf(jpg)
+            state = "yes" if (ok and pconf >= LOCAL_PERSON_MIN_CONF) else ("none" if ok else "error")
+            print(
+                json.dumps(
+                    {
+                        "local_person": state,
+                        "count": cnt,
+                        "conf": pconf,
+                        "min_conf": LOCAL_PERSON_MIN_CONF,
+                        "detections": dets,
+                    },
+                    ensure_ascii=False,
+                )
+            )
+
+            if ok and pconf < LOCAL_PERSON_MIN_CONF:
+                if os.environ.get("MOTION_DEBUG_UPLOAD", "").lower() in ("1", "true", "yes"):
+                    jpg_debug = _draw_boxes_on_jpg(jpg, dets) if (LOCAL_DRAW_BOXES and dets) else jpg
+                    blob_url, sha = upload_to_blob(jpg_debug)
+                    print(
+                        json.dumps(
+                            {"debug_upload": "motion", "blob_url": blob_url, "sha": sha},
+                            ensure_ascii=False,
+                        )
+                    )
+                    iqid = api_create_image_query(DETECTOR_ID, blob_url)
+                    print(json.dumps({"image_query_id": iqid}, ensure_ascii=False))
+                    message = {
+                        "image_query_id": iqid,
+                        "blob_url": blob_url,
+                        "detector_id": DETECTOR_ID,
+                        "reason": "debug_motion",
+                    }
+                    sb_publish(SB_CONN, SB_IMAGE_QUEUE, message)
+                    print(
+                        json.dumps(
+                            {"publish": "ok", "queue": SB_IMAGE_QUEUE},
+                            ensure_ascii=False,
+                        )
+                    )
+                    return
+                print(json.dumps({"skipped": "no_person_local"}, ensure_ascii=False))
+                return
+
+        # Draw boxes (visual only)
+        jpg_to_upload = _draw_boxes_on_jpg(jpg, dets) if (LOCAL_DRAW_BOXES and dets) else jpg
+
+        # Upload
+        blob_url, sha = upload_to_blob(jpg_to_upload)
+        print(
+            json.dumps(
+                {"upload": "ok", "blob_url": blob_url, "sha": sha},
+                ensure_ascii=False,
+            )
+        )
+
+        # API create + SB publish
+        iqid = api_create_image_query(DETECTOR_ID, blob_url)
+        print(json.dumps({"image_query_id": iqid}, ensure_ascii=False))
+
+        message = {"image_query_id": iqid, "blob_url": blob_url, "detector_id": DETECTOR_ID}
+        sb_publish(SB_CONN, SB_IMAGE_QUEUE, message)
+        print(
+            json.dumps(
+                {"publish": "ok", "queue": SB_IMAGE_QUEUE},
+                ensure_ascii=False,
+            )
+        )
+
+        # Cloud inference YES/CONF gate
+        res = wait_for_answer(iqid, timeout=ANSWER_TIMEOUT_SEC, poll_every=POLL_INTERVAL_SEC)
+        ans = (res.get("answer") or "").upper()
+        raw_conf = res.get("confidence")
+
+        # Normalize confidence to a float or None
+        conf = None
+        if raw_conf is not None:
+            try:
+                conf = float(raw_conf)
+            except Exception:
+                conf = None
+
+        print(
+            json.dumps(
+                {"inference": "done", "answer": ans, "confidence": conf},
+                ensure_ascii=False,
+            )
+        )
+
+        # If we have a numeric confidence, enforce EMAIL_MIN_CONF.
+        # If we DON'T have a confidence, fall back to answer-only gating.
+        if conf is None:
+            conf_ok = True
+        else:
+            conf_ok = conf >= EMAIL_MIN_CONF
+
+        if not (ans == "YES" and conf_ok):
+            print(
+                json.dumps(
+                    {
+                        "email": "skipped",
+                        "reason": "gated",
+                        "answer": ans,
+                        "confidence": conf,
+                        "min_conf": EMAIL_MIN_CONF,
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            return
+
+        # Email
+        try:
+            if try_api_email(blob_url, iqid):
+                print(json.dumps({"email": "ok", "via": "api"}, ensure_ascii=False))
+            else:
+                sendgrid_email(blob_url, iqid)
+                print(json.dumps({"email": "ok", "via": "sendgrid"}, ensure_ascii=False))
+        except Exception as e:
+            print(
+                json.dumps(
+                    {"email": "error", "detail": str(e)[:300]},
+                    ensure_ascii=False,
+                )
+            )
+
+    except Exception as e:
+        print(json.dumps({"error": f"{type(e).__name__}: {e}"}, ensure_ascii=False))
+        traceback.print_exc()
+        sys.exit(3)
+
+
+if __name__ == "__main__":
+    main()

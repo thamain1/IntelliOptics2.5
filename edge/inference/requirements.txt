@@ -1,0 +1,30 @@
+# IntelliOptics 2.0 - Inference Service Dependencies
+
+# Web framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6  # Required for FastAPI file uploads
+
+# ONNX Runtime (CPU and GPU versions)
+onnxruntime>=1.16.0  # CPU
+# onnxruntime-gpu>=1.16.0  # Uncomment for GPU support
+
+# ML/CV libraries
+numpy>=1.24.0
+opencv-python-headless==4.8.1.78
+pillow>=10.4.0,<11.0.0
+ultralytics>=8.3.0  # YOLOE + YOLOv8 + YOLOWorld support
+clip @ git+https://github.com/openai/CLIP.git  # Required for YOLOWorld
+transformers>=4.44.0,<4.50.0  # For Moondream VLM local inference (4.50+ breaks moondream2 generate)
+einops>=0.7.0  # Required by Moondream2 model
+accelerate>=0.25.0  # For efficient model loading
+
+# HTTP client
+httpx==0.25.0
+
+# Configuration
+pyyaml==6.0.1
+python-dotenv==1.0.0
+
+# Utilities
+cachetools==5.3.2  # For model caching
