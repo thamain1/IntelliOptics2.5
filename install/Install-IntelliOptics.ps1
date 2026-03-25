@@ -33,6 +33,25 @@ Write-Host "    4wardmotion Solutions, Inc." -ForegroundColor Gray
 Write-Host "  ================================================================" -ForegroundColor Blue
 Write-Host ""
 
+# ── Step 0: Detect and stop old IntelliOptics 2.0 ─────────────────────
+$oldContainers = docker ps --filter "name=intellioptics-cloud-" --filter "name=intellioptics-edge-" --filter "name=intellioptics-inference" -q 2>$null
+if ($oldContainers) {
+    Write-Host "  Detected running IntelliOptics 2.0 containers:" -ForegroundColor Yellow
+    docker ps --filter "name=intellioptics-cloud-" --filter "name=intellioptics-edge-" --filter "name=intellioptics-inference" --format "    {{.Names}}  ({{.Status}})" 2>$null
+    Write-Host ""
+    Write-Host "  These must be stopped to free ports 80 and 30101." -ForegroundColor Yellow
+    $stop = Read-Host "  Stop old 2.0 containers now? (Y/n)"
+    if ($stop -eq "n" -or $stop -eq "N") {
+        Write-Host "  Cannot continue with old containers running. Exiting." -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "  Stopping old containers..." -ForegroundColor Cyan
+    docker stop $oldContainers 2>$null | Out-Null
+    docker rm $oldContainers 2>$null | Out-Null
+    Write-Host "  Old 2.0 containers stopped and removed." -ForegroundColor Green
+    Write-Host ""
+}
+
 # ── Step 1: Prerequisites ──────────────────────────────────────────────
 Write-Host "Step 1/6: Checking prerequisites..." -ForegroundColor White
 & "$ScriptDir\scripts\Test-Prerequisites.ps1"
