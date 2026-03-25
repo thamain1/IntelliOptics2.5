@@ -1,17 +1,21 @@
-# IntelliOptics 2.5 - Inference Service Dependencies (Pure ONNX Runtime)
-# No torch, no ultralytics, no transformers at runtime — 100% Apache 2.0
+# IntelliOptics 2.5 - Inference Service Dependencies
+# YOLOE: Pure ONNX Runtime (no Ultralytics at runtime) — Apache 2.0
+# VLM:   HuggingFace transformers + PyTorch (BSD/Apache 2.0)
 
 # Web framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6  # Required for FastAPI file uploads
 
-# ONNX Runtime — GPU build includes CPU fallback (supports compute capability 3.5+)
-onnxruntime-gpu>=1.16.0,<1.20.0
+# ONNX Runtime for YOLOE detection
+onnxruntime>=1.16.0,<1.20.0
 
-# Moondream VLM (uses ONNX Runtime internally via OnnxVL)
-moondream==0.0.5
-tokenizers>=0.15.0
+# PyTorch + transformers for Moondream VLM (same as 2.0)
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.44.0,<4.50.0  # 4.50+ breaks moondream2 generate
+einops>=0.7.0  # Required by Moondream2 model
+accelerate>=0.25.0  # Efficient model loading
 
 # CV libraries
 numpy>=1.24.0

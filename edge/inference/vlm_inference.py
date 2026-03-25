@@ -1,9 +1,7 @@
 """
-IntelliOptics 2.5 - Moondream VLM Inference (Pure ONNX Runtime)
-
+IntelliOptics 2.5 - Moondream VLM Inference
 Visual Language Model for natural language queries, object detection, and OCR.
-Uses the official moondream pip package (ONNX Runtime internally) — no PyTorch,
-no HuggingFace transformers at runtime.
+Uses HuggingFace transformers to load Moondream2 locally (no cloud API).
 """
 
 import logging
@@ -17,8 +15,10 @@ from PIL import Image
 
 logger = logging.getLogger(__name__)
 
-# Model path (set via VLM_MODEL_PATH env or Docker volume)
-VLM_MODEL_PATH = os.getenv("VLM_MODEL_PATH", "/vlm-models/moondream-2b-int8.mf.gz")
+# Persist HuggingFace model downloads to the Docker volume so they survive restarts
+VLM_CACHE_DIR = os.getenv("VLM_CACHE_DIR", "/vlm-models")
+os.environ.setdefault("HF_HOME", VLM_CACHE_DIR)
+os.environ.setdefault("TRANSFORMERS_CACHE", os.path.join(VLM_CACHE_DIR, "transformers"))
 
 _vlm_instance: Optional["MoondreamVLM"] = None
 
@@ -36,8 +36,7 @@ class VLMResult:
 class MoondreamVLM:
     """Moondream Visual Language Model for image understanding.
 
-    Uses the official moondream pip package (ONNX Runtime backend).
-    Model: moondream-2b-int8.mf.gz (~1.2GB) from vikhyatk/moondream2.
+    Uses HuggingFace transformers to load vikhyatk/moondream2 locally.
 
     Supports:
     - Visual Q&A (ask questions about an image)
@@ -45,21 +44,56 @@ class MoondreamVLM:
     - OCR (text extraction from images or regions)
     """
 
-    def __init__(self, model_path: str = VLM_MODEL_PATH):
-        self.model_path = model_path
+    MODEL_IDS = {
+        "0.5B": "vikhyatk/moondream2",
+        "2B": "vikhyatk/moondream2",
+    }
+
+    def __init__(self, model_size: str = "2B"):
+        self.model_size = model_size
         self.model = None
+        self.tokenizer = None
         self._load_model()
 
     def _load_model(self) -> None:
-        """Load Moondream model via official moondream package."""
+        """Load Moondream model via HuggingFace transformers."""
         try:
-            import moondream as md
+            import torch
+            from transformers import AutoModelForCausalLM, AutoTokenizer
 
-            logger.info(f"Loading Moondream VLM from {self.model_path}...")
-            self.model = md.vl(model=self.model_path)
-            logger.info("Moondream VLM loaded successfully (ONNX Runtime)")
-        except FileNotFoundError:
-            logger.error(f"Moondream model not found: {self.model_path}")
+            model_id = self.MODEL_IDS.get(self.model_size, "vikhyatk/moondream2")
+            revision = "2024-08-26"
+            logger.info(f"Loading IO-VLM ({self.model_size}) from {model_id} rev={revision}...")
+
+            # Check CUDA availability AND compute capability (>= 7.0 for modern PyTorch)
+            use_cuda = False
+            if torch.cuda.is_available():
+                try:
+                    cap = torch.cuda.get_device_capability(0)
+                    use_cuda = cap[0] >= 7
+                    if not use_cuda:
+                        logger.warning(
+                            f"GPU compute capability {cap[0]}.{cap[1]} < 7.0. Falling back to CPU."
+                        )
+                except Exception:
+                    pass
+            dtype = torch.float16 if use_cuda else torch.float32
+            device = "cuda" if use_cuda else "cpu"
+
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                model_id, revision=revision, trust_remote_code=True, cache_dir=VLM_CACHE_DIR
+            )
+            self.model = AutoModelForCausalLM.from_pretrained(
+                model_id,
+                revision=revision,
+                trust_remote_code=True,
+                torch_dtype=dtype,
+                cache_dir=VLM_CACHE_DIR,
+            ).to(device)
+
+            logger.info(f"IO-VLM loaded successfully on {device} ({dtype})")
+        except ImportError as e:
+            logger.warning(f"transformers not installed, VLM features disabled: {e}")
             self.model = None
         except Exception as e:
             logger.error(f"Failed to load Moondream VLM: {e}")
@@ -88,8 +122,8 @@ class MoondreamVLM:
         pil_image = self._to_pil(image)
 
         try:
-            encoded = self.model.encode_image(pil_image)
-            answer = self.model.query(encoded, question)["answer"]
+            enc_image = self.model.encode_image(pil_image)
+            answer = self.model.answer_question(enc_image, question, self.tokenizer)
             elapsed_ms = (time.perf_counter() - start) * 1000
 
             logger.info(f"VLM query '{question[:50]}...' answered in {elapsed_ms:.0f}ms")
@@ -106,7 +140,7 @@ class MoondreamVLM:
             object_desc: Description of object to detect.
 
         Returns:
-            List of detections with bounding boxes (normalized 0-1 coordinates).
+            List of detections with bounding boxes.
         """
         if not self.model:
             return []
@@ -115,25 +149,24 @@ class MoondreamVLM:
         pil_image = self._to_pil(image)
 
         try:
-            encoded = self.model.encode_image(pil_image)
-            result = self.model.detect(encoded, object_desc)
+            enc_image = self.model.encode_image(pil_image)
+            answer = self.model.answer_question(
+                enc_image,
+                f"List all {object_desc} visible in this image with their approximate positions (top-left, center, bottom-right, etc).",
+                self.tokenizer,
+            )
             elapsed_ms = (time.perf_counter() - start) * 1000
 
-            detections = []
-            for obj in result.get("objects", []):
-                detections.append({
+            detections = [
+                {
                     "label": object_desc,
                     "confidence": 1.0,
-                    "description": object_desc,
-                    "bbox": [
-                        obj["x_min"],
-                        obj["y_min"],
-                        obj["x_max"],
-                        obj["y_max"],
-                    ],
-                })
+                    "description": answer,
+                    "bbox": [0, 0, 1, 1],
+                }
+            ]
 
-            logger.info(f"VLM detected {len(detections)} '{object_desc}' in {elapsed_ms:.0f}ms")
+            logger.info(f"VLM detected '{object_desc}' in {elapsed_ms:.0f}ms: {answer[:80]}")
             return detections
         except Exception as e:
             logger.error(f"VLM detect failed: {e}")
@@ -141,8 +174,6 @@ class MoondreamVLM:
 
     def ocr(self, image: np.ndarray, region: Optional[list[int]] = None) -> str:
         """Extract text from an image or a specific region.
-
-        Uses VLM query since the moondream package has no dedicated OCR method.
 
         Args:
             image: Input image as numpy array (RGB).
@@ -156,7 +187,6 @@ class MoondreamVLM:
 
         start = time.perf_counter()
 
-        # Crop to region if specified
         if region:
             x1, y1, x2, y2 = region
             image = image[y1:y2, x1:x2]
@@ -164,12 +194,12 @@ class MoondreamVLM:
         pil_image = self._to_pil(image)
 
         try:
-            encoded = self.model.encode_image(pil_image)
-            result = self.model.query(
-                encoded,
+            enc_image = self.model.encode_image(pil_image)
+            text = self.model.answer_question(
+                enc_image,
                 "Read all the text in this image. Return only the text, nothing else.",
+                self.tokenizer,
             )
-            text = result["answer"]
             elapsed_ms = (time.perf_counter() - start) * 1000
 
             logger.info(f"VLM OCR extracted '{text[:50]}...' in {elapsed_ms:.0f}ms")
@@ -179,9 +209,9 @@ class MoondreamVLM:
             return ""
 
 
-def get_vlm(model_path: str = VLM_MODEL_PATH) -> MoondreamVLM:
+def get_vlm(model_size: str = "2B") -> MoondreamVLM:
     """Get or create singleton VLM instance."""
     global _vlm_instance
     if _vlm_instance is None:
-        _vlm_instance = MoondreamVLM(model_path=model_path)
+        _vlm_instance = MoondreamVLM(model_size=model_size)
     return _vlm_instance

@@ -66,7 +66,7 @@ services:
       - IO_NMS_IOU=0.45
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - YOLOE_MODEL_DIR=/models/yoloworld
-      - VLM_MODEL_PATH=/vlm-models/moondream-2b-int8.mf.gz
+      - VLM_CACHE_DIR=/vlm-models
     volumes:
       - models:/models
       - vlm_models:/vlm-models

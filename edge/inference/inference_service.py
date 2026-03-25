@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 from PIL import Image
 import io
+from yoloe_inference import Detection
 
 # Configuration
 MODEL_REPOSITORY = os.getenv("MODEL_REPOSITORY", "/models")
@@ -368,10 +369,39 @@ async def yoloe_inference(
         detections = model.detect(image_np, prompt_list, conf=conf)
         latency_ms = (time.perf_counter() - start) * 1000
 
+        # VLM fallback: if YOLOE returns nothing, escalate to VLM for detection
+        vlm_used = False
+        if not detections:
+            try:
+                vlm = get_vlm()
+                if vlm.model is not None:
+                    logger.info(f"YOLOE returned 0 detections, escalating to VLM for: {prompt_list}")
+                    vlm_start = time.perf_counter()
+                    for prompt in prompt_list:
+                        vlm_dets = vlm.detect(image_np, prompt)
+                        for vd in vlm_dets:
+                            detections.append(Detection(
+                                label=vd["label"],
+                                confidence=vd["confidence"],
+                                bbox=[
+                                    vd["bbox"][0] * pil_image.width,
+                                    vd["bbox"][1] * pil_image.height,
+                                    vd["bbox"][2] * pil_image.width,
+                                    vd["bbox"][3] * pil_image.height,
+                                ],
+                            ))
+                    vlm_ms = (time.perf_counter() - vlm_start) * 1000
+                    latency_ms += vlm_ms
+                    vlm_used = True
+                    logger.info(f"VLM fallback found {len(detections)} detections in {vlm_ms:.0f}ms")
+            except Exception as vlm_err:
+                logger.warning(f"VLM fallback failed: {vlm_err}")
+
         return JSONResponse({
             "detections": [d.to_normalized(pil_image.width, pil_image.height) for d in detections],
             "prompts_used": prompt_list,
             "latency_ms": int(latency_ms),
+            "vlm_fallback": vlm_used,
         })
 
     except HTTPException:

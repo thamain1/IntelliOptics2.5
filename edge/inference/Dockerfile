@@ -2,10 +2,11 @@
 # IntelliOptics 2.5 - Inference Service (Multi-Stage Build)
 #
 # Stage 1 (exporter):       Ultralytics + CLIP → ONNX export
-# Stage 2 (vlm-downloader): Download Moondream ONNX model
-# Stage 3 (runtime):        Lean image — onnxruntime + moondream + fastapi
+# Stage 2 (vlm-downloader): Pre-download Moondream2 from HuggingFace
+# Stage 3 (runtime):        ONNX Runtime (YOLOE) + PyTorch/transformers (VLM)
 #
-# Result: ~1.0GB image, 100% Apache 2.0 licensed runtime
+# YOLOE:  Pure ONNX — no Ultralytics at runtime (Apache 2.0)
+# VLM:    HuggingFace transformers + PyTorch (BSD/Apache 2.0)
 # ============================================================
 
 # ── Stage 1: YOLOE ONNX Exporter (build-time only) ──────────
@@ -24,32 +25,31 @@ RUN pip install --no-cache-dir \
 COPY tools/export_onnx.py /export/export_onnx.py
 RUN python export_onnx.py --output /export/models/
 
-# ── Stage 2: Moondream VLM Downloader ────────────────────────
+# ── Stage 2: Moondream VLM Pre-Download ────────────────────
 FROM python:3.11-slim AS vlm-downloader
 
-RUN pip install --no-cache-dir huggingface_hub
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir huggingface_hub "transformers>=4.44.0,<4.50.0" einops accelerate pillow
 
+# Pre-download model weights so runtime doesn't need internet
 RUN python -c "\
-from huggingface_hub import hf_hub_download; \
-hf_hub_download('vikhyatk/moondream2', 'moondream-2b-int8.mf.gz', \
-    local_dir='/vlm-models', revision='onnx')"
+from transformers import AutoModelForCausalLM, AutoTokenizer; \
+model_id = 'vikhyatk/moondream2'; \
+revision = '2024-08-26'; \
+AutoTokenizer.from_pretrained(model_id, revision=revision, trust_remote_code=True, cache_dir='/vlm-models'); \
+AutoModelForCausalLM.from_pretrained(model_id, revision=revision, trust_remote_code=True, cache_dir='/vlm-models')"
 
-# ── Stage 3: Runtime (GPU-enabled) ────────────────────────────
-# CUDA 12.6 base with cuDNN 9 — supports compute capability 3.5+ (GTX 900+)
-FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04
+# ── Stage 3: Runtime ──────────────────────────────────────
+FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    DEBIAN_FRONTEND=noninteractive
+    PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
 
-# Install Python 3.11 + runtime system dependencies
+# Runtime system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.11 python3.11-venv python3-pip \
     curl libgomp1 libgl1 libglib2.0-0 \
-    && ln -sf /usr/bin/python3.11 /usr/bin/python \
-    && ln -sf /usr/bin/python3.11 /usr/bin/python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -59,7 +59,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy ONNX model + vocabulary from exporter stage
 COPY --from=exporter /export/models/ /models/yoloworld/
 
-# Copy Moondream VLM model from downloader stage
+# Copy pre-downloaded Moondream VLM from downloader stage
 COPY --from=vlm-downloader /vlm-models/ /vlm-models/
 
 # Copy application code
