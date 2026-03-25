@@ -3,9 +3,9 @@ import { Route, Routes, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 // Set base URL for all axios requests
-// Production: empty string (nginx proxies /api/ to backend)
+// Production: '/api' — nginx strips prefix and proxies to backend
 // Development: set VITE_API_BASE_URL=http://localhost:8000
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || '';
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 import { msalInstance, login, logout, isMsalConfigured } from './utils/auth';
 import LoginPage from './pages/LoginPage';

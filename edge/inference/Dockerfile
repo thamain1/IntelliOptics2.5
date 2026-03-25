@@ -26,8 +26,9 @@ COPY vlm_inference.py /app/vlm_inference.py
 COPY vehicle_id.py /app/vehicle_id.py
 COPY forensic_search.py /app/forensic_search.py
 
-# Copy YOLOWorld model file
-COPY yolov8s-worldv2.pt /app/yolov8s-worldv2.pt
+# YOLOWorld model (yolov8s-worldv2.pt) is auto-downloaded by Ultralytics on first use.
+# If you have a local copy, uncomment below to bake it into the image:
+# COPY yolov8s-worldv2.pt /app/yolov8s-worldv2.pt
 
 # Create model directory
 RUN mkdir -p /models
