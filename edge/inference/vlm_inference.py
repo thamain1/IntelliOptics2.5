@@ -52,17 +52,16 @@ class MoondreamVLM:
     def __init__(self, model_size: str = "2B"):
         self.model_size = model_size
         self.model = None
-        self.tokenizer = None
         self._load_model()
 
     def _load_model(self) -> None:
         """Load Moondream model via HuggingFace transformers."""
         try:
             import torch
-            from transformers import AutoModelForCausalLM, AutoTokenizer
+            from transformers import AutoModelForCausalLM
 
             model_id = self.MODEL_IDS.get(self.model_size, "vikhyatk/moondream2")
-            revision = "2024-08-26"
+            revision = "2025-06-21"
             logger.info(f"Loading IO-VLM ({self.model_size}) from {model_id} rev={revision}...")
 
             # Check CUDA availability AND compute capability (>= 7.0 for modern PyTorch)
@@ -77,12 +76,9 @@ class MoondreamVLM:
                         )
                 except Exception:
                     pass
-            dtype = torch.float16 if use_cuda else torch.float32
+            dtype = torch.bfloat16 if use_cuda else torch.float32
             device = "cuda" if use_cuda else "cpu"
 
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                model_id, revision=revision, trust_remote_code=True, cache_dir=VLM_CACHE_DIR
-            )
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_id,
                 revision=revision,
@@ -122,8 +118,7 @@ class MoondreamVLM:
         pil_image = self._to_pil(image)
 
         try:
-            enc_image = self.model.encode_image(pil_image)
-            answer = self.model.answer_question(enc_image, question, self.tokenizer)
+            answer = self.model.query(pil_image, question)["answer"]
             elapsed_ms = (time.perf_counter() - start) * 1000
 
             logger.info(f"VLM query '{question[:50]}...' answered in {elapsed_ms:.0f}ms")
@@ -151,70 +146,33 @@ class MoondreamVLM:
         pil_image = self._to_pil(image)
 
         try:
-            enc_image = self.model.encode_image(pil_image)
+            result = self.model.detect(pil_image, object_desc)
+            elapsed_ms = (time.perf_counter() - start) * 1000
 
-            # First check if object is present
-            presence = self.model.answer_question(
-                enc_image,
-                f"Is there a {object_desc} in this image? Answer only yes or no.",
-                self.tokenizer,
-            )
-
-            if "yes" not in presence.lower():
-                elapsed_ms = (time.perf_counter() - start) * 1000
+            objects = result.get("objects", [])
+            if not objects:
                 logger.info(f"VLM: no '{object_desc}' found in {elapsed_ms:.0f}ms")
                 return []
 
-            # Get bounding box coordinates
-            bbox_answer = self.model.answer_question(
-                enc_image,
-                f"Give the bounding box of the {object_desc} as normalized coordinates [left, top, right, bottom] where each value is between 0.0 and 1.0. Return only the coordinates in format [x1, y1, x2, y2].",
-                self.tokenizer,
+            detections = []
+            for obj in objects:
+                bbox = [obj["x_min"], obj["y_min"], obj["x_max"], obj["y_max"]]
+                detections.append(
+                    {
+                        "label": object_desc,
+                        "confidence": 0.85,
+                        "description": f"VLM detected {object_desc}",
+                        "bbox": bbox,
+                    }
+                )
+
+            logger.info(
+                f"VLM detected {len(detections)} '{object_desc}' in {elapsed_ms:.0f}ms"
             )
-
-            elapsed_ms = (time.perf_counter() - start) * 1000
-
-            # Parse bbox from response
-            bbox = self._parse_bbox(bbox_answer)
-
-            detections = [
-                {
-                    "label": object_desc,
-                    "confidence": 0.85,
-                    "description": f"VLM detected {object_desc}",
-                    "bbox": bbox,
-                }
-            ]
-
-            logger.info(f"VLM detected '{object_desc}' bbox={bbox} in {elapsed_ms:.0f}ms")
             return detections
         except Exception as e:
             logger.error(f"VLM detect failed: {e}")
             return []
-
-    @staticmethod
-    def _parse_bbox(text: str) -> list[float]:
-        """Parse bounding box coordinates from VLM text response.
-
-        Attempts to extract 4 float values from text like '[0.1, 0.2, 0.8, 0.9]'.
-        Falls back to full-frame [0, 0, 1, 1] if parsing fails.
-        """
-        import re
-        numbers = re.findall(r'(\d+\.?\d*)', text)
-        if len(numbers) >= 4:
-            coords = [float(n) for n in numbers[:4]]
-            # Validate: all values should be 0-1 range
-            if all(0 <= c <= 1.0 for c in coords):
-                # Ensure x1 < x2 and y1 < y2
-                x1, y1, x2, y2 = coords
-                if x1 > x2:
-                    x1, x2 = x2, x1
-                if y1 > y2:
-                    y1, y2 = y2, y1
-                # Ensure box has some area
-                if x2 - x1 > 0.01 and y2 - y1 > 0.01:
-                    return [x1, y1, x2, y2]
-        return [0, 0, 1, 1]
 
     def ocr(self, image: np.ndarray, region: Optional[list[int]] = None) -> str:
         """Extract text from an image or a specific region.
@@ -238,12 +196,10 @@ class MoondreamVLM:
         pil_image = self._to_pil(image)
 
         try:
-            enc_image = self.model.encode_image(pil_image)
-            text = self.model.answer_question(
-                enc_image,
+            text = self.model.query(
+                pil_image,
                 "Read all the text in this image. Return only the text, nothing else.",
-                self.tokenizer,
-            )
+            )["answer"]
             elapsed_ms = (time.perf_counter() - start) * 1000
 
             logger.info(f"VLM OCR extracted '{text[:50]}...' in {elapsed_ms:.0f}ms")

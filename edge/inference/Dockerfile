@@ -29,15 +29,14 @@ RUN python export_onnx.py --output /export/models/
 FROM python:3.11-slim AS vlm-downloader
 
 RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu \
-    && pip install --no-cache-dir huggingface_hub "transformers>=4.44.0,<4.50.0" einops accelerate pillow
+    && pip install --no-cache-dir huggingface_hub "transformers>=4.51.1" einops accelerate "pillow>=11.0.0"
 
 # Pre-download model weights so runtime doesn't need internet
 RUN python -c "\
-from transformers import AutoModelForCausalLM, AutoTokenizer; \
-model_id = 'vikhyatk/moondream2'; \
-revision = '2024-08-26'; \
-AutoTokenizer.from_pretrained(model_id, revision=revision, trust_remote_code=True, cache_dir='/vlm-models'); \
-AutoModelForCausalLM.from_pretrained(model_id, revision=revision, trust_remote_code=True, cache_dir='/vlm-models')"
+from transformers import AutoModelForCausalLM; \
+AutoModelForCausalLM.from_pretrained( \
+    'vikhyatk/moondream2', revision='2025-06-21', \
+    trust_remote_code=True, cache_dir='/vlm-models')"
 
 # ── Stage 3: Runtime ──────────────────────────────────────
 FROM python:3.11-slim

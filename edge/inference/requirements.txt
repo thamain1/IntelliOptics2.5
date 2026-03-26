@@ -11,16 +11,16 @@ python-multipart==0.0.6  # Required for FastAPI file uploads
 onnxruntime>=1.16.0,<1.20.0
 
 # PyTorch + transformers for Moondream VLM (same as 2.0)
-torch>=2.0.0
-torchvision>=0.15.0
-transformers>=4.44.0,<4.50.0  # 4.50+ breaks moondream2 generate
+torch>=2.7.0
+torchvision>=0.22.0
+transformers>=4.51.1
 einops>=0.7.0  # Required by Moondream2 model
-accelerate>=0.25.0  # Efficient model loading
+accelerate>=1.10.0  # Efficient model loading
 
 # CV libraries
 numpy>=1.24.0
 opencv-python-headless>=4.10.0
-pillow>=10.4.0,<11.0.0
+pillow>=11.0.0
 
 # HTTP client
 httpx==0.25.0
