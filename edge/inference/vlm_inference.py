@@ -95,11 +95,21 @@ class MoondreamVLM:
             logger.error(f"Failed to load Moondream VLM: {e}")
             self.model = None
 
+    # Moondream internally resizes to 729×729; sending full-res frames just
+    # wastes CPU time in the vision encoder preprocessing.  Cap the longest
+    # edge so we stay close to native resolution without blowing up latency.
+    _MAX_EDGE = 768
+
     def _to_pil(self, image: np.ndarray) -> Image.Image:
-        """Convert numpy array to PIL Image."""
+        """Convert numpy array to PIL Image, downscaling if oversized."""
         if image.dtype != np.uint8:
             image = (image * 255).astype(np.uint8)
-        return Image.fromarray(image)
+        pil = Image.fromarray(image)
+        w, h = pil.size
+        if max(w, h) > self._MAX_EDGE:
+            scale = self._MAX_EDGE / max(w, h)
+            pil = pil.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+        return pil
 
     def query(self, image: np.ndarray, question: str) -> VLMResult:
         """Ask a natural language question about an image.
@@ -111,7 +121,7 @@ class MoondreamVLM:
         Returns:
             VLMResult with answer text.
         """
-        if not self.model:
+        if self.model is None:
             return VLMResult(answer="VLM not available", confidence=0.0)
 
         start = time.perf_counter()
@@ -139,7 +149,7 @@ class MoondreamVLM:
         Returns:
             List of detections with normalized bounding boxes [x1, y1, x2, y2] (0-1).
         """
-        if not self.model:
+        if self.model is None:
             return []
 
         start = time.perf_counter()
@@ -184,7 +194,7 @@ class MoondreamVLM:
         Returns:
             Extracted text string.
         """
-        if not self.model:
+        if self.model is None:
             return ""
 
         start = time.perf_counter()
