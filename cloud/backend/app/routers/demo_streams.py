@@ -360,6 +360,9 @@ async def submit_frame(
         logger.error(f"❌ Failed to decode base64 image: {e}")
         raise HTTPException(status_code=400, detail=f"Invalid base64 image data: {e}")
 
+    # Store latest frame for live preview polling
+    session_manager._latest_frames[session_id] = image_bytes
+
     # Submit to blob storage
     blob_name = f"demo-sessions/{session_id}/{uuid.uuid4()}.jpg"
     try:
