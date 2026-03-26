@@ -13,7 +13,7 @@ onnxruntime>=1.16.0,<1.20.0
 # PyTorch + transformers for Moondream VLM (same as 2.0)
 torch>=2.7.0
 torchvision>=0.22.0
-transformers>=4.51.1
+transformers>=4.51.1,<5.0.0
 einops>=0.7.0  # Required by Moondream2 model
 accelerate>=1.10.0  # Efficient model loading
 

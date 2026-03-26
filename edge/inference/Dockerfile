@@ -29,7 +29,7 @@ RUN python export_onnx.py --output /export/models/
 FROM python:3.11-slim AS vlm-downloader
 
 RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu \
-    && pip install --no-cache-dir huggingface_hub "transformers>=4.51.1" einops accelerate "pillow>=11.0.0"
+    && pip install --no-cache-dir huggingface_hub "transformers>=4.51.1,<5.0.0" einops accelerate "pillow>=11.0.0"
 
 # Pre-download model weights so runtime doesn't need internet
 RUN python -c "\
