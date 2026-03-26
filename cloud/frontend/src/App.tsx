@@ -162,7 +162,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-1">
             <Link to="/" className="text-xl font-bold text-blue-500 mr-4">
-              IntelliOptics 2.0
+              IntelliOptics 2.5
             </Link>
 
             {/* Operations Dropdown */}
