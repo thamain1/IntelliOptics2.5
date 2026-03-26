@@ -35,7 +35,7 @@ class InferenceService:
         worker_url = settings.worker_url
 
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=180.0) as client:
                 if use_legacy:
                     # High-performance mode: raw bytes to worker
                     logger.info(f"🚀 Sending legacy/fast inference request to {worker_url}")

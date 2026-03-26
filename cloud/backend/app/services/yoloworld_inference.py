@@ -45,7 +45,7 @@ def process_yoloworld_inference(query_id: str, result_id: str, image_bytes: byte
                 YOLOWORLD_WORKER_URL,
                 files={'image': ('frame.jpg', image_bytes, 'image/jpeg')},
                 params={'prompts': ','.join(prompt_list)},  # Query param as expected by worker
-                timeout=60  # YOLOWorld may take longer due to CLIP encoding
+                timeout=180  # YOLOWorld may take longer due to CLIP encoding
             )
 
             logger.info(f"📥 [YOLOWorld] Worker Response Status: {response.status_code}")
@@ -155,7 +155,7 @@ def process_yoloe_inference(query_id: str, result_id: str, image_bytes: bytes, p
                 YOLOE_WORKER_URL,
                 files={'image': ('frame.jpg', image_bytes, 'image/jpeg')},
                 params={'prompts': ','.join(prompt_list), 'conf': str(conf)},
-                timeout=60,
+                timeout=180,
             )
 
             logger.info(f"[YOLOE] Worker Response Status: {response.status_code}")

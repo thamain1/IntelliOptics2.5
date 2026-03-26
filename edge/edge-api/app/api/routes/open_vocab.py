@@ -28,7 +28,7 @@ async def detect_open_vocab(
             f"{INFERENCE_SERVICE_URL}/yoloe",
             files={"image": ("frame.jpg", image_bytes, "image/jpeg")},
             params={"prompts": prompts, "conf": conf},
-            timeout=60,
+            timeout=180,
         )
         response.raise_for_status()
         return response.json()
@@ -51,7 +51,7 @@ async def vlm_query(
             f"{INFERENCE_SERVICE_URL}/vlm/query",
             files={"image": ("frame.jpg", image_bytes, "image/jpeg")},
             params={"question": question},
-            timeout=60,
+            timeout=180,
         )
         response.raise_for_status()
         return response.json()

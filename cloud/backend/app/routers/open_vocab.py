@@ -53,7 +53,7 @@ async def detect_open_vocab(
                 "prompts": ",".join(prompt_list),
                 "conf": payload.confidence_threshold,
             },
-            timeout=60,
+            timeout=180,
         )
         response.raise_for_status()
         result = response.json()
@@ -101,7 +101,7 @@ async def query_vlm(
             vlm_url,
             files={"image": ("frame.jpg", image_bytes, "image/jpeg")},
             params={"question": payload.question},
-            timeout=60,
+            timeout=180,
         )
         response.raise_for_status()
         result = response.json()
