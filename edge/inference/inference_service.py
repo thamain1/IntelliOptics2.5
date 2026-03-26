@@ -369,15 +369,18 @@ async def yoloe_inference(
         detections = model.detect(image_np, prompt_list, conf=conf)
         latency_ms = (time.perf_counter() - start) * 1000
 
-        # VLM fallback: if YOLOE returns nothing, escalate to VLM for detection
+        # VLM fallback: for any prompt that YOLOE missed, escalate to VLM
         vlm_used = False
-        if not detections:
+        detected_labels = {d.label.lower() for d in detections}
+        missed_prompts = [p for p in prompt_list if p.lower() not in detected_labels]
+
+        if missed_prompts:
             try:
                 vlm = get_vlm()
                 if vlm.model is not None:
-                    logger.info(f"YOLOE returned 0 detections, escalating to VLM for: {prompt_list}")
+                    logger.info(f"YOLOE missed prompts {missed_prompts}, escalating to VLM")
                     vlm_start = time.perf_counter()
-                    for prompt in prompt_list:
+                    for prompt in missed_prompts:
                         vlm_dets = vlm.detect(image_np, prompt)
                         for vd in vlm_dets:
                             detections.append(Detection(
@@ -393,7 +396,7 @@ async def yoloe_inference(
                     vlm_ms = (time.perf_counter() - vlm_start) * 1000
                     latency_ms += vlm_ms
                     vlm_used = True
-                    logger.info(f"VLM fallback found {len(detections)} detections in {vlm_ms:.0f}ms")
+                    logger.info(f"VLM fallback found {len(detections) - len(detected_labels)} additional detections in {vlm_ms:.0f}ms")
             except Exception as vlm_err:
                 logger.warning(f"VLM fallback failed: {vlm_err}")
 

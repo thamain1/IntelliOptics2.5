@@ -135,12 +135,14 @@ class MoondreamVLM:
     def detect(self, image: np.ndarray, object_desc: str) -> list[dict]:
         """Detect objects matching a description, returning bounding boxes.
 
+        Uses VLM to first confirm presence, then estimate bounding box coordinates.
+
         Args:
             image: Input image as numpy array (RGB).
             object_desc: Description of object to detect.
 
         Returns:
-            List of detections with bounding boxes.
+            List of detections with normalized bounding boxes [x1, y1, x2, y2] (0-1).
         """
         if not self.model:
             return []
@@ -150,27 +152,69 @@ class MoondreamVLM:
 
         try:
             enc_image = self.model.encode_image(pil_image)
-            answer = self.model.answer_question(
+
+            # First check if object is present
+            presence = self.model.answer_question(
                 enc_image,
-                f"List all {object_desc} visible in this image with their approximate positions (top-left, center, bottom-right, etc).",
+                f"Is there a {object_desc} in this image? Answer only yes or no.",
                 self.tokenizer,
             )
+
+            if "yes" not in presence.lower():
+                elapsed_ms = (time.perf_counter() - start) * 1000
+                logger.info(f"VLM: no '{object_desc}' found in {elapsed_ms:.0f}ms")
+                return []
+
+            # Get bounding box coordinates
+            bbox_answer = self.model.answer_question(
+                enc_image,
+                f"Give the bounding box of the {object_desc} as normalized coordinates [left, top, right, bottom] where each value is between 0.0 and 1.0. Return only the coordinates in format [x1, y1, x2, y2].",
+                self.tokenizer,
+            )
+
             elapsed_ms = (time.perf_counter() - start) * 1000
+
+            # Parse bbox from response
+            bbox = self._parse_bbox(bbox_answer)
 
             detections = [
                 {
                     "label": object_desc,
-                    "confidence": 1.0,
-                    "description": answer,
-                    "bbox": [0, 0, 1, 1],
+                    "confidence": 0.85,
+                    "description": f"VLM detected {object_desc}",
+                    "bbox": bbox,
                 }
             ]
 
-            logger.info(f"VLM detected '{object_desc}' in {elapsed_ms:.0f}ms: {answer[:80]}")
+            logger.info(f"VLM detected '{object_desc}' bbox={bbox} in {elapsed_ms:.0f}ms")
             return detections
         except Exception as e:
             logger.error(f"VLM detect failed: {e}")
             return []
+
+    @staticmethod
+    def _parse_bbox(text: str) -> list[float]:
+        """Parse bounding box coordinates from VLM text response.
+
+        Attempts to extract 4 float values from text like '[0.1, 0.2, 0.8, 0.9]'.
+        Falls back to full-frame [0, 0, 1, 1] if parsing fails.
+        """
+        import re
+        numbers = re.findall(r'(\d+\.?\d*)', text)
+        if len(numbers) >= 4:
+            coords = [float(n) for n in numbers[:4]]
+            # Validate: all values should be 0-1 range
+            if all(0 <= c <= 1.0 for c in coords):
+                # Ensure x1 < x2 and y1 < y2
+                x1, y1, x2, y2 = coords
+                if x1 > x2:
+                    x1, x2 = x2, x1
+                if y1 > y2:
+                    y1, y2 = y2, y1
+                # Ensure box has some area
+                if x2 - x1 > 0.01 and y2 - y1 > 0.01:
+                    return [x1, y1, x2, y2]
+        return [0, 0, 1, 1]
 
     def ocr(self, image: np.ndarray, region: Optional[list[int]] = None) -> str:
         """Extract text from an image or a specific region.
