@@ -240,14 +240,17 @@ if (Test-Path (Join-Path $repoPath ".git")) {
     Write-Info "Existing clone found. Pulling latest changes..."
     Push-Location $repoPath
     try {
+        $ErrorActionPreference = "Continue"
         git checkout $Branch 2>&1 | Out-Null
-        git pull origin $Branch 2>&1
+        git pull origin $Branch 2>&1 | Out-Null
+        $ErrorActionPreference = "Stop"
         if ($LASTEXITCODE -ne 0) {
             Write-Warn "git pull failed. Continuing with existing code."
         } else {
             Write-Ok "Repository updated."
         }
     } finally {
+        $ErrorActionPreference = "Stop"
         Pop-Location
     }
 } elseif (Test-Path $repoPath) {
@@ -256,10 +259,12 @@ if (Test-Path (Join-Path $repoPath ".git")) {
     Write-Info "Attempting to initialize and pull..."
     Push-Location $repoPath
     try {
+        $ErrorActionPreference = "Continue"
         git init 2>&1 | Out-Null
         git remote add origin $repoUrl 2>&1 | Out-Null
         git fetch origin $Branch 2>&1 | Out-Null
-        git checkout -f $Branch 2>&1
+        git checkout -f $Branch 2>&1 | Out-Null
+        $ErrorActionPreference = "Stop"
         if ($LASTEXITCODE -ne 0) {
             Write-Fail "Could not recover existing directory as a git repo."
             Write-Host "  Delete or rename $repoPath, then re-run this script." -ForegroundColor Yellow
@@ -267,11 +272,14 @@ if (Test-Path (Join-Path $repoPath ".git")) {
         }
         Write-Ok "Repository recovered."
     } finally {
+        $ErrorActionPreference = "Stop"
         Pop-Location
     }
 } else {
     Write-Info "Cloning IntelliOptics 2.5 into $repoPath..."
-    git clone --branch $Branch $repoUrl $repoPath 2>&1
+    $ErrorActionPreference = "Continue"
+    git clone --branch $Branch $repoUrl $repoPath 2>&1 | Out-Null
+    $ErrorActionPreference = "Stop"
     if ($LASTEXITCODE -ne 0) {
         Write-Fail "git clone failed. Check your network connection and GitHub access."
         exit 1
