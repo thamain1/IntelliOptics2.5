@@ -17,7 +17,9 @@ if ($state -ne "running") {
 }
 
 # Run the seed_admin script inside the container
+$ErrorActionPreference = "Continue"
 docker exec $Container python -m app.seed_admin 2>&1
+$ErrorActionPreference = "Stop"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""

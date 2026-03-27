@@ -9,7 +9,9 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "`n>> Starting IntelliOptics services..." -ForegroundColor Cyan
 
+$ErrorActionPreference = "Continue"
 docker compose -f $ComposeFile up -d 2>&1
+$ErrorActionPreference = "Stop"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  Failed to start services." -ForegroundColor Red

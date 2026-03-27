@@ -7,7 +7,9 @@ param(
 
 Write-Host "`n>> Stopping IntelliOptics services..." -ForegroundColor Cyan
 
+$ErrorActionPreference = "Continue"
 docker compose -f $ComposeFile down 2>&1
+$ErrorActionPreference = "Stop"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "  All services stopped." -ForegroundColor Green

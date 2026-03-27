@@ -31,7 +31,9 @@ foreach ($svc in $services) {
     $svcStart = [System.Diagnostics.Stopwatch]::StartNew()
 
     $svcArgs = $buildArgs + $svc.Name
+    $ErrorActionPreference = "Continue"
     docker compose @svcArgs 2>&1 | Out-Null
+    $ErrorActionPreference = "Stop"
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host " FAILED" -ForegroundColor Red
