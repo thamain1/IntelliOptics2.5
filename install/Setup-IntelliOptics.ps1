@@ -250,6 +250,25 @@ if (Test-Path (Join-Path $repoPath ".git")) {
     } finally {
         Pop-Location
     }
+} elseif (Test-Path $repoPath) {
+    # Directory exists but is not a git repo — try to init and pull
+    Write-Warn "Directory $repoPath exists but is not a git repo."
+    Write-Info "Attempting to initialize and pull..."
+    Push-Location $repoPath
+    try {
+        git init 2>&1 | Out-Null
+        git remote add origin $repoUrl 2>&1 | Out-Null
+        git fetch origin $Branch 2>&1 | Out-Null
+        git checkout -f $Branch 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Fail "Could not recover existing directory as a git repo."
+            Write-Host "  Delete or rename $repoPath, then re-run this script." -ForegroundColor Yellow
+            exit 1
+        }
+        Write-Ok "Repository recovered."
+    } finally {
+        Pop-Location
+    }
 } else {
     Write-Info "Cloning IntelliOptics 2.5 into $repoPath..."
     git clone --branch $Branch $repoUrl $repoPath 2>&1
