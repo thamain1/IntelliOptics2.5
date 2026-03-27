@@ -67,6 +67,9 @@ data/
 *.csv
 *.json
 !**/config/*.json
+!package.json
+!package-lock.json
+!tsconfig.json
 
 # Postgres data
 postgres_data/
