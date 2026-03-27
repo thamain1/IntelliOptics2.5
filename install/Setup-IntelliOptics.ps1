@@ -287,6 +287,10 @@ if (Test-Path (Join-Path $repoPath ".git")) {
     Write-Ok "Repository cloned."
 }
 
+# Unblock all scripts so execution policy doesn't block them
+Write-Info "Unblocking repository files..."
+Get-ChildItem -Path $repoPath -Recurse -Include "*.ps1","*.psm1","*.psd1" | Unblock-File
+
 # ── Step 4: Hand Off to Existing Installer ──────────────────────────────
 Write-Step "4/4" "Running IntelliOptics installer..."
 Write-Host ""
@@ -299,8 +303,6 @@ if (-not (Test-Path $installerPath)) {
     exit 1
 }
 
-$installArgs = @{}
-if ($NoCache) { $installArgs.NoCache = $true }
-
-& $installerPath @installArgs
+$nocacheFlag = if ($NoCache) { "-NoCache" } else { "" }
+powershell -ExecutionPolicy Bypass -File $installerPath $nocacheFlag
 exit $LASTEXITCODE
