@@ -6,9 +6,21 @@ param(
     [int]$TimeoutSeconds = 180
 )
 
-$ErrorActionPreference = "Stop"
-
 function Write-Step($msg) { Write-Host "`n>> $msg" -ForegroundColor Cyan }
+
+function Get-ContainerHealth($containerName) {
+    $ErrorActionPreference = "Continue"
+    $status = docker inspect --format '{{.State.Health.Status}}' $containerName 2>&1
+    if ($LASTEXITCODE -ne 0 -or "$status" -match "template parsing error|no such object") {
+        # No healthcheck or container not found — check if running
+        $state = docker inspect --format '{{.State.Status}}' $containerName 2>&1
+        if ($LASTEXITCODE -eq 0 -and "$state" -notmatch "template parsing error|no such object") {
+            return $state.Trim()
+        }
+        return $null
+    }
+    return $status.Trim()
+}
 
 $services = @(
     @{ Name = "io-cloud-backend";   Url = "http://localhost:8000/health";       Label = "Cloud Backend" },
@@ -28,13 +40,9 @@ while ($stopwatch.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
     $total = $services.Count
 
     foreach ($svc in $services) {
-        $status = docker inspect --format '{{.State.Health.Status}}' $svc.Name 2>$null
-        if ($status -eq "healthy") {
+        $status = Get-ContainerHealth $svc.Name
+        if ($status -eq "healthy" -or $status -eq "running") {
             $healthy++
-        } elseif (-not $status) {
-            # No healthcheck defined - check if container is running
-            $state = docker inspect --format '{{.State.Status}}' $svc.Name 2>$null
-            if ($state -eq "running") { $healthy++ }
         }
     }
 
@@ -56,8 +64,8 @@ if ($allHealthy) {
     Write-Host "  All services healthy!" -ForegroundColor Green
     Write-Host ""
     foreach ($svc in $services) {
-        $status = docker inspect --format '{{.State.Health.Status}}' $svc.Name 2>$null
-        if (-not $status) { $status = "running" }
+        $status = Get-ContainerHealth $svc.Name
+        if (-not $status) { $status = "unknown" }
         $color = if ($status -eq "healthy" -or $status -eq "running") { "Green" } else { "Yellow" }
         Write-Host "    $($svc.Label): $status" -ForegroundColor $color
     }
@@ -71,11 +79,8 @@ if ($allHealthy) {
 
     # Show which ones failed
     foreach ($svc in $services) {
-        $status = docker inspect --format '{{.State.Health.Status}}' $svc.Name 2>$null
-        if (-not $status) {
-            $state = docker inspect --format '{{.State.Status}}' $svc.Name 2>$null
-            $status = if ($state) { $state } else { "not found" }
-        }
+        $status = Get-ContainerHealth $svc.Name
+        if (-not $status) { $status = "not found" }
         if ($status -ne "healthy" -and $status -ne "running") {
             Write-Host "    $($svc.Label): $status" -ForegroundColor Red
         }
