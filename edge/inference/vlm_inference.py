@@ -79,6 +79,12 @@ class MoondreamVLM:
             dtype = torch.bfloat16 if use_cuda else torch.float32
             device = "cuda" if use_cuda else "cpu"
 
+            # Maximize CPU parallelism when running on CPU
+            if not use_cuda:
+                cpu_threads = os.cpu_count() or 4
+                torch.set_num_threads(cpu_threads)
+                logger.info(f"VLM will use {cpu_threads} CPU threads (float32)")
+
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_id,
                 revision=revision,

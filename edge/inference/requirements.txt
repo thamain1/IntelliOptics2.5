@@ -10,9 +10,11 @@ python-multipart==0.0.6  # Required for FastAPI file uploads
 # ONNX Runtime for YOLOE detection
 onnxruntime>=1.16.0,<1.20.0
 
-# PyTorch + transformers for Moondream VLM (same as 2.0)
-torch>=2.7.0
-torchvision>=0.22.0
+# PyTorch + transformers for Moondream VLM
+# Pin to CUDA 12.8 index — compatible with NVIDIA driver CUDA 12.x
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch>=2.7.0,<3.0.0
+torchvision>=0.22.0,<1.0.0
 transformers>=4.51.1,<5.0.0
 einops>=0.7.0  # Required by Moondream2 model
 accelerate>=1.10.0  # Efficient model loading

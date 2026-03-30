@@ -51,9 +51,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl libgomp1 libgl1 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies (torch from cu128 wheel index for CUDA 12.x driver support)
 COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
 
 # Copy ONNX model + vocabulary from exporter stage
 COPY --from=exporter /export/models/ /models/yoloworld/

@@ -4,8 +4,10 @@ Multi-detector ONNX inference with Primary + OODD ground truth models
 """
 
 import os
+import asyncio
 import logging
 import uuid
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 from cachetools import LRUCache
@@ -35,7 +37,20 @@ logger = logging.getLogger(__name__)
 # Model cache (LRU - keeps 5 most recently used models)
 model_cache: LRUCache = LRUCache(maxsize=CACHE_MAX_MODELS)
 
-app = FastAPI(title="IntelliOptics Inference Service", version="2.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Pre-load YOLOE and VLM at startup to avoid cold-start latency on first request."""
+    logger.info("Pre-loading inference models at startup...")
+    loop = asyncio.get_event_loop()
+    await asyncio.gather(
+        loop.run_in_executor(None, get_yoloe),
+        loop.run_in_executor(None, get_vlm),
+    )
+    logger.info("Models pre-loaded — inference service ready.")
+    yield
+
+
+app = FastAPI(title="IntelliOptics Inference Service", version="2.0", lifespan=lifespan)
 
 # ====================
 # Model Loading
