@@ -54,6 +54,19 @@ class EdgeInferenceConfig(BaseModel):
             "Only applies when `always_return_edge_prediction=True` and `disable_cloud_escalation=False`."
         ),
     )
+    per_class_thresholds: dict[str, float] = Field(
+        default_factory=dict,
+        description=(
+            "Per-class confidence thresholds applied at the edge before the escalation decision. "
+            "Overrides the detector's global confidence_threshold for the specified class. "
+            "Keys may be class names (e.g. 'forklift', 'person') OR the string form of an integer class index "
+            "(e.g. '0', '1') for binary/multiclass detectors. Values must be in [0.0, 1.0]. "
+            "If a class is not in this dict, the detector's global confidence_threshold is used. "
+            "These edge-local overrides take precedence over per_class_thresholds from the cloud detector "
+            "metadata, allowing operators to enforce safety-critical thresholds locally without waiting "
+            "for cloud-side configuration."
+        ),
+    )
 
     @model_validator(mode="after")
     def validate_configuration(self) -> Self:
@@ -63,6 +76,11 @@ class EdgeInferenceConfig(BaseModel):
             )
         if self.min_time_between_escalations < 0.0:
             raise ValueError("`min_time_between_escalations` cannot be less than 0.0.")
+        for class_key, threshold in self.per_class_thresholds.items():
+            if not 0.0 <= threshold <= 1.0:
+                raise ValueError(
+                    f"per_class_thresholds['{class_key}'] = {threshold} must be between 0.0 and 1.0 inclusive."
+                )
         return self
 
 

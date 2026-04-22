@@ -20,7 +20,9 @@ from app.core.app_state import (AppState, get_app_state, get_detector_metadata,
                                 get_intellioptics_sdk_instance,
                                 refresh_detector_metadata_if_needed)
 from app.core.edge_inference import get_edge_inference_model_name
-from app.core.utils import create_iq, generate_metadata_dict, safe_call_sdk
+from app.core.utils import (create_iq, generate_metadata_dict,
+                            resolve_class_names_from_metadata,
+                            resolve_effective_threshold, safe_call_sdk)
 from app.metrics.iq_activity import record_activity_for_metrics
 
 logger = logging.getLogger(__name__)
@@ -144,10 +146,37 @@ async def post_image_query(  # noqa: PLR0913, PLR0915, PLR0912
     # Schedule a background task to refresh the detector metadata if it's too old
     background_tasks.add_task(refresh_detector_metadata_if_needed, detector_id, io)
 
-    confidence_threshold = confidence_threshold or detector_metadata.confidence_threshold
+    # ------------------------------------------------------------------------
+    # Section: Threshold + Model-Version Prep
+    # ------------------------------------------------------------------------
+    # Resolve the global threshold, collect per-class overrides, and stamp the
+    # current edge model versions. These values feed both the escalation
+    # decision below AND the cloud-escalation metadata so reviewers can
+    # correlate low-confidence feedback to specific model generations.
+    # ------------------------------------------------------------------------
+    global_confidence_threshold = confidence_threshold or detector_metadata.confidence_threshold
+    confidence_threshold = global_confidence_threshold  # preserve outer scope for code below
 
     # for holding edge results if and when available
     results = None
+    # Per-class threshold resolution metadata — initialized to "global" so the final
+    # fall-through cloud-submit path can reference these even when no edge inference ran.
+    threshold_source = "global_default"
+    matched_threshold_key: str | None = None
+
+    # Per-class threshold overrides — look up once per request (cheap dict reads) so they
+    # are available both for the escalation decision and the metadata stamping below.
+    edge_per_class = (
+        detector_inference_config.per_class_thresholds if detector_inference_config is not None else {}
+    )
+    # Detector metadata per_class_thresholds may or may not exist depending on SDK version
+    metadata_per_class = getattr(detector_metadata, "per_class_thresholds", None) or {}
+    class_names = resolve_class_names_from_metadata(detector_metadata)
+
+    # Pre-fetch model versions once so escalation + audit paths can both stamp them.
+    model_version_primary, model_version_oodd = (
+        app_state.edge_inference_manager.get_current_model_versions_for_detector(detector_id)
+    )
 
     if require_human_review:
         # If human review is required, we should skip edge inference completely
@@ -160,6 +189,28 @@ async def post_image_query(  # noqa: PLR0913, PLR0915, PLR0912
             detector_id=detector_id, image_bytes=image_bytes, content_type=content_type
         )
         ml_confidence = results["confidence"]
+
+        # --------------------------------------------------------------------
+        # Section: Per-Class Threshold Decision
+        # --------------------------------------------------------------------
+        # Resolve the effective threshold for THIS detection's label, applying
+        # per-class overrides (edge config > cloud metadata > global default).
+        # See resolve_effective_threshold docstring in app.core.utils.
+        # --------------------------------------------------------------------
+        effective_threshold, matched_threshold_key, threshold_source = resolve_effective_threshold(
+            label=results.get("label"),
+            default_threshold=global_confidence_threshold,
+            edge_per_class=edge_per_class,
+            metadata_per_class=metadata_per_class,
+            class_names=class_names,
+        )
+        if threshold_source != "global_default":
+            logger.debug(
+                f"Per-class threshold applied: label={results.get('label')!r} matched_key={matched_threshold_key!r} "
+                f"threshold={effective_threshold} source={threshold_source} (global was {global_confidence_threshold})"
+            )
+        # The variable kept for downstream code compatibility
+        confidence_threshold = effective_threshold
 
         is_confident_enough = ml_confidence >= confidence_threshold
         if return_edge_prediction or is_confident_enough:  # Return the edge prediction
@@ -201,7 +252,13 @@ async def post_image_query(  # noqa: PLR0913, PLR0915, PLR0912
                         patience_time=patience_time,
                         confidence_threshold=confidence_threshold,
                         want_async=True,
-                        metadata=generate_metadata_dict(results=results, is_edge_audit=True),
+                        metadata=generate_metadata_dict(
+                            results=results,
+                            is_edge_audit=True,
+                            model_version_primary=model_version_primary,
+                            model_version_oodd=model_version_oodd,
+                            escalation_reason="edge_audit",
+                        ),
                         image_query_id=image_query.id,  # We give the cloud IQ the same ID as the returned edge IQ
                     )
                     # We keep done_processing=True here because although we escalated the query for an audit, this is
@@ -228,7 +285,15 @@ async def post_image_query(  # noqa: PLR0913, PLR0915, PLR0912
                         confidence_threshold=confidence_threshold,
                         human_review=human_review,
                         want_async=True,
-                        metadata=generate_metadata_dict(results=results, is_edge_audit=False),
+                        metadata=generate_metadata_dict(
+                            results=results,
+                            is_edge_audit=False,
+                            model_version_primary=model_version_primary,
+                            model_version_oodd=model_version_oodd,
+                            escalation_reason=(
+                                "per_class_threshold" if threshold_source != "global_default" else "low_confidence"
+                            ),
+                        ),
                         image_query_id=image_query.id,  # Ensure the cloud IQ has the same ID as the returned edge IQ
                     )
                     # Not done processing because the associated IQ in the cloud could get a better answer
@@ -286,5 +351,13 @@ async def post_image_query(  # noqa: PLR0913, PLR0915, PLR0912
         patience_time=patience_time,
         confidence_threshold=confidence_threshold,
         human_review=human_review,
-        metadata=generate_metadata_dict(results=results, is_edge_audit=False),
+        metadata=generate_metadata_dict(
+            results=results,
+            is_edge_audit=False,
+            model_version_primary=model_version_primary,
+            model_version_oodd=model_version_oodd,
+            escalation_reason=(
+                "require_human_review" if require_human_review else "edge_unavailable"
+            ),
+        ),
     )

@@ -348,6 +348,27 @@ class EdgeInferenceManager:
         )
         return True
 
+    # ------------------------------------------------------------------------
+    # Section: Model Version Tracking
+    # ------------------------------------------------------------------------
+    # Exposes the current on-disk primary + OODD model versions for a detector
+    # so the escalation pipeline can stamp them on cloud-submitted IQs. Lets
+    # reviewers correlate human feedback to specific model generations and
+    # detect model regression over time.
+    # ------------------------------------------------------------------------
+
+    def get_current_model_versions_for_detector(self, detector_id: str) -> tuple[Optional[int], Optional[int]]:
+        """
+        Return the (primary_version, oodd_version) currently on disk for this detector.
+        Both may be None if no models have been downloaded yet. Used to stamp escalation
+        metadata so cloud reviewers can correlate feedback to specific model versions.
+        """
+        try:
+            return get_current_model_versions(self.MODEL_REPOSITORY, detector_id)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"Could not look up model versions for {detector_id}: {exc}")
+            return None, None
+
     def escalation_cooldown_complete(self, detector_id: str) -> bool:
         """
         Check if the time since the last escalation is long enough ago that we should escalate again.

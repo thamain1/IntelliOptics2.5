@@ -20,6 +20,16 @@ edge_inference_configs:
     always_return_edge_prediction: false
     disable_cloud_escalation: false
     min_time_between_escalations: 2.0  # Cooldown between escalations (seconds)
+    # Per-class confidence overrides (edge-local, take precedence over cloud metadata).
+    # Keys may be class names OR the stringified integer label.
+    # Any detection whose label matches a key below must meet that threshold to avoid
+    # escalation; all other labels fall back to the detector's global confidence_threshold.
+    # Example — safety-critical classes require higher confidence before passing locally:
+    # per_class_thresholds:
+    #   forklift: 0.85
+    #   hard_hat: 0.75
+    #   "0": 0.95        # binary detector, raw integer label form
+    per_class_thresholds: {}
 
   # Offline: No cloud escalation, always return edge result
   offline:

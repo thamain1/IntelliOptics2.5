@@ -201,17 +201,47 @@ def _size_of_dict_with_field_in_bytes(initial_dict: dict[str, Any], new_data_key
     return _size_of_dict_in_bytes(combined_dict)
 
 
-def generate_metadata_dict(results: dict[str, Any] | None, is_edge_audit: bool = False) -> dict[str, Any]:
+# ============================================================================
+# SECTION: Escalation Metadata Builder
+# ----------------------------------------------------------------------------
+# Builds the metadata dict attached to cloud-escalated IQs. Stamps the edge
+# model versions (primary + OODD) so reviewers can correlate "this was wrong"
+# feedback to a specific model generation, and records the reason the IQ
+# escalated (low_confidence, per_class_threshold, edge_audit, etc.) for
+# downstream analysis and drift detection.
+# ============================================================================
+
+def generate_metadata_dict(
+    results: dict[str, Any] | None,
+    is_edge_audit: bool = False,
+    model_version_primary: int | None = None,
+    model_version_oodd: int | None = None,
+    escalation_reason: str | None = None,
+) -> dict[str, Any]:
     """
     Generates the metadata for an IQ being escalated to the cloud.
     Includes `"is_edge_audit": True` if it is an edge audit.
     Includes `"edge_result": results` if including the results would not push the metadata over the size limit. If they
         would, includes the results without the ROIs if the resulting metadata does not exceed the limit.
+
+    Also stamps the escalation with edge-side model versions for root-cause + regression analysis:
+        model_version_primary: primary model version integer (from edge model repository)
+        model_version_oodd:    OODD model version integer
+        escalation_reason:     short machine-readable tag explaining why this IQ escalated, e.g.
+                               "low_confidence", "per_class_threshold", "require_human_review", "edge_audit"
     """
-    metadata_dict = {}
+    metadata_dict: dict[str, Any] = {}
 
     if is_edge_audit:
         metadata_dict["is_edge_audit"] = True  # This metadata will trigger an audit in the cloud
+
+    # Model version stamping — small fixed-size fields, always safe to include.
+    if model_version_primary is not None:
+        metadata_dict["model_version_primary"] = model_version_primary
+    if model_version_oodd is not None:
+        metadata_dict["model_version_oodd"] = model_version_oodd
+    if escalation_reason:
+        metadata_dict["escalation_reason"] = escalation_reason
 
     metadata_with_results_size = _size_of_dict_with_field_in_bytes(metadata_dict, "edge_result", results)
     if metadata_with_results_size > METADATA_SIZE_LIMIT_BYTES:
@@ -236,6 +266,94 @@ def generate_metadata_dict(results: dict[str, Any] | None, is_edge_audit: bool =
         metadata_dict["edge_result"] = results
 
     return metadata_dict
+
+
+# ============================================================================
+# SECTION: Per-Class Threshold Resolution
+# ----------------------------------------------------------------------------
+# Helpers for applying per-class confidence thresholds at the edge, with
+# priority order: edge config > cloud detector metadata > global default.
+#
+# Used by image_queries.post_image_query to decide whether an edge prediction
+# is confident ENOUGH to return locally, or low enough to warrant cloud
+# escalation. A forklift at 0.5 conf may need to escalate while a person at
+# 0.5 conf can pass — per-class thresholds express that policy.
+# ============================================================================
+
+def resolve_class_names_from_metadata(detector_metadata: Any) -> list[str]:
+    """
+    Best-effort extraction of class names from an SDK Detector object.
+    Returns [] if no class names can be resolved (e.g. binary detector without named classes).
+
+    Class names are pulled from mode_configuration when available:
+      - BINARY:      typically ["NO", "YES"] or equivalent
+      - MULTI_CLASS: class_names list on the mode_configuration
+      - COUNT:       may have class_name for the counted object
+    """
+    try:
+        mc = getattr(detector_metadata, "mode_configuration", None)
+        if mc is None:
+            return []
+        # Pydantic models vs dicts
+        if hasattr(mc, "class_names") and mc.class_names:
+            return list(mc.class_names)
+        if isinstance(mc, dict) and mc.get("class_names"):
+            return list(mc["class_names"])
+        # Binary detectors often expose positive/negative class via different attrs
+        pos = getattr(mc, "positive_class_name", None) if not isinstance(mc, dict) else mc.get("positive_class_name")
+        neg = getattr(mc, "negative_class_name", None) if not isinstance(mc, dict) else mc.get("negative_class_name")
+        if pos or neg:
+            return [neg or "NO", pos or "YES"]
+    except Exception as exc:  # noqa: BLE001
+        logger.debug(f"Failed to resolve class names from detector metadata: {exc}")
+    return []
+
+
+def resolve_effective_threshold(
+    *,
+    label: Any,
+    default_threshold: float,
+    edge_per_class: dict[str, float] | None,
+    metadata_per_class: dict[str, float] | None,
+    class_names: list[str] | None,
+) -> tuple[float, str | None, str]:
+    """
+    Resolve the effective confidence threshold for a given label, applying per-class
+    overrides in priority order: edge config > cloud detector metadata > global default.
+
+    Per-class thresholds may be keyed by either:
+      - the integer label stringified (e.g. "0", "1") for binary/multiclass detectors
+      - the class name (e.g. "forklift", "person") when class_names is resolvable
+
+    Returns:
+      (threshold, matched_key, source) where:
+        threshold    = the resolved confidence threshold
+        matched_key  = the per-class key that matched, or None if the global default applied
+        source       = one of "edge_per_class", "metadata_per_class", "global_default"
+    """
+    edge_per_class = edge_per_class or {}
+    metadata_per_class = metadata_per_class or {}
+
+    # Build the list of candidate keys to try, in order
+    candidates: list[str] = []
+    if label is not None:
+        candidates.append(str(label))  # "0", "1", etc.
+    if class_names and isinstance(label, int) and 0 <= label < len(class_names):
+        candidates.append(class_names[label])
+    if isinstance(label, str):
+        candidates.append(label)
+
+    # Edge config takes first priority — local overrides for safety-critical classes
+    for key in candidates:
+        if key in edge_per_class:
+            return edge_per_class[key], key, "edge_per_class"
+
+    # Then cloud detector metadata
+    for key in candidates:
+        if key in metadata_per_class:
+            return metadata_per_class[key], key, "metadata_per_class"
+
+    return default_threshold, None, "global_default"
 
 
 def prefixed_ksuid(prefix: str | None = None) -> str:
