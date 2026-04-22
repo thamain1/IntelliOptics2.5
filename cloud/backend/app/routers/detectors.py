@@ -575,6 +575,223 @@ def get_detector_metrics(
     }
 
 
+# ── Phase 1: Active Learning — Dataset Export ─────────────────────────────────
+
+_MIN_LABELED_SAMPLES = 50
+_VAL_SPLIT = 0.2
+
+
+def _build_yolo_labels(
+    query,
+    label: str,
+    class_index: dict,
+    img_w: int,
+    img_h: int,
+    db: Session,
+) -> list:
+    """Return YOLO label lines for one query.
+
+    Priority: image_annotations (normalized) → detections_json (pixel→norm) → full-frame fallback.
+    """
+    lines = []
+
+    annotations = db.query(models.ImageAnnotation).filter(
+        models.ImageAnnotation.query_id == query.id
+    ).all()
+    if annotations:
+        for ann in annotations:
+            cls_idx = class_index.get((ann.label or "").lower(), 0)
+            cx = ann.x + ann.width / 2.0
+            cy = ann.y + ann.height / 2.0
+            lines.append(f"{cls_idx} {cx:.6f} {cy:.6f} {ann.width:.6f} {ann.height:.6f}")
+        return lines
+
+    if query.detections_json:
+        for det in query.detections_json:
+            det_label = det.get("label") or label
+            cls_idx = class_index.get(det_label.lower(), 0)
+            bbox = det.get("bbox")
+            if bbox and len(bbox) >= 4:
+                x1, y1, x2, y2 = bbox[0], bbox[1], bbox[2], bbox[3]
+                if max(x1, y1, x2, y2) > 1.0:
+                    x1, x2 = x1 / img_w, x2 / img_w
+                    y1, y2 = y1 / img_h, y2 / img_h
+                cx = (x1 + x2) / 2.0
+                cy = (y1 + y2) / 2.0
+                w = max(x2 - x1, 0.001)
+                h = max(y2 - y1, 0.001)
+                lines.append(f"{cls_idx} {cx:.6f} {cy:.6f} {w:.6f} {h:.6f}")
+        if lines:
+            return lines
+
+    cls_idx = class_index.get((label or "").lower(), 0)
+    lines.append(f"{cls_idx} 0.500000 0.500000 1.000000 1.000000")
+    return lines
+
+
+@router.get("/{detector_id}/export-dataset")
+def export_dataset(
+    detector_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_admin),
+):
+    """Export labeled feedback for a detector as a YOLO training dataset zip.
+
+    Requires at least 50 labeled samples (ground_truth or feedback.label).
+    Returns a presigned download URL (60-min expiry) and creates a
+    training_datasets record.  Split: 80 % train / 20 % val.
+    """
+    import io
+    import random
+    import zipfile
+    from datetime import datetime, timezone
+
+    from ..utils.supabase_storage import download_blob, generate_signed_url
+
+    detector = db.query(models.Detector).filter(models.Detector.id == detector_id).first()
+    if not detector:
+        raise HTTPException(status_code=404, detail="Detector not found")
+
+    config = db.query(models.DetectorConfig).filter(
+        models.DetectorConfig.detector_id == detector_id
+    ).first()
+
+    # Collect labeled queries — ground_truth takes precedence over feedback
+    gt_queries = {
+        q.id: (q, q.ground_truth)
+        for q in db.query(models.Query).filter(
+            models.Query.detector_id == detector_id,
+            models.Query.ground_truth.isnot(None),
+            models.Query.image_blob_path.isnot(None),
+        ).all()
+    }
+
+    fb_rows = (
+        db.query(models.Feedback, models.Query)
+        .join(models.Query, models.Feedback.query_id == models.Query.id)
+        .filter(
+            models.Query.detector_id == detector_id,
+            models.Feedback.label.isnot(None),
+            models.Query.image_blob_path.isnot(None),
+        )
+        .all()
+    )
+
+    labeled: dict = dict(gt_queries)
+    for fb, q in fb_rows:
+        if q.id not in labeled:
+            labeled[q.id] = (q, fb.label)
+
+    total = len(labeled)
+    if total < _MIN_LABELED_SAMPLES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Only {total} labeled samples — need at least {_MIN_LABELED_SAMPLES} to export.",
+        )
+
+    # Determine class names
+    class_names: list = (config.class_names or []) if config else []
+    if not class_names:
+        seen = {lbl for _, lbl in labeled.values() if lbl}
+        positive = {"yes", "detected", "defect", "true", "ok"}
+        class_names = sorted(seen & positive) + sorted(seen - positive)
+    if not class_names:
+        class_names = ["object"]
+
+    class_index = {name.lower(): i for i, name in enumerate(class_names)}
+
+    # 80 / 20 split
+    all_ids = list(labeled.keys())
+    random.shuffle(all_ids)
+    val_count = max(1, int(len(all_ids) * _VAL_SPLIT))
+    val_ids = set(all_ids[:val_count])
+    train_ids = set(all_ids[val_count:])
+
+    label_dist: dict = {}
+    skipped = 0
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for split_name, id_set in [("train", train_ids), ("val", val_ids)]:
+            for qid in id_set:
+                q, label = labeled[qid]
+
+                # Download image from Supabase storage
+                try:
+                    img_path: str = q.image_blob_path
+                    parts = img_path.split("/", 1)
+                    bucket = parts[0] if len(parts) == 2 else "images"
+                    blob_name = parts[1] if len(parts) == 2 else img_path
+                    img_bytes = download_blob(bucket, blob_name)
+                except Exception:
+                    skipped += 1
+                    continue
+
+                # Get image dimensions for bbox normalization
+                try:
+                    from PIL import Image as _PILImage
+                    pil = _PILImage.open(io.BytesIO(img_bytes))
+                    img_w, img_h = pil.size
+                except Exception:
+                    img_w, img_h = 640, 640
+
+                ext = (img_path.rsplit(".", 1)[-1].lower()) if "." in img_path else "jpg"
+                if ext not in ("jpg", "jpeg", "png", "bmp"):
+                    ext = "jpg"
+
+                zf.writestr(f"images/{split_name}/{qid}.{ext}", img_bytes)
+
+                label_lines = _build_yolo_labels(q, label or "", class_index, img_w, img_h, db)
+                zf.writestr(f"labels/{split_name}/{qid}.txt", "\n".join(label_lines))
+
+                label_dist[label or "unknown"] = label_dist.get(label or "unknown", 0) + 1
+
+        yaml_lines = [
+            "train: images/train",
+            "val: images/val",
+            f"nc: {len(class_names)}",
+            f"names: {class_names!r}",
+        ]
+        zf.writestr("data.yaml", "\n".join(yaml_lines) + "\n")
+
+    zip_buffer.seek(0)
+    zip_bytes = zip_buffer.read()
+
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+    zip_blob = f"datasets/{detector_id}/{ts}/dataset.zip"
+    storage_path = upload_blob("models", zip_blob, zip_bytes, "application/zip")
+
+    triggered_by = getattr(current_user, "email", str(current_user))
+    dataset_rec = models.TrainingDataset(
+        id=str(uuid.uuid4()),
+        detector_id=detector_id,
+        sample_count=total - skipped,
+        val_count=val_count,
+        storage_path=storage_path,
+        label_distribution=label_dist,
+        triggered_by=triggered_by,
+    )
+    db.add(dataset_rec)
+    db.commit()
+    db.refresh(dataset_rec)
+
+    download_url = generate_signed_url("models", zip_blob, expiry_minutes=60)
+
+    return {
+        "dataset_id": dataset_rec.id,
+        "sample_count": dataset_rec.sample_count,
+        "train_count": dataset_rec.sample_count - val_count,
+        "val_count": val_count,
+        "skipped": skipped,
+        "label_distribution": label_dist,
+        "class_names": class_names,
+        "storage_path": storage_path,
+        "download_url": download_url,
+        "expires_in_minutes": 60,
+        "created_at": dataset_rec.created_at.isoformat(),
+    }
+
+
 @router.get("/{detector_id}/oodd-drift")
 def get_oodd_drift(
     detector_id: str,

@@ -692,6 +692,24 @@ class ParkingViolation(Base):
     event = relationship("ParkingEvent", backref="violations")
 
 
+# ── Phase 1: Active Learning — Training Dataset Record ───────────────────────
+
+class TrainingDataset(Base):
+    """Created each time a labeled dataset is exported for retraining."""
+    __tablename__ = "training_datasets"
+
+    id: str = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    detector_id: str = Column(String, ForeignKey("detectors.id"), nullable=False)
+    created_at: datetime = Column(DateTime, default=datetime.utcnow)
+    sample_count: int = Column(Integer, nullable=True)
+    val_count: int = Column(Integer, nullable=True)
+    storage_path: str = Column(String(512), nullable=True)
+    label_distribution: dict = Column(JSONB, nullable=True)
+    triggered_by: str = Column(String(255), nullable=True)
+
+    detector = relationship("Detector", backref="training_datasets")
+
+
 class DataRetentionSettings(Base):
     """Settings for automatic data retention and cleanup."""
     __tablename__ = "data_retention_settings"
