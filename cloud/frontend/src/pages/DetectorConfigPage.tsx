@@ -115,7 +115,7 @@ const DetectorConfigPage = () => {
     const [metricsTimeRange, setMetricsTimeRange] = useState('7d');
 
     // Tab State
-    const [activeTab, setActiveTab] = useState<'config' | 'alerts'>('config');
+    const [activeTab, setActiveTab] = useState<'config' | 'alerts' | 'training'>('config');
 
     const {
         handleSubmit,
@@ -323,6 +323,16 @@ const DetectorConfigPage = () => {
                         }`}
                     >
                         Alerts
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('training')}
+                        className={`py-4 px-1 border-b-2 font-medium text-sm transition ${
+                            activeTab === 'training'
+                                ? 'border-green-500 text-green-400'
+                                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                        }`}
+                    >
+                        Model Training
                     </button>
                 </nav>
             </div>
@@ -1038,6 +1048,10 @@ const DetectorConfigPage = () => {
             {activeTab === 'alerts' && detectorId && (
                 <DetectorAlertsConfig detectorId={detectorId} />
             )}
+
+            {activeTab === 'training' && detectorId && (
+                <ModelTrainingTab detectorId={detectorId} />
+            )}
         </div>
     );
 };
@@ -1258,6 +1272,407 @@ const DetectorAlertsConfig = ({ detectorId }: { detectorId: string }) => {
                                         Acknowledge
                                     </button>
                                 )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </Card>
+        </div>
+    );
+};
+
+// ── Phase 5: Model Training Tab ───────────────────────────────────────────────
+
+interface TrainingRun {
+    id: string;
+    status: 'pending' | 'running' | 'completed' | 'failed';
+    started_at: string | null;
+    completed_at: string | null;
+    dataset_id: string | null;
+    candidate_model_path: string | null;
+    metrics: { precision?: number; recall?: number; mAP50?: number; mAP50_95?: number } | null;
+    triggered_by: string | null;
+    error_log: string | null;
+}
+
+interface ModelStatus {
+    primary_model_path: string | null;
+    candidate_model_path: string | null;
+    candidate_model_version: number | null;
+    previous_primary_model_path: string | null;
+    can_promote: boolean;
+    can_rollback: boolean;
+    latest_run: TrainingRun | null;
+}
+
+interface DatasetExport {
+    dataset_id: string;
+    sample_count: number;
+    train_count: number;
+    val_count: number;
+    skipped: number;
+    label_distribution: Record<string, number>;
+    class_names: string[];
+    download_url: string;
+    created_at: string;
+}
+
+const StatusBadge = ({ status }: { status: string }) => {
+    const styles: Record<string, string> = {
+        pending:   'bg-yellow-900/60 text-yellow-300',
+        running:   'bg-blue-900/60 text-blue-300 animate-pulse',
+        completed: 'bg-green-900/60 text-green-300',
+        failed:    'bg-red-900/60 text-red-300',
+    };
+    return (
+        <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase font-mono ${styles[status] ?? 'bg-gray-700 text-gray-400'}`}>
+            {status}
+        </span>
+    );
+};
+
+const MetricPill = ({ label, value }: { label: string; value: number | undefined }) => {
+    if (value === undefined || value === null) return null;
+    return (
+        <span className="bg-gray-700 px-2 py-0.5 rounded text-xs font-mono">
+            <span className="text-gray-400">{label}: </span>
+            <span className="text-white font-bold">{(value * 100).toFixed(1)}%</span>
+        </span>
+    );
+};
+
+const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
+    const [modelStatus, setModelStatus] = useState<ModelStatus | null>(null);
+    const [trainingRuns, setTrainingRuns] = useState<TrainingRun[]>([]);
+    const [lastExport, setLastExport] = useState<DatasetExport | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
+    const [isTriggering, setIsTriggering] = useState(false);
+    const [isPromoting, setIsPromoting] = useState(false);
+    const [isRollingBack, setIsRollingBack] = useState(false);
+    const [epochs, setEpochs] = useState(50);
+    const [baseModel, setBaseModel] = useState('yolov8s.pt');
+
+    const fetchAll = async () => {
+        try {
+            const [statusRes, runsRes] = await Promise.all([
+                axios.get(`/detectors/${detectorId}/model-status`),
+                axios.get(`/detectors/${detectorId}/training-runs`),
+            ]);
+            setModelStatus(statusRes.data);
+            setTrainingRuns(runsRes.data);
+        } catch (err) {
+            console.error('Failed to fetch training status:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAll();
+    }, [detectorId]);
+
+    // Auto-refresh every 10 s while a run is active
+    useEffect(() => {
+        const hasActive = trainingRuns.some(r => r.status === 'pending' || r.status === 'running');
+        if (!hasActive) return;
+        const t = setInterval(fetchAll, 10000);
+        return () => clearInterval(t);
+    }, [trainingRuns]);
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            const res = await axios.get(`/detectors/${detectorId}/export-dataset`);
+            setLastExport(res.data);
+            toast.success(`Dataset exported — ${res.data.sample_count} labeled samples`);
+        } catch (err: any) {
+            toast.error(err.response?.data?.detail || 'Dataset export failed');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    // Dataset ID to use: from fresh export or from the latest run's dataset
+    const availableDatasetId = lastExport?.dataset_id ?? modelStatus?.latest_run?.dataset_id ?? null;
+
+    const handleTriggerTraining = async () => {
+        if (!availableDatasetId) {
+            toast.warn('Export a dataset first before triggering training');
+            return;
+        }
+        setIsTriggering(true);
+        try {
+            const res = await axios.post(`/detectors/${detectorId}/trigger-training`, null, {
+                params: { dataset_id: availableDatasetId, epochs, base_model: baseModel },
+            });
+            toast.success(`Training started — run ${res.data.training_run_id.slice(0, 8)}…`);
+            await fetchAll();
+        } catch (err: any) {
+            toast.error(err.response?.data?.detail || 'Failed to start training');
+        } finally {
+            setIsTriggering(false);
+        }
+    };
+
+    const handlePromote = async () => {
+        if (!window.confirm('Promote candidate model to primary? Edge devices will update on next refresh cycle (≤60 s).')) return;
+        setIsPromoting(true);
+        try {
+            await axios.post(`/detectors/${detectorId}/promote-candidate`);
+            toast.success('Candidate promoted — edge devices will update shortly');
+            await fetchAll();
+        } catch (err: any) {
+            toast.error(err.response?.data?.detail || 'Promotion failed');
+        } finally {
+            setIsPromoting(false);
+        }
+    };
+
+    const handleRollback = async () => {
+        if (!window.confirm('Roll back to previous model? The current primary will be removed.')) return;
+        setIsRollingBack(true);
+        try {
+            await axios.post(`/detectors/${detectorId}/rollback`);
+            toast.success('Rolled back to previous model');
+            await fetchAll();
+        } catch (err: any) {
+            toast.error(err.response?.data?.detail || 'Rollback failed');
+        } finally {
+            setIsRollingBack(false);
+        }
+    };
+
+    const hasActiveRun = trainingRuns.some(r => r.status === 'pending' || r.status === 'running');
+
+    if (loading) {
+        return <div className="text-gray-400 py-12 text-center">Loading training status…</div>;
+    }
+
+    return (
+        <div className="space-y-6">
+
+            {/* ── Model Status ─────────────────────────────────────────── */}
+            <Card title="Live Model">
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Primary (Live)</p>
+                            <p className="text-sm text-white font-mono break-all">
+                                {modelStatus?.primary_model_path
+                                    ? modelStatus.primary_model_path.split('/').slice(-3).join('/')
+                                    : <span className="text-gray-500 italic">No model deployed</span>}
+                            </p>
+                        </div>
+                        <div className={`p-4 rounded-lg border ${modelStatus?.candidate_model_path ? 'bg-green-900/20 border-green-700' : 'bg-gray-700 border-gray-600'}`}>
+                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                                Candidate {modelStatus?.candidate_model_version ? `(v${modelStatus.candidate_model_version})` : ''}
+                            </p>
+                            <p className="text-sm font-mono break-all">
+                                {modelStatus?.candidate_model_path
+                                    ? <span className="text-green-300">{modelStatus.candidate_model_path.split('/').slice(-3).join('/')}</span>
+                                    : <span className="text-gray-500 italic">None — train a new model first</span>}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Latest run metrics if completed */}
+                    {modelStatus?.latest_run?.status === 'completed' && modelStatus.latest_run.metrics && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                            <MetricPill label="Precision" value={modelStatus.latest_run.metrics.precision} />
+                            <MetricPill label="Recall" value={modelStatus.latest_run.metrics.recall} />
+                            <MetricPill label="mAP50" value={modelStatus.latest_run.metrics.mAP50} />
+                            <MetricPill label="mAP50-95" value={modelStatus.latest_run.metrics.mAP50_95} />
+                        </div>
+                    )}
+
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            onClick={handlePromote}
+                            disabled={!modelStatus?.can_promote || isPromoting}
+                            className="bg-green-700 hover:bg-green-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 px-5 rounded transition text-sm"
+                        >
+                            {isPromoting ? 'Promoting…' : '▲ Promote Candidate'}
+                        </button>
+                        <button
+                            onClick={handleRollback}
+                            disabled={!modelStatus?.can_rollback || isRollingBack}
+                            className="bg-orange-700 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 px-5 rounded transition text-sm"
+                        >
+                            {isRollingBack ? 'Rolling back…' : '↩ Rollback'}
+                        </button>
+                    </div>
+                    {modelStatus?.previous_primary_model_path && (
+                        <p className="text-xs text-gray-500">
+                            Rollback target: {modelStatus.previous_primary_model_path.split('/').slice(-3).join('/')}
+                        </p>
+                    )}
+                </div>
+            </Card>
+
+            {/* ── Dataset & Training ───────────────────────────────────── */}
+            <Card title="Dataset & Training">
+                <div className="space-y-5">
+                    {/* Export section */}
+                    <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                        <div className="flex items-center justify-between mb-3">
+                            <div>
+                                <h3 className="text-sm font-bold text-white">Labeled Dataset</h3>
+                                <p className="text-xs text-gray-400 mt-0.5">Requires 50+ labeled samples (ground truth or feedback)</p>
+                            </div>
+                            <button
+                                onClick={handleExport}
+                                disabled={isExporting}
+                                className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded transition text-sm whitespace-nowrap"
+                            >
+                                {isExporting ? 'Exporting…' : '⬇ Export Dataset'}
+                            </button>
+                        </div>
+
+                        {lastExport && (
+                            <div className="space-y-2 pt-2 border-t border-gray-600">
+                                <div className="flex gap-6 text-sm">
+                                    <span className="text-gray-400">Total: <span className="text-white font-bold">{lastExport.sample_count}</span></span>
+                                    <span className="text-gray-400">Train: <span className="text-white font-bold">{lastExport.train_count}</span></span>
+                                    <span className="text-gray-400">Val: <span className="text-white font-bold">{lastExport.val_count}</span></span>
+                                    {lastExport.skipped > 0 && <span className="text-yellow-400">Skipped: {lastExport.skipped}</span>}
+                                </div>
+                                {Object.keys(lastExport.label_distribution).length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {Object.entries(lastExport.label_distribution).map(([lbl, cnt]) => (
+                                            <span key={lbl} className="bg-gray-600 text-gray-200 px-2 py-0.5 rounded text-xs font-mono">
+                                                {lbl}: {cnt}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="flex gap-3 pt-1">
+                                    <a
+                                        href={lastExport.download_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-400 hover:underline text-xs"
+                                    >
+                                        ↗ Download zip (60 min link)
+                                    </a>
+                                    <span className="text-gray-600 text-xs">ID: {lastExport.dataset_id.slice(0, 8)}…</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Trigger training section */}
+                    <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                        <h3 className="text-sm font-bold text-white mb-3">Trigger Fine-Tuning</h3>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label className="block text-xs text-gray-400 mb-1">Base Model</label>
+                                <select
+                                    value={baseModel}
+                                    onChange={e => setBaseModel(e.target.value)}
+                                    className="w-full bg-gray-800 border border-gray-600 text-white rounded px-3 py-2 text-sm"
+                                >
+                                    <option value="yolov8n.pt">YOLOv8n (nano — fastest)</option>
+                                    <option value="yolov8s.pt">YOLOv8s (small — recommended)</option>
+                                    <option value="yolov8m.pt">YOLOv8m (medium)</option>
+                                    <option value="yolov8l.pt">YOLOv8l (large)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-400 mb-1">Epochs</label>
+                                <input
+                                    type="number"
+                                    min={5}
+                                    max={300}
+                                    value={epochs}
+                                    onChange={e => setEpochs(parseInt(e.target.value) || 50)}
+                                    className="w-full bg-gray-800 border border-gray-600 text-white rounded px-3 py-2 text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleTriggerTraining}
+                                disabled={isTriggering || hasActiveRun || !availableDatasetId}
+                                className="bg-green-700 hover:bg-green-600 disabled:bg-gray-600 disabled:text-gray-500 text-white font-bold py-2 px-5 rounded transition text-sm"
+                            >
+                                {isTriggering ? 'Starting…' : hasActiveRun ? 'Training in progress…' : '▶ Start Training'}
+                            </button>
+                            {!availableDatasetId && (
+                                <span className="text-xs text-yellow-400">Export a dataset first</span>
+                            )}
+                            {availableDatasetId && !lastExport && (
+                                <span className="text-xs text-gray-400">Using dataset from last run</span>
+                            )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                            Training runs in the background. Results appear in the Training History below.
+                            New ONNX model is uploaded as a candidate — review metrics before promoting.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+
+            {/* ── Training History ─────────────────────────────────────── */}
+            <Card title="Training History">
+                {trainingRuns.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8 italic">No training runs yet</div>
+                ) : (
+                    <div className="space-y-3">
+                        {trainingRuns.map(run => (
+                            <div
+                                key={run.id}
+                                className={`p-4 rounded-lg border ${
+                                    run.status === 'failed' ? 'bg-red-900/10 border-red-800' :
+                                    run.status === 'completed' ? 'bg-green-900/10 border-green-800' :
+                                    'bg-gray-700 border-gray-600'
+                                }`}
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <StatusBadge status={run.status} />
+                                            <span className="text-xs text-gray-500 font-mono">{run.id.slice(0, 8)}…</span>
+                                            {run.triggered_by && (
+                                                <span className="text-xs text-gray-500">by {run.triggered_by}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-4 text-xs text-gray-400 mb-2">
+                                            {run.started_at && (
+                                                <span>Started: {new Date(run.started_at).toLocaleString()}</span>
+                                            )}
+                                            {run.completed_at && (
+                                                <span>Finished: {new Date(run.completed_at).toLocaleString()}</span>
+                                            )}
+                                        </div>
+                                        {run.metrics && (
+                                            <div className="flex flex-wrap gap-2 mb-2">
+                                                <MetricPill label="P" value={run.metrics.precision} />
+                                                <MetricPill label="R" value={run.metrics.recall} />
+                                                <MetricPill label="mAP50" value={run.metrics.mAP50} />
+                                                <MetricPill label="mAP50-95" value={run.metrics.mAP50_95} />
+                                            </div>
+                                        )}
+                                        {run.candidate_model_path && (
+                                            <p className="text-xs text-gray-400 font-mono truncate" title={run.candidate_model_path}>
+                                                Model: {run.candidate_model_path.split('/').slice(-3).join('/')}
+                                            </p>
+                                        )}
+                                        {run.error_log && (
+                                            <details className="mt-2">
+                                                <summary className="text-xs text-red-400 cursor-pointer">Error details</summary>
+                                                <pre className="mt-1 text-xs text-red-300 bg-red-900/20 p-2 rounded overflow-x-auto whitespace-pre-wrap break-all">
+                                                    {run.error_log}
+                                                </pre>
+                                            </details>
+                                        )}
+                                    </div>
+                                    {run.status === 'running' && (
+                                        <div className="flex-shrink-0 mt-1">
+                                            <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
