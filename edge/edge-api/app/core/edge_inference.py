@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import time
+from collections import deque
 from typing import Optional
 
 import requests
@@ -216,6 +217,14 @@ class EdgeInferenceManager:
             detector_id: detector_inference_config.min_time_between_escalations
             for detector_id, detector_inference_config in self.detector_inference_configs.items()
         }
+        # ── Item 5: Temporal Deduplication ──────────────────────────────────
+        # Per-detector ring buffer of (label_str, bbox_or_None, timestamp) for
+        # recently-escalated detections. Used to suppress re-escalating the
+        # same object/location within the dedup time window.
+        self._recent_detections: dict[str, deque] = {
+            detector_id: deque(maxlen=20)
+            for detector_id in self.detector_inference_configs.keys()
+        }
 
     def update_inference_config(self, detector_id: str, api_token: str) -> None:
         """
@@ -232,6 +241,7 @@ class EdgeInferenceManager:
             self.oodd_inference_client_urls[detector_id] = (
                 get_edge_inference_service_name(detector_id, is_oodd=True) + ":8000"
             )
+            self._recent_detections[detector_id] = deque(maxlen=20)
             logger.info(f"Set up edge inference for {detector_id}")
 
     def detector_configured_for_edge_inference(self, detector_id: str) -> bool:
@@ -389,6 +399,92 @@ class EdgeInferenceManager:
             return True
 
         return False
+
+    # ── Item 5: Temporal Deduplication ──────────────────────────────────────
+    # Suppress cloud escalation when the same object (same label + overlapping
+    # bbox) was already escalated within the dedup time window.  Reduces
+    # reviewer load for stationary objects (e.g. a forklift parked in frame).
+    #
+    # check_and_record_escalation() is the public entry point:
+    #   - Returns True  → new detection, caller should escalate; detection recorded
+    #   - Returns False → duplicate within window, caller should suppress
+    # ────────────────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _iou(a: tuple[float, float, float, float], b: tuple[float, float, float, float]) -> float:
+        """Intersection-over-union for (x1, y1, x2, y2) normalized bounding boxes."""
+        ax1, ay1, ax2, ay2 = a
+        bx1, by1, bx2, by2 = b
+        ix1 = max(ax1, bx1)
+        iy1 = max(ay1, by1)
+        ix2 = min(ax2, bx2)
+        iy2 = min(ay2, by2)
+        inter = max(0.0, ix2 - ix1) * max(0.0, iy2 - iy1)
+        if inter == 0.0:
+            return 0.0
+        area_a = max(0.0, ax2 - ax1) * max(0.0, ay2 - ay1)
+        area_b = max(0.0, bx2 - bx1) * max(0.0, by2 - by1)
+        union = area_a + area_b - inter
+        return inter / union if union > 0.0 else 0.0
+
+    def check_and_record_escalation(
+        self,
+        detector_id: str,
+        label: str | int | None,
+        rois: list[dict] | None,
+        *,
+        time_window_s: float = 2.0,
+        iou_threshold: float = 0.7,
+    ) -> bool:
+        """Return True if this detection is new (caller should escalate); False if duplicate.
+
+        Extracts the first ROI bbox when available and checks it against recent
+        escalations for the same detector.  Records the detection only when it is
+        NOT a duplicate so the window anchors to the last actual escalation.
+
+        Args:
+            detector_id: Detector that produced the detection.
+            label:        Predicted class label (any type — compared as string).
+            rois:         ROI list from inference result; may be None for binary detectors.
+            time_window_s: Suppress re-escalations of the same object within this many seconds.
+            iou_threshold: Minimum IoU to consider two bboxes the "same" object.
+        """
+        label_str = str(label)
+
+        # Extract (x1, y1, x2, y2) from the first ROI if geometry is available
+        bbox: tuple[float, float, float, float] | None = None
+        if rois:
+            g = rois[0].get("geometry", {}) if isinstance(rois[0], dict) else {}
+            if all(k in g for k in ("left", "top", "right", "bottom")):
+                bbox = (float(g["left"]), float(g["top"]), float(g["right"]), float(g["bottom"]))
+
+        now = time.time()
+        recent = self._recent_detections.get(detector_id)
+        if recent is None:
+            # Detector added after init (shouldn't happen but be safe)
+            self._recent_detections[detector_id] = deque(maxlen=20)
+            recent = self._recent_detections[detector_id]
+
+        for cached_label, cached_bbox, cached_time in recent:
+            if (now - cached_time) > time_window_s:
+                continue
+            if cached_label != label_str:
+                continue
+            # Same class within window — check spatial overlap
+            if bbox is None or cached_bbox is None:
+                # No bbox on one or both sides: label match alone is sufficient
+                logger.debug(f"Dedup suppressed escalation for {detector_id=} label={label_str!r} (label-only match)")
+                return False
+            if self._iou(bbox, cached_bbox) >= iou_threshold:
+                logger.debug(
+                    f"Dedup suppressed escalation for {detector_id=} label={label_str!r} "
+                    f"IoU={self._iou(bbox, cached_bbox):.2f}"
+                )
+                return False
+
+        # Not a duplicate — record and allow escalation
+        recent.append((label_str, bbox, now))
+        return True
 
 
 def fetch_model_info(detector_id: str, api_token: Optional[str] = None) -> tuple[ModelInfoBase, ModelInfoBase]:

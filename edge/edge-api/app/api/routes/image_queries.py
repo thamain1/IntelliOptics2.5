@@ -269,8 +269,21 @@ async def post_image_query(  # noqa: PLR0913, PLR0915, PLR0912
 
             # Escalate after returning edge prediction if escalation is enabled and we have low confidence.
             if not is_confident_enough:
-                # Only escalate if we haven't escalated on this detector too recently.
-                if app_state.edge_inference_manager.escalation_cooldown_complete(detector_id=detector_id):
+                # ── Item 5: Temporal Deduplication ──────────────────────────
+                # Gate order: cooldown first (cheap time check), then spatial
+                # dedup (same object/location within 2s).  Recording only
+                # happens inside check_and_record_escalation when NOT a dup,
+                # so the 2s window anchors to the last actual escalation.
+                # ────────────────────────────────────────────────────────────
+                if not app_state.edge_inference_manager.escalation_cooldown_complete(detector_id=detector_id):
+                    logger.debug(
+                        f"Not escalating to cloud due to rate limit on background cloud escalations: {detector_id=}"
+                    )
+                elif not app_state.edge_inference_manager.check_and_record_escalation(
+                    detector_id, results.get("label"), results.get("rois")
+                ):
+                    logger.debug(f"Not escalating to cloud: duplicate detection within dedup window {detector_id=}")
+                else:
                     logger.debug(
                         f"Escalating to cloud due to low confidence: {ml_confidence} < thresh={confidence_threshold}"
                     )
@@ -298,10 +311,6 @@ async def post_image_query(  # noqa: PLR0913, PLR0915, PLR0912
                     )
                     # Not done processing because the associated IQ in the cloud could get a better answer
                     image_query.done_processing = False
-                else:
-                    logger.debug(
-                        f"Not escalating to cloud due to rate limit on background cloud escalations: {detector_id=}"
-                    )
 
             return image_query
     else:
