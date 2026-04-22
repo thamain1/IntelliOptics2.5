@@ -1,0 +1,9 @@
+# IntelliOptics Trainer — kept separate from inference to avoid license conflicts
+# ultralytics (AGPL-3.0) MUST NOT be imported into the inference container
+
+fastapi>=0.115.0
+uvicorn[standard]==0.24.0
+ultralytics>=8.2.0
+httpx>=0.25.0
+pydantic>=2.0.0
+python-dotenv==1.0.0

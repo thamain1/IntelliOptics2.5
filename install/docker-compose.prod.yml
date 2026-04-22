@@ -80,6 +80,34 @@ services:
     networks:
       - intellioptics-net
 
+  # ── Phase 2: Active Learning — YOLO fine-tuning service ──────────────────
+  # Separate container so ultralytics (AGPL-3.0) stays out of the inference
+  # container and the Apache 2.0 ONNX inference path stays clean.
+  cloud-trainer:
+    build:
+      context: ../cloud/trainer
+      dockerfile: Dockerfile
+    container_name: io-cloud-trainer
+    env_file:
+      - ./.env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - trainer_models:/root/.cache/ultralytics   # cache base model weights
+      - trainer_tmp:/tmp                           # training scratch space
+    restart: unless-stopped
+    networks:
+      - intellioptics-net
+    # ── GPU SUPPORT (optional) ────────────────────────────────────────────────
+    # Uncomment to use GPU for training (needs CC 7.0+).
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
   # ============================================================
   # EDGE SERVICES
   # ============================================================
@@ -198,6 +226,8 @@ volumes:
   vlm_models:
   edge_data:
   videos:
+  trainer_models:
+  trainer_tmp:
   # edge_postgres_data:
 
 # ============================================================

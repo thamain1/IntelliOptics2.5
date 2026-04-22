@@ -90,10 +90,11 @@ class DetectorConfig(Base):
     oodd_model_blob_path: str = Column(String(255), nullable=True)
 
     # ── Item 6: OODD Per-Detector Threshold ─────────────────────────────────
-    # Replaces the hardcoded 0.444 in run_oodd_inference(). Calibrate per
-    # detector by examining in_domain_score distributions on known-good images.
-    # Lower value = more permissive (accepts more OOD images); higher = stricter.
     oodd_calibrated_threshold: float = Column(Float, default=0.444, nullable=True)
+
+    # ── Phase 2: Active Learning — Candidate Model ───────────────────────────
+    candidate_model_path: str = Column(String(512), nullable=True)
+    candidate_model_version: int = Column(Integer, nullable=True)
 
     # Open-vocabulary detection
     open_vocab_prompts: list = Column(JSONB, nullable=True)  # Default prompts for OPEN_VOCAB mode
@@ -708,6 +709,28 @@ class TrainingDataset(Base):
     triggered_by: str = Column(String(255), nullable=True)
 
     detector = relationship("Detector", backref="training_datasets")
+
+
+# ── Phase 2: Active Learning — Training Run Record ────────────────────────────
+
+class TrainingRun(Base):
+    """One fine-tuning cycle.  Created by trigger-training, updated by trainer."""
+    __tablename__ = "training_runs"
+
+    id: str = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    detector_id: str = Column(String, ForeignKey("detectors.id"), nullable=False)
+    dataset_id: str = Column(String, ForeignKey("training_datasets.id"), nullable=True)
+    started_at: datetime = Column(DateTime, default=datetime.utcnow)
+    completed_at: datetime = Column(DateTime, nullable=True)
+    status: str = Column(String(32), default="pending")  # pending, running, completed, failed
+    base_model_version: int = Column(Integer, nullable=True)
+    candidate_model_path: str = Column(String(512), nullable=True)
+    metrics: dict = Column(JSONB, nullable=True)
+    triggered_by: str = Column(String(255), nullable=True)
+    error_log: str = Column(Text, nullable=True)
+
+    detector = relationship("Detector", backref="training_runs")
+    dataset = relationship("TrainingDataset", backref="training_runs")
 
 
 class DataRetentionSettings(Base):

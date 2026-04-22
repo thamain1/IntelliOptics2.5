@@ -86,13 +86,14 @@ def create_app() -> FastAPI:
     app.include_router(demo_streams.router)  # YouTube demo streams
     app.include_router(annotations.router)  # Image annotations
     app.include_router(heartbeat.router)  # Hub heartbeat (API key auth)
-    from .routers import users, data_management, open_vocab, vehicle_id, forensic_search, parking
+    from .routers import users, data_management, open_vocab, vehicle_id, forensic_search, parking, training
     app.include_router(users.router)
     app.include_router(data_management.router)  # Data retention & training export
     app.include_router(open_vocab.router)  # Open-vocab YOLOE + VLM detection
     app.include_router(vehicle_id.router)  # Vehicle identification + search
     app.include_router(forensic_search.router)  # BOLO forensic video search
     app.include_router(parking.router)  # Maven Parking
+    app.include_router(training.router)  # Phase 2: Active learning — training lifecycle
 
     @app.get("/health")
     async def health() -> dict[str, str]:
