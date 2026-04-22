@@ -381,45 +381,84 @@ async def yoloe_inference(
         image_np = np.array(pil_image)
 
         start = time.perf_counter()
-        detections = model.detect(image_np, prompt_list, conf=conf)
+        detections = model.detect_tiled(image_np, prompt_list, conf=conf)
         latency_ms = (time.perf_counter() - start) * 1000
 
-        # VLM fallback: for any prompt that YOLOE missed, escalate to VLM
+        # Thresholds
+        LOW_CONF_THRESHOLD = 0.25   # below this → full-image VLM re-detection
+        VLM_VALIDATE_UPPER = 0.5    # between LOW_CONF and this → crop-based VLM validation
+        MAX_VLM_VALIDATE = 3        # cap to bound latency on CPU
         vlm_used = False
-        detected_labels = {d.label.lower() for d in detections}
-        missed_prompts = [p for p in prompt_list if p.lower() not in detected_labels]
+        vlm_validated = 0
 
-        if missed_prompts:
+        # Build max confidence per detected label
+        max_conf: dict[str, float] = {}
+        for d in detections:
+            key = d.label.lower()
+            if d.confidence > max_conf.get(key, 0.0):
+                max_conf[key] = d.confidence
+
+        # Prompts missed entirely or all hits below LOW_CONF_THRESHOLD → full-image VLM re-detection
+        weak_prompts = [
+            p for p in prompt_list
+            if p.lower() not in max_conf or max_conf[p.lower()] < LOW_CONF_THRESHOLD
+        ]
+
+        # YOLOE detections in the uncertain band → crop-based VLM validation
+        uncertain = sorted(
+            [d for d in detections if LOW_CONF_THRESHOLD <= d.confidence <= VLM_VALIDATE_UPPER],
+            key=lambda d: d.confidence,
+            reverse=True,
+        )[:MAX_VLM_VALIDATE]
+
+        if weak_prompts or uncertain:
             try:
                 vlm = get_vlm()
                 if vlm.model is not None:
-                    logger.info(f"YOLOE missed prompts {missed_prompts}, escalating to VLM")
                     vlm_start = time.perf_counter()
-                    for prompt in missed_prompts:
-                        vlm_dets = vlm.detect(image_np, prompt)
-                        for vd in vlm_dets:
-                            detections.append(Detection(
-                                label=vd["label"],
-                                confidence=vd["confidence"],
-                                bbox=[
-                                    vd["bbox"][0] * pil_image.width,
-                                    vd["bbox"][1] * pil_image.height,
-                                    vd["bbox"][2] * pil_image.width,
-                                    vd["bbox"][3] * pil_image.height,
-                                ],
-                            ))
+
+                    if weak_prompts:
+                        logger.info(f"VLM fallback for missed/weak prompts: {weak_prompts}")
+                        for prompt in weak_prompts:
+                            vlm_dets = vlm.detect(image_np, prompt)
+                            for vd in vlm_dets:
+                                detections.append(Detection(
+                                    label=vd["label"],
+                                    confidence=vd["confidence"],
+                                    bbox=[
+                                        vd["bbox"][0] * pil_image.width,
+                                        vd["bbox"][1] * pil_image.height,
+                                        vd["bbox"][2] * pil_image.width,
+                                        vd["bbox"][3] * pil_image.height,
+                                    ],
+                                ))
+                        vlm_used = True
+
+                    if uncertain:
+                        logger.info(f"VLM validating {len(uncertain)} uncertain detections")
+                        rejected: set[int] = set()
+                        for det in uncertain:
+                            vlm_conf = vlm.validate_crop(image_np, det.label, det.bbox)
+                            if vlm_conf >= 0.5:
+                                det.confidence = max(det.confidence, vlm_conf)
+                                vlm_validated += 1
+                            else:
+                                rejected.add(id(det))
+                        if rejected:
+                            detections = [d for d in detections if id(d) not in rejected]
+
                     vlm_ms = (time.perf_counter() - vlm_start) * 1000
                     latency_ms += vlm_ms
-                    vlm_used = True
-                    logger.info(f"VLM fallback found {len(detections) - len(detected_labels)} additional detections in {vlm_ms:.0f}ms")
+                    logger.info(f"VLM done in {vlm_ms:.0f}ms (fallback={vlm_used}, validated={vlm_validated})")
             except Exception as vlm_err:
-                logger.warning(f"VLM fallback failed: {vlm_err}")
+                logger.warning(f"VLM processing failed: {vlm_err}")
 
         return JSONResponse({
             "detections": [d.to_normalized(pil_image.width, pil_image.height) for d in detections],
             "prompts_used": prompt_list,
             "latency_ms": int(latency_ms),
             "vlm_fallback": vlm_used,
+            "vlm_validated": vlm_validated,
         })
 
     except HTTPException:

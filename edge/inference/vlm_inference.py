@@ -190,6 +190,39 @@ class MoondreamVLM:
             logger.error(f"VLM detect failed: {e}")
             return []
 
+    def validate_crop(self, image: np.ndarray, label: str, bbox_pixels: list[float]) -> float:
+        """Ask VLM whether a YOLOE detection crop actually contains the labeled object.
+
+        Returns ~0.85 if VLM confirms, ~0.1 if VLM rejects, 0.5 (neutral) on error
+        or when VLM is unavailable so the caller never drops on a failed check.
+        """
+        if self.model is None:
+            return 0.5
+
+        try:
+            x1, y1, x2, y2 = (int(v) for v in bbox_pixels)
+            h, w = image.shape[:2]
+            x1, y1 = max(0, x1), max(0, y1)
+            x2, y2 = min(w, x2), min(h, y2)
+
+            if x2 <= x1 or y2 <= y1:
+                return 0.5
+
+            crop = image[y1:y2, x1:x2]
+            pil_crop = self._to_pil(crop)
+
+            start = time.perf_counter()
+            answer = self.model.query(pil_crop, f"Is this a {label}? Answer yes or no.")["answer"]
+            elapsed_ms = (time.perf_counter() - start) * 1000
+
+            confirmed = answer.strip().lower().startswith("yes")
+            vlm_conf = 0.85 if confirmed else 0.1
+            logger.info(f"VLM validate '{label}': '{answer.strip()[:20]}' → {vlm_conf} ({elapsed_ms:.0f}ms)")
+            return vlm_conf
+        except Exception as e:
+            logger.warning(f"VLM validate_crop failed: {e}")
+            return 0.5
+
     def ocr(self, image: np.ndarray, region: Optional[list[int]] = None) -> str:
         """Extract text from an image or a specific region.
 

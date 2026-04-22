@@ -417,6 +417,45 @@ class YOLOEInference:
 
         return detections
 
+    def detect_tiled(
+        self,
+        image: np.ndarray,
+        prompts: list[str],
+        conf: float = 0.25,
+        iou: float = 0.45,
+        grid: tuple[int, int] = (2, 2),
+    ) -> list[Detection]:
+        """Run detect() on a grid of tiles and merge with NMS.
+        Improves multi-instance detection in overhead/aerial views.
+        """
+        h, w = image.shape[:2]
+        rows, cols = grid
+        tile_h, tile_w = h // rows, w // cols
+        all_detections: list[Detection] = []
+
+        for r in range(rows):
+            for c in range(cols):
+                y1, x1 = r * tile_h, c * tile_w
+                y2, x2 = (r + 1) * tile_h, (c + 1) * tile_w
+                tile = image[y1:y2, x1:x2]
+                tile_dets = self.detect(tile, prompts, conf=conf, iou=iou)
+                for d in tile_dets:
+                    # Translate bbox back to full-image pixel coordinates
+                    all_detections.append(Detection(
+                        label=d.label,
+                        confidence=d.confidence,
+                        bbox=[
+                            d.bbox[0] + x1,
+                            d.bbox[1] + y1,
+                            d.bbox[2] + x1,
+                            d.bbox[3] + y1,
+                        ],
+                    ))
+
+        # Cross-tile NMS — use a lower threshold than intra-tile NMS so that
+        # partial views of the same object at tile boundaries are merged.
+        return YOLOEInference._nms(all_detections, 0.3)
+
     def get_vocabulary(self) -> list[str]:
         """Return the full vocabulary list."""
         return list(self.vocabulary)
