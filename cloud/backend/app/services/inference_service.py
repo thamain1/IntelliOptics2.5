@@ -46,6 +46,10 @@ class InferenceService:
                     )
                 else:
                     # Detector-aware mode: multipart with config
+                    # ── Item 6: OODD Per-Detector Threshold ─────────────────
+                    # Pass the per-detector calibrated threshold to the worker
+                    # so run_oodd_inference() uses it instead of the hardcoded
+                    # 0.444 default.
                     detector_config_payload = {
                         "detector_id": str(detector_id),
                         "mode": getattr(detector_config, 'mode', 'BINARY'),
@@ -56,7 +60,8 @@ class InferenceService:
                         "model_output_config": getattr(detector_config, 'model_output_config', {}),
                         "detection_params": getattr(detector_config, 'detection_params', {}),
                         "primary_model_blob_path": primary_model_blob_path,
-                        "oodd_model_blob_path": oodd_model_blob_path
+                        "oodd_model_blob_path": oodd_model_blob_path,
+                        "oodd_calibrated_threshold": getattr(detector_config, 'oodd_calibrated_threshold', 0.444) or 0.444,
                     }
 
                     files = {

@@ -89,6 +89,12 @@ class DetectorConfig(Base):
     primary_model_blob_path: str = Column(String(255), nullable=True)
     oodd_model_blob_path: str = Column(String(255), nullable=True)
 
+    # ── Item 6: OODD Per-Detector Threshold ─────────────────────────────────
+    # Replaces the hardcoded 0.444 in run_oodd_inference(). Calibrate per
+    # detector by examining in_domain_score distributions on known-good images.
+    # Lower value = more permissive (accepts more OOD images); higher = stricter.
+    oodd_calibrated_threshold: float = Column(Float, default=0.444, nullable=True)
+
     # Open-vocabulary detection
     open_vocab_prompts: list = Column(JSONB, nullable=True)  # Default prompts for OPEN_VOCAB mode
 
@@ -213,6 +219,11 @@ class Query(Base):
 
     # All detections with bounding boxes: [{label, confidence, bbox: [x, y, w, h]}]
     detections_json: list = Column(JSONB, nullable=True)
+
+    # ── Item 6: OODD Drift Tracking ──────────────────────────────────────────
+    # in_domain_score from OODD model at inference time (0–1; NULL if no OODD model).
+    # Stored so the drift endpoint can compute week-over-week rolling averages.
+    oodd_score: float = Column(Float, nullable=True)
 
     # Ground truth fields for metrics
     ground_truth: str = Column(String(50), nullable=True)  # Human-verified label

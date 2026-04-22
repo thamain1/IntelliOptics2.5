@@ -311,6 +311,10 @@ def run_detector_inference(
     confidence_threshold = detector_config.get("confidence_threshold", 0.5)
     per_class_thresholds = detector_config.get("per_class_thresholds") or {}
     mode = detector_config.get("mode", "BOUNDING_BOX")
+    # ── Item 6: OODD Per-Detector Threshold ─────────────────────────────────
+    # Falls back to 0.444 if not set — preserves existing behaviour for
+    # detectors that haven't been individually calibrated yet.
+    oodd_calibrated_threshold = float(detector_config.get("oodd_calibrated_threshold") or 0.444)
 
     if not primary_blob_path:
         raise ValueError(f"No primary_model_blob_path configured for detector {detector_id}")
@@ -344,8 +348,9 @@ def run_detector_inference(
 
     # Run OODD inference first (if available)
     if oodd_session:
-        oodd_result = run_oodd_inference(oodd_session, rgb)
-        log.info(f"OODD result: in_domain={oodd_result['is_in_domain']}, score={oodd_result['in_domain_score']:.3f}")
+        # ── Item 6: pass per-detector threshold instead of hardcoded 0.444 ──
+        oodd_result = run_oodd_inference(oodd_session, rgb, calibrated_threshold=oodd_calibrated_threshold)
+        log.info(f"OODD result: in_domain={oodd_result['is_in_domain']}, score={oodd_result['in_domain_score']:.3f}, threshold={oodd_calibrated_threshold}")
 
     # Preprocess using model_input_config
     input_size = model_input_config.get("input_width", 640)  # Default to 640
@@ -403,10 +408,14 @@ def run_detector_inference(
 
     latency_ms = int((time.perf_counter() - start_time) * 1000)
 
+    # ── Item 6: surface oodd_score at top level for drift tracking ──────────
+    oodd_score = oodd_result.get("in_domain_score") if oodd_result else None
+
     return {
         "detections": detections,
         "latency_ms": latency_ms,
         "oodd_result": oodd_result,
+        "oodd_score": oodd_score,
         "model_info": {
             "primary_model": primary_blob_path,
             "oodd_model": oodd_blob_path,

@@ -399,6 +399,18 @@ async def test_detector(
     inference_time_ms = result.get("latency_ms", 0)
     oodd_result = result.get("oodd_result")
     model_info = result.get("model_info")
+    # ── Item 6: persist oodd_score on the query record for drift tracking ───
+    oodd_score = result.get("oodd_score")
+    if oodd_score is not None:
+        latest_query = (
+            db.query(models.Query)
+            .filter(models.Query.detector_id == detector_id)
+            .order_by(models.Query.created_at.desc())
+            .first()
+        )
+        if latest_query:
+            latest_query.oodd_score = oodd_score
+            db.commit()
 
     # Transform worker output to match expected format
     formatted_detections = []
@@ -560,4 +572,81 @@ def get_detector_metrics(
         "false_negatives": fn,
         "total_queries": total,
         "time_range": time_range
+    }
+
+
+@router.get("/{detector_id}/oodd-drift")
+def get_oodd_drift(
+    detector_id: str,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """
+    # ── Item 6: OODD Drift Check ─────────────────────────────────────────────
+    # Compare the mean OODD in_domain_score from the most recent 7 days against
+    # the prior 7 days (days 8-14).  A drop >10% signals environmental drift
+    # (new lighting, camera angle change, etc.) and warrants OODD recalibration.
+    #
+    # Returns:
+    #   current_mean   – mean score over last 7 days
+    #   prior_mean     – mean score over days 8-14
+    #   drift_pct      – (prior - current) / prior * 100  (positive = worse)
+    #   alert          – True when drift_pct > 10 and at least 10 samples exist
+    #   sample_counts  – {current: N, prior: N}
+    """
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy import func
+
+    detector = db.query(models.Detector).filter(models.Detector.id == detector_id).first()
+    if not detector:
+        raise HTTPException(status_code=404, detail="Detector not found")
+
+    now = datetime.now(timezone.utc)
+    cutoff_current = now - timedelta(days=7)
+    cutoff_prior = now - timedelta(days=14)
+
+    def mean_oodd(start, end):
+        result = (
+            db.query(func.avg(models.Query.oodd_score))
+            .filter(
+                models.Query.detector_id == detector_id,
+                models.Query.oodd_score.isnot(None),
+                models.Query.created_at >= start,
+                models.Query.created_at < end,
+            )
+            .scalar()
+        )
+        return float(result) if result is not None else None
+
+    def count_oodd(start, end):
+        return (
+            db.query(func.count(models.Query.id))
+            .filter(
+                models.Query.detector_id == detector_id,
+                models.Query.oodd_score.isnot(None),
+                models.Query.created_at >= start,
+                models.Query.created_at < end,
+            )
+            .scalar()
+        ) or 0
+
+    current_mean = mean_oodd(cutoff_current, now)
+    prior_mean = mean_oodd(cutoff_prior, cutoff_current)
+    current_count = count_oodd(cutoff_current, now)
+    prior_count = count_oodd(cutoff_prior, cutoff_current)
+
+    drift_pct = None
+    alert = False
+    if current_mean is not None and prior_mean is not None and prior_mean > 0:
+        drift_pct = round((prior_mean - current_mean) / prior_mean * 100, 2)
+        alert = drift_pct > 10.0 and current_count >= 10
+
+    return {
+        "detector_id": detector_id,
+        "current_mean": round(current_mean, 4) if current_mean is not None else None,
+        "prior_mean": round(prior_mean, 4) if prior_mean is not None else None,
+        "drift_pct": drift_pct,
+        "alert": alert,
+        "sample_counts": {"current": current_count, "prior": prior_count},
+        "window_days": 7,
     }
