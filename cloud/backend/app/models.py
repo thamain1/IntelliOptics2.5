@@ -92,9 +92,10 @@ class DetectorConfig(Base):
     # ── Item 6: OODD Per-Detector Threshold ─────────────────────────────────
     oodd_calibrated_threshold: float = Column(Float, default=0.444, nullable=True)
 
-    # ── Phase 2: Active Learning — Candidate Model ───────────────────────────
+    # ── Phase 2 / Phase 4: Active Learning — Candidate + Rollback ───────────
     candidate_model_path: str = Column(String(512), nullable=True)
     candidate_model_version: int = Column(Integer, nullable=True)
+    previous_primary_model_path: str = Column(String(512), nullable=True)
 
     # Open-vocabulary detection
     open_vocab_prompts: list = Column(JSONB, nullable=True)  # Default prompts for OPEN_VOCAB mode
