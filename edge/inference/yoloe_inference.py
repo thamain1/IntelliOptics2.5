@@ -183,7 +183,8 @@ class YOLOEInference:
         pad_w = (new_shape - new_w) // 2
         pad_h = (new_shape - new_h) // 2
 
-        padded = np.full((new_shape, new_shape, 3), 114, dtype=np.uint8)
+        # ── Item 7: black (0) padding matches ImageNet-trained model expectations
+        padded = np.full((new_shape, new_shape, 3), 0, dtype=np.uint8)
         padded[pad_h : pad_h + new_h, pad_w : pad_w + new_w] = resized
 
         return padded, r, (pad_w, pad_h)
