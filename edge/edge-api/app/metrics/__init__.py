@@ -47,14 +47,20 @@ class QueueWriter:
         """
         Writes the provided escalation info to the queue.
 
-        Will write to the last used file path if it exists and has not exceeded the maximum length. Otherwise will
-        create a new file to write the escalation to.
+        Will write to the last used file path if it exists, has not exceeded the maximum length,
+        AND has the same priority as the incoming escalation. Otherwise creates a new file.
 
         Returns True if the write succeeds and False otherwise.
         """
+        # ── Item 4: Escalation Queue Priority ───────────────────────────────
         is_new_file = False
-        if self.last_file_path is None or self.num_lines_written_to_file >= MAX_QUEUE_FILE_LINES:
-            self._reset_to_new_file()
+        current_priority = self._current_file_priority()
+        if (
+            self.last_file_path is None
+            or self.num_lines_written_to_file >= MAX_QUEUE_FILE_LINES
+            or escalation_info.priority != current_priority
+        ):
+            self._reset_to_new_file(priority=escalation_info.priority)
             is_new_file = True
 
         wrote_successfully = self._write_to_path(self.last_file_path, escalation_info, is_new_file)
@@ -90,14 +96,23 @@ class QueueWriter:
             logger.error(f"Failed to write to {path_to_write_to} with error {e}.")
             return False
 
-    def _generate_new_path(self) -> Path:
-        """Generates a new unique path in the writing directory."""
-        new_file_name = f"{get_formatted_timestamp_str()}-{ksuid.KsuidMs()}.txt"
-        new_file_path = Path.joinpath(self.base_writing_dir, new_file_name)
-        return new_file_path
+    # ── Item 4: Escalation Queue Priority ───────────────────────────────────
+    def _generate_new_path(self, priority: int = 5) -> Path:
+        """Generates a new unique path in the writing directory, encoding priority in the filename."""
+        new_file_name = f"p{priority:02d}-{get_formatted_timestamp_str()}-{ksuid.KsuidMs()}.txt"
+        return Path.joinpath(self.base_writing_dir, new_file_name)
 
-    def _reset_to_new_file(self) -> None:
+    def _current_file_priority(self) -> int:
+        """Parse the priority out of the current file's name, or return 5 if unknown."""
+        if self.last_file_path is None:
+            return 5
+        try:
+            return int(self.last_file_path.name[1:3])  # "p09-..." → 9
+        except (ValueError, IndexError):
+            return 5
+
+    def _reset_to_new_file(self, priority: int = 5) -> None:
         """Generates a new path, sets the `last_file_path` to the new path, and resets the line number counter to 0."""
-        new_path = self._generate_new_path()
+        new_path = self._generate_new_path(priority=priority)
         self.last_file_path = new_path
         self.num_lines_written_to_file = 0

@@ -129,6 +129,16 @@ class DetectorConfig(BaseModel):
 
     detector_id: str = Field(..., description="Detector ID")
     edge_inference_config: str = Field(..., description="Config for edge inference.")
+    # ── Item 4: Escalation Queue Priority ───────────────────────────────────
+    # Controls which detector's escalations are processed first when the
+    # queue has a backlog. 0–10; higher = processed sooner.
+    # Suggested defaults: safety/PPE = 9, quality = 7, inventory = 3.
+    escalation_priority: int = Field(
+        default=5,
+        ge=0,
+        le=10,
+        description="Queue priority for cloud escalations (0–10, higher = processed first).",
+    )
 
 
 class StreamSubmissionMethod(str, Enum):

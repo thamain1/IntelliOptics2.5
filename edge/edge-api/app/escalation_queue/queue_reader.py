@@ -23,9 +23,10 @@ class QueueReader:
         self.base_writing_dir = Path(base_dir, WRITING_DIR_SUFFIX)
         os.makedirs(self.base_writing_dir, exist_ok=True)  # Ensure base_writing_dir exists
 
-        # This matches a timestamp in %Y%m%d_%H%M%S_%f format followed by a 27-character KSUID
-        self.writing_file_regex = r"\d{8}_\d{6}_\d{6}-.{27}\.txt"
-        # This matches the same as the above, with the addition of the tracking file name prefix
+        # ── Item 4: Escalation Queue Priority ───────────────────────────────
+        # Filename format: p{priority:02d}-{timestamp}-{ksuid}.txt
+        # e.g. p09-20260422_193000_000000-abc123....txt
+        self.writing_file_regex = r"p\d{2}-\d{8}_\d{6}_\d{6}-.{27}\.txt"
         self.tracking_file_regex = rf"{re.escape(TRACKING_FILE_NAME_PREFIX)}{self.writing_file_regex}"
 
     def __iter__(self) -> Generator[str, None, None]:
@@ -106,7 +107,16 @@ class QueueReader:
         if len(queue_files) == 0:
             return None
 
-        oldest_writing_path = sorted(queue_files)[0]
+        # ── Item 4: Escalation Queue Priority ───────────────────────────────
+        # Sort by (-priority, filename) so higher-priority files are consumed
+        # first; ties are broken by timestamp (oldest first).
+        def _sort_key(p: Path) -> tuple[int, str]:
+            try:
+                return (-int(p.name[1:3]), p.name)  # "p09-..." → priority 9 → sort key -9
+            except (ValueError, IndexError):
+                return (-5, p.name)  # unknown priority → treat as default 5
+
+        oldest_writing_path = sorted(queue_files, key=_sort_key)[0]
         new_reading_path = self.base_reading_dir / oldest_writing_path.name
 
         # Move the file from writing directory to reading directory

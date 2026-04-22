@@ -21,3 +21,8 @@ class EscalationInfo(BaseModel):
     image_path_str: str
     request_id: str
     submit_iq_params: SubmitImageQueryParams
+    # ── Item 4: Escalation Queue Priority ───────────────────────────────────
+    # 0–10 integer. Higher values are processed first by QueueReader.
+    # Sourced from DetectorConfig.escalation_priority (see configs.py).
+    # Default 5 keeps existing behaviour for escalations that don't set it.
+    priority: int = 5

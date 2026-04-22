@@ -50,33 +50,40 @@ edge_inference_configs:
 # Detector configurations
 # Each detector controls AI engagement via confidence thresholds and OODD ground truth
 detectors:
+  # ── Item 4: Escalation Queue Priority ─────────────────────────────────────
+  # escalation_priority: 0–10 (higher = processed first when queue has backlog)
+  # Recommended values: safety/PPE = 9 | quality = 7 | general = 5 | inventory = 3
+
   # Test detector (matches /opt/intellioptics/models/det_test_001/)
   det_test_001:
     detector_id: det_test_001
     name: "Test Detector - Binary Classification"
     edge_inference_config: default
-    confidence_threshold: 0.85  # Escalate if confidence < 0.85
+    escalation_priority: 5
+    confidence_threshold: 0.85
     patience_time: 30.0
-    mode: BINARY  # BINARY, MULTICLASS, COUNTING, BOUNDING_BOX, TEXT
+    mode: BINARY
     class_names: ["pass", "fail"]
-    hrm_enabled: false  # Set to true when HRM Phase 2 is ready
+    hrm_enabled: false
 
   # Example: Binary quality inspection detector
   det_quality_check_001:
     detector_id: det_quality_check_001
     name: "Quality Check - Main Line"
     edge_inference_config: default
-    confidence_threshold: 0.85  # Escalate if confidence < 0.85
+    escalation_priority: 7  # quality inspection — higher than default
+    confidence_threshold: 0.85
     patience_time: 30.0
-    mode: BINARY  # BINARY, MULTICLASS, COUNTING, BOUNDING_BOX, TEXT
+    mode: BINARY
     class_names: ["pass", "defect"]
-    hrm_enabled: false  # Set to true when HRM Phase 2 is ready
+    hrm_enabled: false
 
   # Example: Multiclass defect type detector
   det_defect_classifier_002:
     detector_id: det_defect_classifier_002
     name: "Defect Type Classifier"
     edge_inference_config: default
+    escalation_priority: 7
     confidence_threshold: 0.90
     patience_time: 30.0
     mode: MULTICLASS
@@ -88,6 +95,7 @@ detectors:
     detector_id: det_offline_003
     name: "Offline Quality Check"
     edge_inference_config: offline
+    escalation_priority: 3  # inventory/offline — lower priority
     confidence_threshold: 0.80
     patience_time: 15.0
     mode: BINARY
