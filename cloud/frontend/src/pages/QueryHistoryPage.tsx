@@ -6,7 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 interface Detection {
   label: string;
   confidence: number;
-  bbox?: number[];  // [x, y, width, height] normalized 0-1
+  bbox?: number[];  // [x1, y1, x2, y2] normalized 0-1
 }
 
 interface Query {
@@ -238,16 +238,16 @@ const QueryHistoryPage: React.FC = () => {
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
-                    {/* Bounding Box Overlays */}
-                    {q.detections_json?.map((det, idx) => det.bbox && (
+                    {/* Bounding Box Overlays — bbox is [x1,y1,x2,y2] normalized 0-1 */}
+                    {q.detections_json?.map((det, idx) => det.bbox && det.bbox.length === 4 && (
                       <div
                         key={idx}
                         className="absolute border-2 border-green-400 pointer-events-none"
                         style={{
                           left: `${det.bbox[0] * 100}%`,
                           top: `${det.bbox[1] * 100}%`,
-                          width: `${det.bbox[2] * 100}%`,
-                          height: `${det.bbox[3] * 100}%`,
+                          width: `${(det.bbox[2] - det.bbox[0]) * 100}%`,
+                          height: `${(det.bbox[3] - det.bbox[1]) * 100}%`,
                         }}
                       >
                         <span className="absolute -top-5 left-0 bg-green-500 text-white text-xs px-1 rounded whitespace-nowrap">
@@ -399,16 +399,16 @@ const QueryHistoryPage: React.FC = () => {
                     alt="Query"
                     className="max-h-[60vh] rounded"
                   />
-                  {/* Bounding Box Overlays */}
-                  {previewQuery.detections_json?.map((det, idx) => det.bbox && (
+                  {/* Bounding Box Overlays — bbox is [x1,y1,x2,y2] normalized 0-1 */}
+                  {previewQuery.detections_json?.map((det, idx) => det.bbox && det.bbox.length === 4 && (
                     <div
                       key={idx}
                       className="absolute border-2 border-green-400 pointer-events-none"
                       style={{
                         left: `${det.bbox[0] * 100}%`,
                         top: `${det.bbox[1] * 100}%`,
-                        width: `${det.bbox[2] * 100}%`,
-                        height: `${det.bbox[3] * 100}%`,
+                        width: `${(det.bbox[2] - det.bbox[0]) * 100}%`,
+                        height: `${(det.bbox[3] - det.bbox[1]) * 100}%`,
                       }}
                     >
                       <span className="absolute -top-6 left-0 bg-green-500 text-white text-sm px-2 py-0.5 rounded whitespace-nowrap">

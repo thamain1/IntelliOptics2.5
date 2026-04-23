@@ -10,6 +10,12 @@ interface Escalation {
   resolved: boolean;
 }
 
+interface Detection {
+  label: string;
+  confidence: number;
+  bbox?: number[];  // [x1, y1, x2, y2] normalized 0-1
+}
+
 interface Query {
   id: string;
   image_url: string;
@@ -19,6 +25,7 @@ interface Query {
   confidence: number;
   detector_id: string;
   created_at: string;
+  detections_json?: Detection[];
 }
 
 interface Annotation {
@@ -310,15 +317,33 @@ const EscalationQueuePage: React.FC = () => {
                   />
                 ) : (
                   <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
-                    <img
-                      src={selectedQuery.image_url}
-                      alt="Query"
-                      className="max-w-full max-h-96 mx-auto rounded"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).parentElement!.innerHTML = '<p class="text-red-400 text-center">Failed to load image</p>';
-                      }}
-                    />
+                    <div className="relative inline-block mx-auto max-w-full">
+                      <img
+                        src={selectedQuery.image_url}
+                        alt="Query"
+                        className="max-w-full max-h-96 mx-auto rounded block"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                      {/* Bbox overlays — bbox is [x1,y1,x2,y2] normalized 0-1 */}
+                      {selectedQuery.detections_json?.map((det, idx) => det.bbox && det.bbox.length === 4 && (
+                        <div
+                          key={idx}
+                          className="absolute border-2 border-green-400 pointer-events-none"
+                          style={{
+                            left: `${det.bbox[0] * 100}%`,
+                            top: `${det.bbox[1] * 100}%`,
+                            width: `${(det.bbox[2] - det.bbox[0]) * 100}%`,
+                            height: `${(det.bbox[3] - det.bbox[1]) * 100}%`,
+                          }}
+                        >
+                          <span className="absolute -top-6 left-0 bg-green-500 text-white text-xs px-1 py-0.5 rounded whitespace-nowrap">
+                            {det.label} {(det.confidence * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )
               ) : (

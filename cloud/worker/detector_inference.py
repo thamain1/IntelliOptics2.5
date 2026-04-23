@@ -579,10 +579,11 @@ def postprocess_yolo(
         x2 = max(0, min(x2, orig_w))
         y2 = max(0, min(y2, orig_h))
 
+        # Normalize to 0-1 xyxy so frontend overlays work without image dimensions
         detections.append({
             "label": label,
             "confidence": float(conf),
-            "bbox": [float(x1), float(y1), float(x2), float(y2)],
+            "bbox": [float(x1) / orig_w, float(y1) / orig_h, float(x2) / orig_w, float(y2) / orig_h],
             "oodd_adjusted": False
         })
 
