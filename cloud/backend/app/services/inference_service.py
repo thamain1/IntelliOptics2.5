@@ -62,6 +62,7 @@ class InferenceService:
                         "primary_model_blob_path": primary_model_blob_path,
                         "oodd_model_blob_path": oodd_model_blob_path,
                         "oodd_calibrated_threshold": getattr(detector_config, 'oodd_calibrated_threshold', 0.444) or 0.444,
+                        "candidate_model_path": getattr(detector_config, 'candidate_model_path', None),
                     }
 
                     files = {

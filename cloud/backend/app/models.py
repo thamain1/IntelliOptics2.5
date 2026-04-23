@@ -729,9 +729,32 @@ class TrainingRun(Base):
     metrics: dict = Column(JSONB, nullable=True)
     triggered_by: str = Column(String(255), nullable=True)
     error_log: str = Column(Text, nullable=True)
+    auto_triggered: bool = Column(Boolean, default=False)
+    notified_at: datetime = Column(DateTime, nullable=True)
 
     detector = relationship("Detector", backref="training_runs")
     dataset = relationship("TrainingDataset", backref="training_runs")
+
+
+# ── Phase 3: Canary / Shadow Mode ────────────────────────────────────────────
+
+class ShadowDetection(Base):
+    """One frame's comparison between primary and candidate model outputs."""
+    __tablename__ = "shadow_detections"
+
+    id: str = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    detector_id: str = Column(String, ForeignKey("detectors.id"), nullable=False)
+    query_id: str = Column(String, ForeignKey("queries.id"), nullable=True)
+    created_at: datetime = Column(DateTime, default=datetime.utcnow)
+    primary_label: str = Column(String(255), nullable=True)
+    primary_confidence: float = Column(Float, nullable=True)
+    shadow_label: str = Column(String(255), nullable=True)
+    shadow_confidence: float = Column(Float, nullable=True)
+    primary_detections_json: dict = Column(JSONB, nullable=True)
+    shadow_detections_json: dict = Column(JSONB, nullable=True)
+    agreed: bool = Column(Boolean, nullable=True)
+
+    detector = relationship("Detector", backref="shadow_detections")
 
 
 class DataRetentionSettings(Base):

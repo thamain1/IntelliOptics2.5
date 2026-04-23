@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,7 +57,32 @@ class StripTrailingSlashMiddleware:
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title="IntelliOptics API", version="1.0.0", redirect_slashes=False)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from .services.auto_training import run_auto_training_cycle
+
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(
+            run_auto_training_cycle,
+            "interval",
+            hours=settings.auto_training_check_interval_hours,
+            id="auto_training",
+            next_run_time=datetime.utcnow() + timedelta(minutes=5),
+        )
+        scheduler.start()
+        logger.info(
+            "Auto-training scheduler started (interval=%.1fh, min_samples=%d, enabled=%s)",
+            settings.auto_training_check_interval_hours,
+            settings.auto_training_min_samples,
+            settings.auto_training_enabled,
+        )
+        yield
+        scheduler.shutdown(wait=False)
+        logger.info("Auto-training scheduler stopped")
+
+    app = FastAPI(title="IntelliOptics API", version="1.0.0", redirect_slashes=False, lifespan=lifespan)
 
     # Configure CORS to allow frontend to access the API
     origins = [o.strip() for o in settings.cors_allowed_origins.split(",") if o.strip()]

@@ -1293,6 +1293,7 @@ interface TrainingRun {
     metrics: { precision?: number; recall?: number; mAP50?: number; mAP50_95?: number } | null;
     triggered_by: string | null;
     error_log: string | null;
+    auto_triggered: boolean;
 }
 
 interface ModelStatus {
@@ -1315,6 +1316,25 @@ interface DatasetExport {
     class_names: string[];
     download_url: string;
     created_at: string;
+}
+
+interface CanaryDisagreement {
+    id: string;
+    query_id: string | null;
+    created_at: string | null;
+    primary_label: string | null;
+    primary_confidence: number | null;
+    shadow_label: string | null;
+    shadow_confidence: number | null;
+}
+
+interface CanaryReport {
+    total: number;
+    agreed: number;
+    agreement_rate: number | null;
+    primary_label_distribution: Record<string, number>;
+    shadow_label_distribution: Record<string, number>;
+    recent_disagreements: CanaryDisagreement[];
 }
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -1352,15 +1372,20 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
     const [isRollingBack, setIsRollingBack] = useState(false);
     const [epochs, setEpochs] = useState(50);
     const [baseModel, setBaseModel] = useState('yolov8s.pt');
+    const [canaryReport, setCanaryReport] = useState<CanaryReport | null>(null);
 
     const fetchAll = async () => {
         try {
-            const [statusRes, runsRes] = await Promise.all([
+            const [statusRes, runsRes, canaryRes] = await Promise.all([
                 axios.get(`/detectors/${detectorId}/model-status`),
                 axios.get(`/detectors/${detectorId}/training-runs`),
+                axios.get(`/detectors/${detectorId}/canary-report`).catch(() => ({ data: null })),
             ]);
             setModelStatus(statusRes.data);
             setTrainingRuns(runsRes.data);
+            if (canaryRes.data && canaryRes.data.total > 0) {
+                setCanaryReport(canaryRes.data);
+            }
         } catch (err) {
             console.error('Failed to fetch training status:', err);
         } finally {
@@ -1613,6 +1638,155 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                 </div>
             </Card>
 
+            {/* ── Auto-Training ────────────────────────────────────────── */}
+            <Card title="Auto-Training">
+                <div className="space-y-3">
+                    <p className="text-sm text-gray-300">
+                        The backend checks every hour and automatically triggers fine-tuning when a detector
+                        accumulates <strong className="text-white">100+ new labeled samples</strong> since
+                        the last completed training run.
+                    </p>
+                    <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-gray-700 rounded-lg p-3 border border-gray-600 text-center">
+                            <p className="text-xs text-gray-400 mb-1">Threshold</p>
+                            <p className="text-lg font-bold text-white font-mono">100</p>
+                            <p className="text-xs text-gray-500">samples</p>
+                        </div>
+                        <div className="bg-gray-700 rounded-lg p-3 border border-gray-600 text-center">
+                            <p className="text-xs text-gray-400 mb-1">Check interval</p>
+                            <p className="text-lg font-bold text-white font-mono">1 h</p>
+                            <p className="text-xs text-gray-500">configurable</p>
+                        </div>
+                        <div className="bg-gray-700 rounded-lg p-3 border border-gray-600 text-center">
+                            <p className="text-xs text-gray-400 mb-1">Auto runs</p>
+                            <p className="text-lg font-bold text-purple-300 font-mono">
+                                {trainingRuns.filter(r => r.auto_triggered).length}
+                            </p>
+                            <p className="text-xs text-gray-500">this detector</p>
+                        </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                        Runs triggered automatically are marked with an <span className="bg-purple-900/60 text-purple-300 px-1.5 py-0.5 rounded text-xs font-bold uppercase font-mono">auto</span> badge in Training History.
+                        Email notifications are sent on trigger and completion to <code className="text-gray-300">AUTO_TRAINING_NOTIFY_EMAILS</code>.
+                    </p>
+                </div>
+            </Card>
+
+            {/* ── Canary Report ────────────────────────────────────────── */}
+            {canaryReport && canaryReport.total > 0 && (
+                <Card title="Canary Report (Shadow Mode)">
+                    <div className="space-y-4">
+                        {/* Agreement summary */}
+                        <div className="flex items-center gap-4">
+                            <div className={`text-2xl font-bold font-mono ${
+                                (canaryReport.agreement_rate ?? 0) >= 0.90 ? 'text-green-400' :
+                                (canaryReport.agreement_rate ?? 0) >= 0.75 ? 'text-yellow-400' : 'text-red-400'
+                            }`}>
+                                {canaryReport.agreement_rate !== null
+                                    ? `${(canaryReport.agreement_rate * 100).toFixed(1)}%`
+                                    : '—'}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                                agreement between primary and candidate
+                                <br />
+                                <span className="text-xs text-gray-500">
+                                    {canaryReport.agreed} / {canaryReport.total} frames matched
+                                </span>
+                            </div>
+                            {canaryReport.agreement_rate !== null && canaryReport.agreement_rate >= 0.90 && (
+                                <span className="ml-auto bg-green-900/40 border border-green-700 text-green-300 text-xs font-bold px-3 py-1 rounded">
+                                    Ready to promote
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Label distribution comparison */}
+                        {(Object.keys(canaryReport.primary_label_distribution).length > 0 ||
+                          Object.keys(canaryReport.shadow_label_distribution).length > 0) && (
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-gray-700 p-3 rounded-lg border border-gray-600">
+                                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Primary labels</p>
+                                    <div className="space-y-1">
+                                        {Object.entries(canaryReport.primary_label_distribution).map(([lbl, cnt]) => (
+                                            <div key={lbl} className="flex justify-between text-xs">
+                                                <span className="text-gray-300 font-mono">{lbl}</span>
+                                                <span className="text-white font-bold">{cnt}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="bg-gray-700 p-3 rounded-lg border border-green-800/50">
+                                    <p className="text-xs text-green-400 uppercase tracking-wider mb-2">Candidate labels</p>
+                                    <div className="space-y-1">
+                                        {Object.entries(canaryReport.shadow_label_distribution).map(([lbl, cnt]) => {
+                                            const primaryCnt = canaryReport.primary_label_distribution[lbl] ?? 0;
+                                            const delta = cnt - primaryCnt;
+                                            return (
+                                                <div key={lbl} className="flex justify-between text-xs">
+                                                    <span className="text-gray-300 font-mono">{lbl}</span>
+                                                    <span className="text-white font-bold">
+                                                        {cnt}
+                                                        {delta !== 0 && (
+                                                            <span className={`ml-1 ${delta > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                                ({delta > 0 ? '+' : ''}{delta})
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Recent disagreements */}
+                        {canaryReport.recent_disagreements.length > 0 && (
+                            <details>
+                                <summary className="text-xs text-yellow-400 cursor-pointer font-bold">
+                                    {canaryReport.recent_disagreements.length} disagreements
+                                </summary>
+                                <div className="mt-2 overflow-x-auto">
+                                    <table className="w-full text-xs text-gray-300 border-collapse">
+                                        <thead>
+                                            <tr className="text-gray-500 border-b border-gray-700">
+                                                <th className="py-1 pr-3 text-left">Time</th>
+                                                <th className="py-1 pr-3 text-left">Primary</th>
+                                                <th className="py-1 pr-3 text-left">Conf</th>
+                                                <th className="py-1 pr-3 text-left">Candidate</th>
+                                                <th className="py-1 text-left">Conf</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {canaryReport.recent_disagreements.map(d => (
+                                                <tr key={d.id} className="border-b border-gray-800 hover:bg-gray-700/40">
+                                                    <td className="py-1 pr-3 text-gray-500 whitespace-nowrap">
+                                                        {d.created_at ? new Date(d.created_at).toLocaleString() : '—'}
+                                                    </td>
+                                                    <td className="py-1 pr-3 font-mono">{d.primary_label ?? '—'}</td>
+                                                    <td className="py-1 pr-3 text-gray-400">
+                                                        {d.primary_confidence !== null ? `${(d.primary_confidence * 100).toFixed(0)}%` : '—'}
+                                                    </td>
+                                                    <td className="py-1 pr-3 font-mono text-green-300">{d.shadow_label ?? '—'}</td>
+                                                    <td className="py-1 text-gray-400">
+                                                        {d.shadow_confidence !== null ? `${(d.shadow_confidence * 100).toFixed(0)}%` : '—'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </details>
+                        )}
+
+                        <p className="text-xs text-gray-500">
+                            Shadow mode runs the candidate model alongside the primary on every live query.
+                            Results are not used for decisions — only for comparison. Promote when you're satisfied with agreement.
+                        </p>
+                    </div>
+                </Card>
+            )}
+
             {/* ── Training History ─────────────────────────────────────── */}
             <Card title="Training History">
                 {trainingRuns.length === 0 ? (
@@ -1632,8 +1806,11 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
                                             <StatusBadge status={run.status} />
+                                            {run.auto_triggered && (
+                                                <span className="bg-purple-900/60 text-purple-300 px-2 py-0.5 rounded text-xs font-bold uppercase font-mono">auto</span>
+                                            )}
                                             <span className="text-xs text-gray-500 font-mono">{run.id.slice(0, 8)}…</span>
-                                            {run.triggered_by && (
+                                            {run.triggered_by && !run.auto_triggered && (
                                                 <span className="text-xs text-gray-500">by {run.triggered_by}</span>
                                             )}
                                         </div>

@@ -177,6 +177,26 @@ async def create_query(
             q.status = "DONE"
             q.local_inference = True
 
+            # ── Phase 3: Save shadow/canary result if candidate model ran ──
+            shadow_data = result.get("shadow_result")
+            if shadow_data:
+                try:
+                    shadow_rec = models.ShadowDetection(
+                        id=str(uuid.uuid4()),
+                        detector_id=str(detector_id),
+                        query_id=str(q.id),
+                        primary_label=label,
+                        primary_confidence=confidence,
+                        shadow_label=shadow_data.get("top_label"),
+                        shadow_confidence=shadow_data.get("top_confidence"),
+                        primary_detections_json=detections,
+                        shadow_detections_json=shadow_data.get("detections", []),
+                        agreed=(label == shadow_data.get("top_label")),
+                    )
+                    db.add(shadow_rec)
+                except Exception as shadow_save_err:
+                    logger.warning(f"Failed to save shadow detection record: {shadow_save_err}")
+
         except Exception as e:
             logger.error(f"Inference failed: {e}")
             # Fallback to pending/error or simulation if worker is down

@@ -62,6 +62,12 @@ class Settings(BaseSettings):
     cors_allowed_origins: str = Field("http://localhost:3000,http://localhost:30101", alias="CORS_ALLOWED_ORIGINS")
     trainer_url: str = Field("http://cloud-trainer:8082/train", alias="TRAINER_URL")
 
+    # Phase 6: Auto-training scheduler
+    auto_training_enabled: bool = Field(True, alias="AUTO_TRAINING_ENABLED")
+    auto_training_min_samples: int = Field(100, alias="AUTO_TRAINING_MIN_SAMPLES")
+    auto_training_check_interval_hours: float = Field(1.0, alias="AUTO_TRAINING_CHECK_INTERVAL_HOURS")
+    auto_training_notify_emails: str = Field("", alias="AUTO_TRAINING_NOTIFY_EMAILS")
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

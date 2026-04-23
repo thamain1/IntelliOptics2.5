@@ -412,14 +412,57 @@ def run_detector_inference(
     # ── Item 6: surface oodd_score at top level for drift tracking ──────────
     oodd_score = oodd_result.get("in_domain_score") if oodd_result else None
 
+    # ── Phase 3: Shadow / Canary inference ───────────────────────────────────
+    # Run candidate model on the same preprocessed tensor (x already built above).
+    shadow_result = None
+    candidate_blob_path = detector_config.get("candidate_model_path")
+    if candidate_blob_path:
+        try:
+            log.info(f"Shadow inference: loading candidate model for detector {detector_id}")
+            candidate_model_path = download_model_from_blob(candidate_blob_path, detector_id, "candidate")
+            candidate_session = load_onnx_model(candidate_model_path, f"{detector_id}_candidate")
+
+            candidate_input_name = candidate_session.get_inputs()[0].name
+            candidate_outputs = candidate_session.run(None, {candidate_input_name: x})
+            candidate_pred = candidate_outputs[0]
+
+            candidate_detections = postprocess_yolo(
+                candidate_pred, ratio, pad, (orig_w, orig_h),
+                conf_thresh=detection_conf_thresh,
+                iou_thresh=detection_params.get("iou_threshold", 0.45),
+                max_det=detection_params.get("max_detections", 100),
+                custom_class_names=class_names if class_names else None,
+            )
+
+            if class_names:
+                candidate_detections = [d for d in candidate_detections if d.get("label") in class_names]
+
+            if per_class_thresholds:
+                candidate_detections = [
+                    d for d in candidate_detections
+                    if d["confidence"] >= per_class_thresholds.get(d.get("label"), confidence_threshold)
+                ]
+
+            top = max(candidate_detections, key=lambda d: d.get("confidence", 0.0)) if candidate_detections else None
+            shadow_result = {
+                "detections": candidate_detections,
+                "top_label": top["label"] if top else "nothing",
+                "top_confidence": float(top["confidence"]) if top else 0.0,
+            }
+            log.info(f"Shadow inference complete: top_label={shadow_result['top_label']} conf={shadow_result['top_confidence']:.3f}")
+        except Exception as shadow_err:
+            log.warning(f"Shadow inference failed (non-fatal): {shadow_err}")
+
     return {
         "detections": detections,
         "latency_ms": latency_ms,
         "oodd_result": oodd_result,
         "oodd_score": oodd_score,
+        "shadow_result": shadow_result,
         "model_info": {
             "primary_model": primary_blob_path,
             "oodd_model": oodd_blob_path,
+            "candidate_model": candidate_blob_path,
             "mode": mode,
             "input_size": input_size
         }

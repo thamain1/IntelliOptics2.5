@@ -41,6 +41,9 @@ twilio>=9.0.0
 # Image processing (dataset export)
 Pillow>=10.0.0
 
+# Scheduling (auto-training cron)
+apscheduler>=3.10.0
+
 # Video processing
 yt-dlp==2024.3.10
 streamlink>=7.0.0

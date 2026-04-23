@@ -158,6 +158,79 @@ def get_training_run(
     return _run_to_dict(run)
 
 
+# ── Phase 3: Canary / Shadow Report ──────────────────────────────────────────
+
+@router.get("/detectors/{detector_id}/canary-report")
+def get_canary_report(
+    detector_id: str,
+    limit: int = 500,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """Aggregate shadow-vs-primary comparison stats for a detector.
+
+    Returns agreement rate, label distribution delta, and recent disagreement samples.
+    Only populated when a candidate model is set on the detector config.
+    """
+    detector = db.query(models.Detector).filter(models.Detector.id == detector_id).first()
+    if not detector:
+        raise HTTPException(status_code=404, detail="Detector not found")
+
+    rows = (
+        db.query(models.ShadowDetection)
+        .filter(models.ShadowDetection.detector_id == detector_id)
+        .order_by(models.ShadowDetection.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    total = len(rows)
+    if total == 0:
+        return {
+            "detector_id": detector_id,
+            "total": 0,
+            "agreed": 0,
+            "agreement_rate": None,
+            "primary_label_distribution": {},
+            "shadow_label_distribution": {},
+            "recent_disagreements": [],
+        }
+
+    agreed_count = sum(1 for r in rows if r.agreed)
+
+    primary_dist: dict = {}
+    shadow_dist: dict = {}
+    for r in rows:
+        if r.primary_label:
+            primary_dist[r.primary_label] = primary_dist.get(r.primary_label, 0) + 1
+        if r.shadow_label:
+            shadow_dist[r.shadow_label] = shadow_dist.get(r.shadow_label, 0) + 1
+
+    disagreements = [
+        {
+            "id": r.id,
+            "query_id": r.query_id,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "primary_label": r.primary_label,
+            "primary_confidence": r.primary_confidence,
+            "shadow_label": r.shadow_label,
+            "shadow_confidence": r.shadow_confidence,
+        }
+        for r in rows
+        if not r.agreed
+    ][:50]
+
+    return {
+        "detector_id": detector_id,
+        "total": total,
+        "agreed": agreed_count,
+        "agreement_rate": round(agreed_count / total, 4) if total > 0 else None,
+        "primary_label_distribution": primary_dist,
+        "shadow_label_distribution": shadow_dist,
+        "recent_disagreements": disagreements,
+    }
+
+
 def _run_to_dict(run: models.TrainingRun) -> dict:
     return {
         "id": run.id,
@@ -171,6 +244,7 @@ def _run_to_dict(run: models.TrainingRun) -> dict:
         "metrics": run.metrics,
         "triggered_by": run.triggered_by,
         "error_log": run.error_log,
+        "auto_triggered": bool(run.auto_triggered),
     }
 
 
