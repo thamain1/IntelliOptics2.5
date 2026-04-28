@@ -44,6 +44,8 @@ const DemoStreamPage: React.FC = () => {
 
   // Configuration state
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [registeredCameras, setRegisteredCameras] = useState<{ id: string; name: string; url: string }[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState<string>('');
   const [captureMode, setCaptureMode] = useState<'polling' | 'motion' | 'manual' | 'webcam' | 'yoloworld' | 'yoloe'>('polling');
   const [pollingInterval, setPollingInterval] = useState(2000);
   const [selectedDetectors, setSelectedDetectors] = useState<string[]>([]);
@@ -89,6 +91,7 @@ const DemoStreamPage: React.FC = () => {
   useEffect(() => {
     fetchDetectors();
     fetchDetectorGroups();
+    fetchRegisteredCameras();
     return () => {
       stopResultsPolling();
       stopFramePolling();
@@ -132,6 +135,41 @@ const DemoStreamPage: React.FC = () => {
       setDetectors(res.data);
     } catch (err) {
       toast.error('Failed to load detectors');
+    }
+  };
+
+  const fetchRegisteredCameras = async () => {
+    try {
+      const hubsRes = await axios.get('/hubs');
+      const hubs: { id: string; name: string }[] = hubsRes.data || [];
+      const cameraLists = await Promise.all(
+        hubs.map(async (h) => {
+          try {
+            const r = await axios.get(`/hubs/${h.id}/cameras`);
+            const cams: { id: string; name: string; url: string }[] = r.data || [];
+            return cams.map((c) => ({
+              id: c.id,
+              name: `${h.name} · ${c.name}`,
+              url: c.url,
+            }));
+          } catch {
+            return [];
+          }
+        }),
+      );
+      setRegisteredCameras(cameraLists.flat());
+    } catch (err) {
+      // Silent — page still works with manual URL entry
+      console.error('Failed to load registered cameras:', err);
+    }
+  };
+
+  const handleSelectRegisteredCamera = (cameraId: string) => {
+    setSelectedCameraId(cameraId);
+    if (!cameraId) return;
+    const cam = registeredCameras.find((c) => c.id === cameraId);
+    if (cam) {
+      setYoutubeUrl(cam.url);
     }
   };
 
@@ -566,20 +604,52 @@ const DemoStreamPage: React.FC = () => {
 
           <div className="space-y-4">
             {captureMode !== 'webcam' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Stream URL
-                </label>
-                <input
-                  type="text"
-                  value={youtubeUrl}
-                  onChange={(e) => setYoutubeUrl(e.target.value)}
-                  placeholder="rtsp://user:pass@host:port/path  ·  https://...m3u8  ·  YouTube/EarthCam URL"
-                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 font-mono text-sm"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Supports RTSP, RTMP, HLS, MJPEG, direct video, plus YouTube and EarthCam.
-                </p>
+              <div className="space-y-3">
+                {registeredCameras.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                      Use registered camera
+                    </label>
+                    <select
+                      value={selectedCameraId}
+                      onChange={(e) => handleSelectRegisteredCamera(e.target.value)}
+                      className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                    >
+                      <option value="">— Select a camera or enter URL below —</option>
+                      {registeredCameras.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Selecting a camera fills the Stream URL below. {registeredCameras.length} camera
+                      {registeredCameras.length === 1 ? '' : 's'} available.
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    Stream URL
+                  </label>
+                  <input
+                    type="text"
+                    value={youtubeUrl}
+                    onChange={(e) => {
+                      setYoutubeUrl(e.target.value);
+                      // Clear the selected-camera dropdown if user starts editing the URL
+                      if (selectedCameraId) {
+                        const cam = registeredCameras.find((c) => c.id === selectedCameraId);
+                        if (!cam || cam.url !== e.target.value) setSelectedCameraId('');
+                      }
+                    }}
+                    placeholder="rtsp://user:pass@host:port/path  ·  https://...m3u8  ·  YouTube/EarthCam URL"
+                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 font-mono text-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Supports RTSP, RTMP, HLS, MJPEG, direct video, plus YouTube and EarthCam.
+                  </p>
+                </div>
               </div>
             )}
 
