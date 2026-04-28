@@ -70,7 +70,7 @@ class RtspFrameGrabber:
         if url_lower.startswith(("rtsp://", "rtsps://")):
             cmd += [
                 "-rtsp_transport", "tcp",
-                "-stimeout", "10000000",       # 10s socket timeout (microseconds)
+                "-timeout", "10000000",        # 10s socket timeout (microseconds) — ffmpeg 7.x renamed -stimeout to -timeout
                 "-reconnect", "1",
                 "-reconnect_at_eof", "1",
                 "-reconnect_streamed", "1",
