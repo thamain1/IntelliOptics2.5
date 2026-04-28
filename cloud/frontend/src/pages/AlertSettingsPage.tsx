@@ -30,8 +30,15 @@ const AlertRateLimitingConfigSchema = z.object({
 
 const AlertSettingsSchema = z.object({
   sendgrid_api_key: z.string().optional(),
-  from_email: z.string().email({ message: "Invalid email address" }).optional().or(z.literal('')),
-  recipients: z.array(z.string().email({ message: "Invalid email address" })).default([]),
+  from_email: z.string().optional().or(z.literal('')),
+  twilio_account_sid: z.string().optional(),
+  twilio_auth_token: z.string().optional(),
+  twilio_phone_from: z.string().optional(),
+  alert_function_url: z.string().optional().nullable(),
+  recipients: z.object({
+    emails: z.array(z.string()).default([]),
+    phones: z.array(z.string()).default([]),
+  }).default({ emails: [], phones: [] }),
   triggers: AlertTriggerConfigSchema.default({}),
   batching: AlertBatchingConfigSchema.default({}),
   rate_limiting: AlertRateLimitingConfigSchema.default({}),
@@ -83,7 +90,7 @@ const AlertSettingsPage = () => {
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "recipients",
+    name: "recipients.emails",
   });
 
   useEffect(() => {
@@ -162,9 +169,9 @@ const AlertSettingsPage = () => {
               {fields.map((item, index) => (
                 <div key={item.id} className="flex items-center">
                   <Controller
-                    name={`recipients.${index}`}
+                    name={`recipients.emails.${index}`}
                     control={control}
-                    render={({ field }) => <Input {...field} type="email" placeholder="recipient@example.com" error={errors.recipients?.[index]} />}
+                    render={({ field }) => <Input {...field} type="email" placeholder="recipient@example.com" />}
                   />
                   <button type="button" onClick={() => remove(index)} className="ml-2 text-red-500 hover:text-red-700">✕</button>
                 </div>
