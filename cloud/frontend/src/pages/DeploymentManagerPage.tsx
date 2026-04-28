@@ -196,7 +196,7 @@ const DeploymentManagerPage = () => {
         <button onClick={handlePreview} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition-transform transform hover:scale-105">
           Preview Config
         </button>
-        <button onClick={handleDeploy} disabled={isDeploying} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded disabled:bg-gray-500 disabled:cursor-not-allowed transition-transform transform hover:scale-105">
+        <button onClick={handleDeploy} disabled={isDeploying} className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-4 rounded disabled:bg-gray-500 disabled:cursor-not-allowed transition-transform transform hover:scale-105">
           {isDeploying ? 'Deploying...' : `Deploy to ${selectedHubs.size} Device(s)`}
         </button>
       </div>

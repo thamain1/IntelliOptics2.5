@@ -281,7 +281,7 @@ const AdminPage: React.FC = () => {
                   <option value="reviewer">Reviewer</option>
                 </select>
               </div>
-              <button type="submit" className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded transition h-10 mb-0.5">
+              <button type="submit" className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-6 rounded transition h-10 mb-0.5">
                 Add User
               </button>
             </form>
@@ -429,7 +429,7 @@ const AdminPage: React.FC = () => {
                 <div className="flex gap-4 items-center">
                   <button
                     onClick={handleSaveRetentionSettings}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded transition"
+                    className="bg-brand-primary hover:bg-brand-primaryH text-black font-medium py-2 px-4 rounded transition"
                   >
                     Save Settings
                   </button>
@@ -556,14 +556,14 @@ const AdminPage: React.FC = () => {
               <button
                 onClick={handleExport}
                 disabled={exporting}
-                className="bg-green-600 hover:bg-green-500 text-white font-medium py-2 px-4 rounded transition"
+                className="bg-brand-primary hover:bg-brand-primaryH text-black font-medium py-2 px-4 rounded transition"
               >
                 {exporting ? 'Preparing...' : 'Generate Export'}
               </button>
               {exportResult && (
                 <a
                   href={`/api${exportResult.download_url}`}
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded transition"
+                  className="bg-brand-primary hover:bg-brand-primaryH text-black font-medium py-2 px-4 rounded transition"
                   download
                 >
                   Download ZIP ({exportResult.total_samples} samples)

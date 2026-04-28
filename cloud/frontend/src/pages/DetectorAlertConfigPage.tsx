@@ -361,7 +361,7 @@ const DetectorAlertConfigPage: React.FC = () => {
             />
             <button
               onClick={addEmail}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded"
+              className="bg-brand-primary hover:bg-brand-primaryH text-black px-4 py-2 rounded"
             >
               Add
             </button>
@@ -404,7 +404,7 @@ const DetectorAlertConfigPage: React.FC = () => {
             />
             <button
               onClick={addPhone}
-              className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded"
+              className="bg-brand-primary hover:bg-brand-primaryH text-black px-4 py-2 rounded"
             >
               Add
             </button>
@@ -545,7 +545,7 @@ const DetectorAlertConfigPage: React.FC = () => {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded disabled:bg-gray-500"
+          className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-6 rounded disabled:bg-gray-500"
         >
           {saving ? 'Saving...' : 'Save Alert'}
         </button>

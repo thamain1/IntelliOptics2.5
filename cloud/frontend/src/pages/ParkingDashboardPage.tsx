@@ -129,7 +129,7 @@ export default function ParkingDashboardPage() {
         </h1>
         <button
           onClick={() => setShowCreateZone(true)}
-          className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm"
+          className="bg-brand-primary hover:bg-brand-primaryH text-black px-4 py-2 rounded text-sm"
         >
           + Add Zone
         </button>
@@ -333,7 +333,7 @@ export default function ParkingDashboardPage() {
               <button
                 onClick={createZone}
                 disabled={!newZoneName.trim()}
-                className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white py-2 rounded text-sm font-medium"
+                className="flex-1 bg-brand-primary hover:bg-brand-primaryH text-black disabled:bg-gray-600 text-white py-2 rounded text-sm font-medium"
               >
                 Create
               </button>

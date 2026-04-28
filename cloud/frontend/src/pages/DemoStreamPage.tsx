@@ -1009,7 +1009,7 @@ const DemoStreamPage: React.FC = () => {
                     href={activeSession.youtube_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded transition"
+                    className="bg-brand-primary hover:bg-brand-primaryH text-black px-4 py-2 rounded transition"
                   >
                     Open Stream in New Tab
                   </a>
@@ -1068,7 +1068,7 @@ const DemoStreamPage: React.FC = () => {
             {captureMode === 'manual' && (
               <button
                 onClick={captureFrame}
-                className="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded"
+                className="mt-4 w-full bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-4 rounded"
               >
                 Capture Frame Now
               </button>

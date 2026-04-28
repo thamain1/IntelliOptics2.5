@@ -433,7 +433,7 @@ const EscalationQueuePage: React.FC = () => {
                   <button
                     type="button"
                     onClick={confirmResolve}
-                    className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded transition"
+                    className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-4 rounded transition"
                   >
                     Resolve Without Annotation
                   </button>
@@ -441,7 +441,7 @@ const EscalationQueuePage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={savingAnnotations}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition disabled:opacity-50"
+                    className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-4 rounded transition disabled:opacity-50"
                   >
                     {savingAnnotations ? 'Saving...' : annotationMode ? `Save ${boundingBoxes.length} Annotation${boundingBoxes.length !== 1 ? 's' : ''} & Resolve` : 'Submit & Resolve'}
                   </button>

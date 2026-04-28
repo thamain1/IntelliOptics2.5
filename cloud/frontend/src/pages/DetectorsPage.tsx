@@ -216,7 +216,7 @@ const DetectorsPage: React.FC = () => {
         {!showForm && (
           <button 
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-md transition"
+            className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-6 rounded-md transition"
           >
             + Create New Detector
           </button>
@@ -507,7 +507,7 @@ const DetectorsPage: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-8 rounded-md transition disabled:bg-gray-600"
+                className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-8 rounded-md transition disabled:bg-gray-600"
               >
                 {isSubmitting ? 'Creating...' : 'Create Detector'}
               </button>

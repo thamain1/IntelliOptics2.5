@@ -121,7 +121,7 @@ const DetectorAlertsPage: React.FC = () => {
         </h1>
         <button
           onClick={fetchData}
-          className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold transition"
+          className="bg-brand-primary hover:bg-brand-primaryH text-black px-4 py-2 rounded font-bold transition"
         >
           Refresh
         </button>
@@ -268,7 +268,7 @@ const DetectorAlertsPage: React.FC = () => {
                   {!alert.acknowledged && (
                     <button
                       onClick={() => acknowledgeAlert(alert.id)}
-                      className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded transition"
+                      className="bg-brand-primary hover:bg-brand-primaryH text-black text-sm font-bold py-2 px-4 rounded transition"
                     >
                       Acknowledge
                     </button>

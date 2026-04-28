@@ -177,7 +177,7 @@ const AlertSettingsPage = () => {
                 </div>
               ))}
             </div>
-            <button type="button" onClick={() => append('')} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-1 px-3 rounded text-sm mt-2">+ Add Recipient</button>
+            <button type="button" onClick={() => append('')} className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-1 px-3 rounded text-sm mt-2">+ Add Recipient</button>
           </Card>
         </div>
 
@@ -196,7 +196,7 @@ const AlertSettingsPage = () => {
         
         <div className="flex justify-end space-x-4 mt-8">
             <button type="button" onClick={() => navigate('/')} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded">
+            <button type="submit" disabled={isSubmitting} className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-4 rounded">
               {isSubmitting ? 'Saving...' : 'Save Settings'}
             </button>
         </div>
@@ -215,7 +215,7 @@ const AlertSettingsPage = () => {
                     placeholder="test@example.com"
                   />
                 </div>
-                <button type="button" onClick={handleTestEmail} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded">Send Test</button>
+                <button type="button" onClick={handleTestEmail} className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-4 rounded">Send Test</button>
              </div>
           </Card>
       </div>

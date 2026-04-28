@@ -261,7 +261,7 @@ export default function ForensicSearchPage() {
           <button
             onClick={createJob}
             disabled={creating || uploading || !queryText.trim() || !sourceUrl.trim()}
-            className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white px-6 py-2 rounded text-sm font-medium whitespace-nowrap"
+            className="bg-brand-primary hover:bg-brand-primaryH text-black disabled:bg-gray-600 text-white px-6 py-2 rounded text-sm font-medium whitespace-nowrap"
           >
             {creating ? 'Creating...' : 'Start Search'}
           </button>

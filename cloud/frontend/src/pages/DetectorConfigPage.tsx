@@ -294,10 +294,10 @@ const DetectorConfigPage = () => {
                     <button type="button" onClick={() => navigate('/detectors')} className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition">
                         Cancel
                     </button>
-                    <button type="button" onClick={handleSubmit((data) => onSubmit(data, false), onFormError)} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition disabled:bg-gray-500">
+                    <button type="button" onClick={handleSubmit((data) => onSubmit(data, false), onFormError)} disabled={isSubmitting} className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-4 rounded transition disabled:bg-gray-500">
                         {isSubmitting ? 'Saving...' : 'Save'}
                     </button>
-                    <button type="button" onClick={handleSubmit((data) => onSubmit(data, true), onFormError)} disabled={isSubmitting} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded transition disabled:bg-gray-500">
+                    <button type="button" onClick={handleSubmit((data) => onSubmit(data, true), onFormError)} disabled={isSubmitting} className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-4 rounded transition disabled:bg-gray-500">
                         {isSubmitting ? 'Deploying...' : 'Save & Deploy'}
                     </button>
                 </div>
@@ -1208,13 +1208,13 @@ const DetectorAlertsConfig = ({ detectorId }: { detectorId: string }) => {
                         <button
                             onClick={saveAlertConfig}
                             disabled={saving}
-                            className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded transition disabled:bg-gray-500"
+                            className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-6 rounded transition disabled:bg-gray-500"
                         >
                             {saving ? 'Saving...' : 'Save Alert Configuration'}
                         </button>
                         <a
                             href={`/detectors/${detectorId}/alert-config`}
-                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded transition inline-block"
+                            className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-6 rounded transition inline-block"
                         >
                             Advanced Alert Settings
                         </a>
@@ -1269,7 +1269,7 @@ const DetectorAlertsConfig = ({ detectorId }: { detectorId: string }) => {
                                 {!alert.acknowledged && (
                                     <button
                                         onClick={() => acknowledgeAlert(alert.id)}
-                                        className="mt-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-1 px-3 rounded"
+                                        className="mt-3 bg-brand-primary hover:bg-brand-primaryH text-black text-xs font-bold py-1 px-3 rounded"
                                     >
                                         Acknowledge
                                     </button>
@@ -1550,7 +1550,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                             <button
                                 onClick={handleExport}
                                 disabled={isExporting}
-                                className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded transition text-sm whitespace-nowrap"
+                                className="bg-brand-primary hover:bg-brand-primaryH text-black disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded transition text-sm whitespace-nowrap"
                             >
                                 {isExporting ? 'Exporting…' : '⬇ Export Dataset'}
                             </button>

@@ -318,7 +318,7 @@ const QueryHistoryPage: React.FC = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleVerifyGroundTruth(q.id, q.result_label || 'yes')}
-                        className="flex-1 bg-green-600 hover:bg-green-500 text-white text-sm font-medium py-2 px-3 rounded transition"
+                        className="flex-1 bg-brand-primary hover:bg-brand-primaryH text-black text-sm font-medium py-2 px-3 rounded transition"
                       >
                         Correct
                       </button>

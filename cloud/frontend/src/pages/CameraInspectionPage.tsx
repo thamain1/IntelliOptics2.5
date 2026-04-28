@@ -1141,7 +1141,7 @@ const CameraInspectionPage: React.FC = () => {
                               {!alert.acknowledged && !alert.muted_until && (
                                 <button
                                   onClick={() => handleAcknowledgeAlert(camera.id, alert.id)}
-                                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1 rounded"
+                                  className="bg-brand-primary hover:bg-brand-primaryH text-black text-xs px-3 py-1 rounded"
                                 >
                                   Acknowledge
                                 </button>
