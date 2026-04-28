@@ -103,7 +103,9 @@ export default function OpenVocabPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Visual Insight</h1>
+        <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
+          Visual <span className="text-brand-primary">Insight</span>
+        </h1>
         <div className="flex gap-2">
           <button
             onClick={() => setMode('detect')}

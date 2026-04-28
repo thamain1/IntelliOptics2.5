@@ -210,7 +210,9 @@ const DetectorsPage: React.FC = () => {
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
       
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-white">Detectors</h1>
+        <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
+          <span className="text-brand-primary">Detectors</span>
+        </h1>
         {!showForm && (
           <button 
             onClick={() => setShowForm(true)}

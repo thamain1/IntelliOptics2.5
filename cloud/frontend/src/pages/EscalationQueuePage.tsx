@@ -234,7 +234,9 @@ const EscalationQueuePage: React.FC = () => {
 
   return (
     <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
-      <h2 className="text-3xl font-bold text-white mb-8">Escalation Queue</h2>
+      <h2 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white mb-8">
+        Escalation <span className="text-brand-primary">Queue</span>
+      </h2>
       
       <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden mb-8">
         <table className="min-w-full divide-y divide-gray-700">

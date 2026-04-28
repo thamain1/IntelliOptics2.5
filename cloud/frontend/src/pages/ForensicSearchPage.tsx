@@ -191,7 +191,9 @@ export default function ForensicSearchPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Forensic Search (BOLO)</h1>
+      <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
+        Forensic <span className="text-brand-primary">Search</span>
+      </h1>
 
       {/* Create New Search */}
       <div className="bg-gray-800 rounded-lg p-4 space-y-3">

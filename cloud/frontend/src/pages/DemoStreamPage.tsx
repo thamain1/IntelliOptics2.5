@@ -595,7 +595,9 @@ const DemoStreamPage: React.FC = () => {
   return (
     <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
       <ToastContainer />
-      <h1 className="text-3xl font-bold text-white mb-8">Live Stream Demo</h1>
+      <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white mb-8">
+        Live <span className="text-brand-primary">Stream</span>
+      </h1>
 
       {/* Configuration Section */}
       {!activeSession && (

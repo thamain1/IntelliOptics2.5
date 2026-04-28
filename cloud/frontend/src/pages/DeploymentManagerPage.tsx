@@ -185,7 +185,9 @@ const DeploymentManagerPage = () => {
     <div className="p-8 bg-gray-900 text-gray-300 min-h-screen flex flex-col">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
       <header className="mb-6">
-        <h1 className="text-3xl font-bold text-white">Deployment Manager</h1>
+        <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
+          Deployment <span className="text-brand-primary">Manager</span>
+        </h1>
         <p className="text-gray-400">Assign detectors and cameras to your edge devices.</p>
       </header>
 

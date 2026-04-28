@@ -213,7 +213,9 @@ const AdminPage: React.FC = () => {
 
   return (
     <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
-      <h2 className="text-3xl font-bold text-white mb-8">Admin Panel</h2>
+      <h2 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white mb-8">
+        System <span className="text-brand-primary">Admin</span>
+      </h2>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">

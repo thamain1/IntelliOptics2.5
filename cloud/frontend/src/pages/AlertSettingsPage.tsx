@@ -136,7 +136,9 @@ const AlertSettingsPage = () => {
     <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Alert Settings</h1>
+        <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
+          Alert <span className="text-brand-primary">Settings</span>
+        </h1>
         <p className="text-gray-400">Manage global notification and alert configurations.</p>
       </header>
 

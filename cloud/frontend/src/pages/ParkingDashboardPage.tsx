@@ -124,7 +124,9 @@ export default function ParkingDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">IntelliPark</h1>
+        <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
+          Intelli<span className="text-brand-primary">Park</span>
+        </h1>
         <button
           onClick={() => setShowCreateZone(true)}
           className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm"
