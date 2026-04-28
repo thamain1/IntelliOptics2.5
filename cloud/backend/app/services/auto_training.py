@@ -105,12 +105,15 @@ def _check_detector(
     if active:
         return
 
-    # Timestamp of last completed run (None = count all time)
+    # Use the most recent run of ANY terminal status (completed OR failed) to
+    # set the sample window. This prevents re-triggering on the same samples
+    # when training keeps failing — new training only fires once enough NEW
+    # samples arrive after the last attempt.
     last_run = (
         db.query(models.TrainingRun)
         .filter(
             models.TrainingRun.detector_id == detector.id,
-            models.TrainingRun.status == "completed",
+            models.TrainingRun.status.in_(["completed", "failed"]),
         )
         .order_by(models.TrainingRun.started_at.desc())
         .first()
