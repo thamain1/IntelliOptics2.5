@@ -242,11 +242,11 @@ const EscalationQueuePage: React.FC = () => {
         <table className="min-w-full divide-y divide-gray-700">
           <thead className="bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Query</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Created</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Reason</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">ID</th>
+              <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Query</th>
+              <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Created</th>
+              <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Reason</th>
+              <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-brand-bg2 divide-y divide-gray-700">

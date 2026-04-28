@@ -932,14 +932,14 @@ const CameraInspectionPage: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-brand-bg2">
                     <tr>
-                      <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Started</th>
-                      <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Status</th>
-                      <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Total</th>
-                      <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Healthy</th>
-                      <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Warning</th>
-                      <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Failed</th>
-                      <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Duration</th>
-                      <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Actions</th>
+                      <th className="text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage px-4 py-3">Started</th>
+                      <th className="text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage px-4 py-3">Status</th>
+                      <th className="text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage px-4 py-3">Total</th>
+                      <th className="text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage px-4 py-3">Healthy</th>
+                      <th className="text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage px-4 py-3">Warning</th>
+                      <th className="text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage px-4 py-3">Failed</th>
+                      <th className="text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage px-4 py-3">Duration</th>
+                      <th className="text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage px-4 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>

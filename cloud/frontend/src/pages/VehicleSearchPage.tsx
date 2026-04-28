@@ -90,7 +90,7 @@ export default function VehicleSearchPage() {
               value={plateSearch}
               onChange={e => setPlateSearch(e.target.value)}
               placeholder="ABC-1234"
-              className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600"
+              className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-gray-600"
             />
           </div>
           <div>
@@ -98,7 +98,7 @@ export default function VehicleSearchPage() {
             <select
               value={colorFilter}
               onChange={e => setColorFilter(e.target.value)}
-              className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600"
+              className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-gray-600"
             >
               <option value="">Any Color</option>
               {['White', 'Black', 'Silver', 'Gray', 'Red', 'Blue', 'Green', 'Yellow', 'Brown', 'Orange'].map(c => (
@@ -111,7 +111,7 @@ export default function VehicleSearchPage() {
             <select
               value={typeFilter}
               onChange={e => setTypeFilter(e.target.value)}
-              className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600"
+              className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-gray-600"
             >
               <option value="">Any Type</option>
               {['car', 'truck', 'van', 'suv', 'vehicle'].map(t => (
@@ -134,15 +134,15 @@ export default function VehicleSearchPage() {
       {/* Results Table */}
       <div className="bg-gray-800 rounded-lg overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-700">
+          <thead className="bg-brand-bg2">
             <tr>
-              <th className="text-left p-3 text-gray-400">Plate</th>
-              <th className="text-left p-3 text-gray-400">Color</th>
-              <th className="text-left p-3 text-gray-400">Type</th>
-              <th className="text-left p-3 text-gray-400">Make/Model</th>
-              <th className="text-left p-3 text-gray-400">Confidence</th>
-              <th className="text-left p-3 text-gray-400">Camera</th>
-              <th className="text-left p-3 text-gray-400">Time</th>
+              <th className="text-left p-3 font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Plate</th>
+              <th className="text-left p-3 font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Color</th>
+              <th className="text-left p-3 font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Type</th>
+              <th className="text-left p-3 font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Make/Model</th>
+              <th className="text-left p-3 font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Confidence</th>
+              <th className="text-left p-3 font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Camera</th>
+              <th className="text-left p-3 font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Time</th>
             </tr>
           </thead>
           <tbody>
@@ -156,7 +156,7 @@ export default function VehicleSearchPage() {
               vehicles.map(v => (
                 <tr
                   key={v.id}
-                  className="border-t border-brand-line hover:bg-gray-700/50 cursor-pointer"
+                  className="border-t border-brand-line hover:bg-brand-bg2/50 cursor-pointer"
                   onClick={() => setSelectedVehicle(v)}
                 >
                   <td className="p-3 text-white font-mono">{v.plate_text || '—'}</td>

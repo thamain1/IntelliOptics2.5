@@ -224,7 +224,7 @@ const AdminPage: React.FC = () => {
           className={`px-4 py-2 rounded font-medium transition ${
             activeTab === 'users'
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-brand-bg2 text-gray-300 hover:bg-gray-600'
           }`}
         >
           User Management
@@ -234,7 +234,7 @@ const AdminPage: React.FC = () => {
           className={`px-4 py-2 rounded font-medium transition ${
             activeTab === 'data'
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-brand-bg2 text-gray-300 hover:bg-gray-600'
           }`}
         >
           Data Management
@@ -254,7 +254,7 @@ const AdminPage: React.FC = () => {
                   placeholder="user@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
                   required
                 />
               </div>
@@ -265,7 +265,7 @@ const AdminPage: React.FC = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
                   required
                   minLength={6}
                 />
@@ -275,7 +275,7 @@ const AdminPage: React.FC = () => {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
                 >
                   <option value="admin">Admin</option>
                   <option value="reviewer">Reviewer</option>
@@ -289,22 +289,22 @@ const AdminPage: React.FC = () => {
 
           <div className="bg-brand-bg2 rounded-lg shadow-md overflow-hidden border border-brand-line">
             <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-gray-700">
+              <thead className="bg-brand-bg2">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Email</th>
+                  <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Role</th>
+                  <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-brand-bg2 divide-y divide-gray-700">
                 {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-gray-700 transition">
+                  <tr key={u.id} className="hover:bg-brand-bg2 transition">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{u.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <select
                         value={u.roles}
                         onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                        className="rounded-md bg-gray-700 border-gray-600 text-white text-sm focus:border-blue-500 focus:ring-brand-primary p-1"
+                        className="rounded-md bg-brand-bg2 border-gray-600 text-white text-sm focus:border-blue-500 focus:ring-brand-primary p-1"
                       >
                         <option value="admin">Admin</option>
                         <option value="reviewer">Reviewer</option>
@@ -343,19 +343,19 @@ const AdminPage: React.FC = () => {
             </div>
             {storageStats ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gray-700 rounded p-4">
+                <div className="bg-brand-bg2 rounded p-4">
                   <div className="font-display text-3xl font-bold text-brand-primary">{storageStats.total_queries.toLocaleString()}</div>
                   <div className="text-sm text-gray-400">Total Queries</div>
                 </div>
-                <div className="bg-gray-700 rounded p-4">
+                <div className="bg-brand-bg2 rounded p-4">
                   <div className="font-display text-3xl font-bold text-brand-primary">{storageStats.estimated_size_mb.toFixed(1)} MB</div>
                   <div className="text-sm text-gray-400">Est. Storage</div>
                 </div>
-                <div className="bg-gray-700 rounded p-4">
+                <div className="bg-brand-bg2 rounded p-4">
                   <div className="text-2xl font-bold text-green-400">{storageStats.verified_queries.toLocaleString()}</div>
                   <div className="text-sm text-gray-400">Verified</div>
                 </div>
-                <div className="bg-gray-700 rounded p-4">
+                <div className="bg-brand-bg2 rounded p-4">
                   <div className="text-2xl font-bold text-yellow-400">{storageStats.unverified_queries.toLocaleString()}</div>
                   <div className="text-sm text-gray-400">Unverified</div>
                 </div>
@@ -368,7 +368,7 @@ const AdminPage: React.FC = () => {
             {storageStats && (
               <div className="mt-4 grid grid-cols-3 gap-4">
                 {Object.entries(storageStats.queries_by_age).map(([age, count]) => (
-                  <div key={age} className="bg-gray-700/50 rounded p-3 text-center">
+                  <div key={age} className="bg-brand-bg2/50 rounded p-3 text-center">
                     <div className="text-lg font-semibold text-white">{count.toLocaleString()}</div>
                     <div className="text-xs text-gray-400">{age}</div>
                   </div>
@@ -382,7 +382,7 @@ const AdminPage: React.FC = () => {
                 <div className="text-sm text-gray-400 mb-2">Top Labels:</div>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(storageStats.queries_by_label).slice(0, 10).map(([label, count]) => (
-                    <span key={label} className="bg-gray-700 px-2 py-1 rounded text-sm">
+                    <span key={label} className="bg-brand-bg2 px-2 py-1 rounded text-sm">
                       {label}: {count.toLocaleString()}
                     </span>
                   ))}
@@ -408,7 +408,7 @@ const AdminPage: React.FC = () => {
                         ...retentionSettings,
                         retention_days: parseInt(e.target.value) || 30
                       })}
-                      className="block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                      className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white p-2"
                     />
                   </div>
                   <div className="flex items-center gap-4 pt-6">
@@ -420,7 +420,7 @@ const AdminPage: React.FC = () => {
                           ...retentionSettings,
                           exclude_verified: e.target.checked
                         })}
-                        className="rounded bg-gray-700 border-gray-600"
+                        className="rounded bg-brand-bg2 border-gray-600"
                       />
                       <span className="text-sm text-gray-300">Exclude verified queries</span>
                     </label>
@@ -458,7 +458,7 @@ const AdminPage: React.FC = () => {
                   max="365"
                   value={purgeDays}
                   onChange={(e) => setPurgeDays(parseInt(e.target.value) ?? 0)}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white p-2"
                 />
                 <span className="text-xs text-gray-500">0 = all data from today and earlier</span>
               </div>
@@ -469,7 +469,7 @@ const AdminPage: React.FC = () => {
                   placeholder="e.g., person"
                   value={purgeLabelFilter}
                   onChange={(e) => setPurgeLabelFilter(e.target.value)}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white p-2"
                 />
               </div>
               <div className="flex items-center pt-6">
@@ -478,7 +478,7 @@ const AdminPage: React.FC = () => {
                     type="checkbox"
                     checked={purgeExcludeVerified}
                     onChange={(e) => setPurgeExcludeVerified(e.target.checked)}
-                    className="rounded bg-gray-700 border-gray-600"
+                    className="rounded bg-brand-bg2 border-gray-600"
                   />
                   <span className="text-sm text-gray-300">Exclude verified</span>
                 </label>
@@ -528,7 +528,7 @@ const AdminPage: React.FC = () => {
                   placeholder="e.g., cat, dog, car"
                   value={exportLabelFilter}
                   onChange={(e) => setExportLabelFilter(e.target.value)}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white p-2"
                 />
               </div>
               <div className="flex flex-col gap-2 pt-6">
@@ -537,7 +537,7 @@ const AdminPage: React.FC = () => {
                     type="checkbox"
                     checked={exportStratify}
                     onChange={(e) => setExportStratify(e.target.checked)}
-                    className="rounded bg-gray-700 border-gray-600"
+                    className="rounded bg-brand-bg2 border-gray-600"
                   />
                   <span className="text-sm text-gray-300">Stratify by label</span>
                 </label>
@@ -546,7 +546,7 @@ const AdminPage: React.FC = () => {
                     type="checkbox"
                     checked={exportVerifiedOnly}
                     onChange={(e) => setExportVerifiedOnly(e.target.checked)}
-                    className="rounded bg-gray-700 border-gray-600"
+                    className="rounded bg-brand-bg2 border-gray-600"
                   />
                   <span className="text-sm text-gray-300">Verified only</span>
                 </label>
@@ -575,7 +575,7 @@ const AdminPage: React.FC = () => {
                 <div className="mb-1">Samples by label:</div>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(exportResult.samples_by_label).map(([label, count]) => (
-                    <span key={label} className="bg-gray-700 px-2 py-1 rounded">
+                    <span key={label} className="bg-brand-bg2 px-2 py-1 rounded">
                       {label}: {count}
                     </span>
                   ))}

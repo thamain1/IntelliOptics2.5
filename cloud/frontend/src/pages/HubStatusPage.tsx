@@ -34,10 +34,10 @@ const HubStatusPage: React.FC = () => {
         <table className="min-w-full divide-y divide-gray-700">
           <thead className="bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Last Ping</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
+              <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Name</th>
+              <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Status</th>
+              <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Last Ping</th>
+              <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Location</th>
             </tr>
           </thead>
           <tbody className="bg-brand-bg2 divide-y divide-gray-700">
