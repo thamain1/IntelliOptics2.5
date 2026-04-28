@@ -81,7 +81,7 @@ const AlertSettingsPage = () => {
   } = useForm<AlertSettingsFormData>({
     resolver: zodResolver(AlertSettingsSchema),
     defaultValues: {
-      recipients: [],
+      recipients: { emails: [], phones: [] },
       triggers: {},
       batching: {},
       rate_limiting: {}
