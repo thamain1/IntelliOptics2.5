@@ -197,7 +197,7 @@ const DetectorAlertConfigPage: React.FC = () => {
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(detectorId ? `/detectors/${detectorId}/configure` : '/detectors')}
             className="text-gray-400 hover:text-white"
           >
             &larr; Back
@@ -539,7 +539,7 @@ const DetectorAlertConfigPage: React.FC = () => {
       {/* Actions */}
       <div className="flex justify-end space-x-4">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(detectorId ? `/detectors/${detectorId}/configure` : '/detectors')}
           className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded"
         >
           Cancel
