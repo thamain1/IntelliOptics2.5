@@ -9,8 +9,8 @@
 
 :root {
   --io-bg:          #0a0f08;  /* dark green-black, base canvas             */
-  --io-bg-2:        #11180e;  /* slight elevation (panels, cards)          */
-  --io-panel-line:  rgba(144, 194, 38, 0.2);
+  --io-bg-2:        #1a2316;  /* elevated panels — visibly lifted off bg   */
+  --io-panel-line:  rgba(144, 194, 38, 0.35);
   --io-primary:     #90C226;  /* electric lime — CTAs and accents          */
   --io-primary-h:   #54A021;  /* primary hover                              */
   --io-sage:        #B9D181;  /* secondary accent                           */
