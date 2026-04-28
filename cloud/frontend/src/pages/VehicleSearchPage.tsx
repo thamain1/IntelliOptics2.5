@@ -154,7 +154,7 @@ export default function VehicleSearchPage() {
               vehicles.map(v => (
                 <tr
                   key={v.id}
-                  className="border-t border-gray-700 hover:bg-gray-700/50 cursor-pointer"
+                  className="border-t border-brand-line hover:bg-gray-700/50 cursor-pointer"
                   onClick={() => setSelectedVehicle(v)}
                 >
                   <td className="p-3 text-white font-mono">{v.plate_text || '—'}</td>

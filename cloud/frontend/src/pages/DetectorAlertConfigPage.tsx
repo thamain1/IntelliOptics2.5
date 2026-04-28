@@ -181,7 +181,7 @@ const DetectorAlertConfigPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+      <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
         <p>Loading alert configuration...</p>
       </div>
     );
@@ -190,7 +190,7 @@ const DetectorAlertConfigPage: React.FC = () => {
   const labelOptions = detector?.labels || ['YES', 'NO'];
 
   return (
-    <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+    <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
       <ToastContainer position="top-right" autoClose={5000} />
 
       {/* Header */}
@@ -225,7 +225,7 @@ const DetectorAlertConfigPage: React.FC = () => {
       </div>
 
       {/* Alert Name */}
-      <div className="bg-gray-800 rounded-lg p-6 mb-6">
+      <div className="bg-brand-bg2 rounded-lg p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">Alert Name</label>
@@ -250,7 +250,7 @@ const DetectorAlertConfigPage: React.FC = () => {
       </div>
 
       {/* Trigger Condition - Boolean Logic Builder */}
-      <div className="bg-gray-800 rounded-lg p-6 mb-6">
+      <div className="bg-brand-bg2 rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4">Send alert when detector:</h2>
 
         <div className="flex flex-wrap items-center gap-4 mb-4">
@@ -344,7 +344,7 @@ const DetectorAlertConfigPage: React.FC = () => {
       </div>
 
       {/* Recipients */}
-      <div className="bg-gray-800 rounded-lg p-6 mb-6">
+      <div className="bg-brand-bg2 rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4">Send alert to:</h2>
 
         {/* Email Recipients */}
@@ -487,7 +487,7 @@ const DetectorAlertConfigPage: React.FC = () => {
       </div>
 
       {/* Settings */}
-      <div className="bg-gray-800 rounded-lg p-6 mb-6">
+      <div className="bg-brand-bg2 rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4">Alert Settings</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

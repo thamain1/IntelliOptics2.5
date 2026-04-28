@@ -60,7 +60,7 @@ type DetectorConfigFormData = z.infer<typeof DetectorConfigSchema>;
 
 // --- Helper Components ---
 const Card = ({ title, children }: { title: string, children: React.ReactNode }) => (
-    <div className="bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+    <div className="bg-brand-bg2 rounded-lg shadow-md p-6 mb-6">
         <h2 className="text-xl font-semibold text-white mb-4">{title}</h2>
         <div className="space-y-4">{children}</div>
     </div>
@@ -281,7 +281,7 @@ const DetectorConfigPage = () => {
     }
 
     return (
-        <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+        <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
             <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
             <header className="mb-8 flex justify-between items-center">
                 <div>
@@ -304,7 +304,7 @@ const DetectorConfigPage = () => {
             </header>
 
             {/* Tabs */}
-            <div className="mb-6 border-b border-gray-700">
+            <div className="mb-6 border-b border-brand-line">
                 <nav className="flex space-x-8">
                     <button
                         onClick={() => setActiveTab('config')}
@@ -560,7 +560,7 @@ const DetectorConfigPage = () => {
                     {/* Model Management moved to left column */}
                     <Card title="Model Management">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-gray-700 p-4 rounded-lg border border-gray-700">
+                            <div className="bg-gray-700 p-4 rounded-lg border border-brand-line">
                                 <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wider">Primary Inference Model</h3>
                                 <p className="text-xs text-gray-400 mb-4 truncate" title={detector.primary_model_blob_path}>
                                     {detector.primary_model_blob_path || 'No model uploaded'}
@@ -578,7 +578,7 @@ const DetectorConfigPage = () => {
                                 {isUploadingPrimary && <p className="text-xs text-blue-400 mt-2 animate-pulse">Uploading primary model...</p>}
                             </div>
 
-                            <div className="bg-gray-700 p-4 rounded-lg border border-gray-700">
+                            <div className="bg-gray-700 p-4 rounded-lg border border-brand-line">
                                 <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wider">OODD Model (Ground Truth)</h3>
                                 <p className="text-xs text-gray-400 mb-4 truncate" title={detector.oodd_model_blob_path}>
                                     {detector.oodd_model_blob_path || 'No model uploaded'}
@@ -632,7 +632,7 @@ const DetectorConfigPage = () => {
                               {testResult.detections && testResult.detections.length > 0 ? (
                                 <div className="space-y-2">
                                   {testResult.detections.map((det: any, idx: number) => (
-                                    <div key={idx} className="flex justify-between items-center bg-gray-800 p-2 rounded">
+                                    <div key={idx} className="flex justify-between items-center bg-brand-bg2 p-2 rounded">
                                       <span className="text-white font-mono text-sm">{det.class || det.label}</span>
                                       <span className={`font-bold ${det.confidence >= (detector?.config?.confidence_threshold || 0.85) ? 'text-green-400' : 'text-yellow-400'}`}>
                                         {(det.confidence * 100).toFixed(1)}%
@@ -1597,7 +1597,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                 <select
                                     value={baseModel}
                                     onChange={e => setBaseModel(e.target.value)}
-                                    className="w-full bg-gray-800 border border-gray-600 text-white rounded px-3 py-2 text-sm"
+                                    className="w-full bg-brand-bg2 border border-gray-600 text-white rounded px-3 py-2 text-sm"
                                 >
                                     <option value="yolov8n.pt">YOLOv8n (nano — fastest)</option>
                                     <option value="yolov8s.pt">YOLOv8s (small — recommended)</option>
@@ -1613,7 +1613,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                     max={300}
                                     value={epochs}
                                     onChange={e => setEpochs(parseInt(e.target.value) || 50)}
-                                    className="w-full bg-gray-800 border border-gray-600 text-white rounded px-3 py-2 text-sm"
+                                    className="w-full bg-brand-bg2 border border-gray-600 text-white rounded px-3 py-2 text-sm"
                                 />
                             </div>
                         </div>
@@ -1751,7 +1751,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                 <div className="mt-2 overflow-x-auto">
                                     <table className="w-full text-xs text-gray-300 border-collapse">
                                         <thead>
-                                            <tr className="text-gray-500 border-b border-gray-700">
+                                            <tr className="text-gray-500 border-b border-brand-line">
                                                 <th className="py-1 pr-3 text-left">Time</th>
                                                 <th className="py-1 pr-3 text-left">Primary</th>
                                                 <th className="py-1 pr-3 text-left">Conf</th>

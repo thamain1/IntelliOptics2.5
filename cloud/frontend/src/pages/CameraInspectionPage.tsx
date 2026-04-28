@@ -419,7 +419,7 @@ const CameraInspectionPage: React.FC = () => {
   }, {} as Record<string, CameraData[]>);
 
   return (
-    <div className="p-8 bg-gray-900 min-h-screen">
+    <div className="p-8 bg-brand-bg min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
           Camera <span className="text-brand-primary">Health</span>
@@ -467,7 +467,7 @@ const CameraInspectionPage: React.FC = () => {
           onClick={() => !scanningNvr && !addingNvrCameras && setShowNvrScan(false)}
         >
           <div
-            className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl border border-gray-700 max-h-[90vh] overflow-y-auto"
+            className="bg-brand-bg2 rounded-lg p-6 w-full max-w-4xl border border-brand-line max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="font-display uppercase tracking-ioWide text-2xl font-bold text-white mb-1">
@@ -563,7 +563,7 @@ const CameraInspectionPage: React.FC = () => {
                   {nvrChannels.map((ch, idx) => (
                     <div
                       key={ch.channel_id}
-                      className={`bg-gray-900 rounded-lg border p-3 transition ${ch.selected ? 'border-purple-500' : 'border-gray-700 opacity-50'}`}
+                      className={`bg-brand-bg rounded-lg border p-3 transition ${ch.selected ? 'border-purple-500' : 'border-brand-line opacity-50'}`}
                     >
                       <div className="relative mb-2">
                         <img
@@ -634,7 +634,7 @@ const CameraInspectionPage: React.FC = () => {
           onClick={() => !savingCamera && !testingConnection && resetAddCameraForm()}
         >
           <div
-            className="bg-gray-800 rounded-lg p-6 max-w-lg w-full border border-gray-700 max-h-[90vh] overflow-y-auto"
+            className="bg-brand-bg2 rounded-lg p-6 max-w-lg w-full border border-brand-line max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="font-display uppercase tracking-ioWide text-2xl font-bold text-white mb-4">
@@ -723,12 +723,12 @@ const CameraInspectionPage: React.FC = () => {
               )}
 
               {previewFrame && (
-                <div className="bg-gray-900 border border-gray-700 rounded p-3">
+                <div className="bg-brand-bg border border-brand-line rounded p-3">
                   <p className="text-green-400 text-xs font-medium mb-2">✓ Connected — frame captured</p>
                   <img
                     src={previewFrame}
                     alt="Camera preview"
-                    className="w-full rounded border border-gray-700"
+                    className="w-full rounded border border-brand-line"
                   />
                 </div>
               )}
@@ -775,7 +775,7 @@ const CameraInspectionPage: React.FC = () => {
 
       {/* Settings Panel */}
       {showSettings && config && (
-        <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-700">
+        <div className="bg-brand-bg2 rounded-lg p-6 mb-8 border border-brand-line">
           <h2 className="text-2xl font-bold text-white mb-6">Inspection Configuration</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -928,7 +928,7 @@ const CameraInspectionPage: React.FC = () => {
               <h3 className="text-xl font-bold text-white mb-3">Recent Inspection Runs</h3>
               <div className="bg-gray-700 rounded-lg overflow-hidden">
                 <table className="w-full">
-                  <thead className="bg-gray-800">
+                  <thead className="bg-brand-bg2">
                     <tr>
                       <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Started</th>
                       <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">Status</th>
@@ -997,11 +997,11 @@ const CameraInspectionPage: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+        <div className="bg-brand-bg2 p-6 rounded-lg border border-brand-line">
           <h3 className="text-sm font-medium text-gray-400 mb-2">Total Cameras</h3>
           <div className="text-4xl font-bold text-white">{summary.total}</div>
         </div>
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+        <div className="bg-brand-bg2 p-6 rounded-lg border border-brand-line">
           <h3 className="text-sm font-medium text-gray-400 mb-2">Healthy</h3>
           <div className="text-4xl font-bold text-green-400">
             {summary.healthy}
@@ -1010,7 +1010,7 @@ const CameraInspectionPage: React.FC = () => {
             </span>
           </div>
         </div>
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+        <div className="bg-brand-bg2 p-6 rounded-lg border border-brand-line">
           <h3 className="text-sm font-medium text-gray-400 mb-2">Warning</h3>
           <div className="text-4xl font-bold text-yellow-400">
             {summary.warning}
@@ -1019,7 +1019,7 @@ const CameraInspectionPage: React.FC = () => {
             </span>
           </div>
         </div>
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+        <div className="bg-brand-bg2 p-6 rounded-lg border border-brand-line">
           <h3 className="text-sm font-medium text-gray-400 mb-2">Offline</h3>
           <div className="text-4xl font-bold text-red-400">
             {summary.failed}
@@ -1031,7 +1031,7 @@ const CameraInspectionPage: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-gray-800 p-4 rounded-lg mb-6 flex gap-4">
+      <div className="bg-brand-bg2 p-4 rounded-lg mb-6 flex gap-4">
         <input
           type="text"
           placeholder="Search cameras..."
@@ -1059,7 +1059,7 @@ const CameraInspectionPage: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedByHub).map(([hubName, hubCameras]) => (
-            <div key={hubName} className="bg-gray-800 rounded-lg p-6">
+            <div key={hubName} className="bg-brand-bg2 rounded-lg p-6">
               <h2 className="text-xl font-bold text-white mb-4">
                 {hubName}
               </h2>
@@ -1122,7 +1122,7 @@ const CameraInspectionPage: React.FC = () => {
 
                     {/* Alerts */}
                     {alerts.length > 0 && (
-                      <div className="bg-gray-800 p-3 rounded mb-4">
+                      <div className="bg-brand-bg2 p-3 rounded mb-4">
                         <h4 className="text-sm font-bold text-white mb-2">Active Alerts</h4>
                         <div className="space-y-2">
                           {alerts.map(alert => (

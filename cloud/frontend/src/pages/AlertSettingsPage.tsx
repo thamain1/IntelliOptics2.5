@@ -48,7 +48,7 @@ type AlertSettingsFormData = z.infer<typeof AlertSettingsSchema>;
 
 // --- Reusable Components ---
 const Card = ({ title, children }: { title: string, children: React.ReactNode }) => (
-    <div className="bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+    <div className="bg-brand-bg2 rounded-lg shadow-md p-6 mb-6">
         <h2 className="text-xl font-semibold text-white mb-4">{title}</h2>
         <div className="space-y-4">{children}</div>
     </div>
@@ -140,7 +140,7 @@ const AlertSettingsPage = () => {
   }
 
   return (
-    <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+    <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
       <header className="mb-8">
         <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
@@ -202,7 +202,7 @@ const AlertSettingsPage = () => {
         </div>
       </form>
       
-      <div className="mt-8 border-t border-gray-700 pt-6">
+      <div className="mt-8 border-t border-brand-line pt-6">
           <Card title="Test Email Alert">
              <div className="flex items-end space-x-4">
                 <div className="flex-grow">

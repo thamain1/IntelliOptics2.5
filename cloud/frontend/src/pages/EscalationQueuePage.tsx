@@ -233,12 +233,12 @@ const EscalationQueuePage: React.FC = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+    <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
       <h2 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white mb-8">
         Escalation <span className="text-brand-primary">Queue</span>
       </h2>
       
-      <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden mb-8">
+      <div className="bg-brand-bg2 rounded-lg shadow-md overflow-hidden mb-8">
         <table className="min-w-full divide-y divide-gray-700">
           <thead className="bg-gray-700">
             <tr>
@@ -249,7 +249,7 @@ const EscalationQueuePage: React.FC = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-gray-800 divide-y divide-gray-700">
+          <tbody className="bg-brand-bg2 divide-y divide-gray-700">
             {escalations.length === 0 ? (
                 <tr>
                     <td colSpan={5} className="px-6 py-4 text-center text-gray-500 italic">No pending escalations.</td>
@@ -282,7 +282,7 @@ const EscalationQueuePage: React.FC = () => {
 
       {selected && selectedQuery && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-5xl w-full shadow-xl border border-gray-700 max-h-[90vh] overflow-y-auto">
+          <div className="bg-brand-bg2 rounded-lg p-6 max-w-5xl w-full shadow-xl border border-brand-line max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-white">
                 {annotationMode ? 'Annotate Image' : 'Resolve Escalation'}
@@ -318,7 +318,7 @@ const EscalationQueuePage: React.FC = () => {
                     readOnly={false}
                   />
                 ) : (
-                  <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
+                  <div className="bg-brand-bg rounded-lg p-4 border border-brand-line">
                     <div className="relative inline-block mx-auto max-w-full">
                       <img
                         src={selectedQuery.image_url}
@@ -349,14 +349,14 @@ const EscalationQueuePage: React.FC = () => {
                   </div>
                 )
               ) : (
-                <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
+                <div className="bg-brand-bg rounded-lg p-4 border border-brand-line">
                   <p className="text-gray-500 text-center">No image available</p>
                 </div>
               )}
             </div>
 
             {/* Query Details */}
-            <div className="mb-6 bg-gray-900 rounded-lg p-4 border border-gray-700">
+            <div className="mb-6 bg-brand-bg rounded-lg p-4 border border-brand-line">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-400">Detector Result:</span>
@@ -454,7 +454,7 @@ const EscalationQueuePage: React.FC = () => {
 
       {loadingQuery && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-brand-bg2 rounded-lg p-6 border border-brand-line">
             <p className="text-white">Loading query details...</p>
           </div>
         </div>

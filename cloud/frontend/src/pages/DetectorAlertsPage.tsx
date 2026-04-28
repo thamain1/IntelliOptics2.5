@@ -114,7 +114,7 @@ const DetectorAlertsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-900 min-h-screen">
+    <div className="p-8 bg-brand-bg min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
           Detector <span className="text-brand-primary">Alerts</span>
@@ -130,25 +130,25 @@ const DetectorAlertsPage: React.FC = () => {
       {/* Summary Cards */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+          <div className="bg-brand-bg2 p-6 rounded-lg border border-brand-line">
             <h3 className="text-sm font-medium text-gray-400 mb-2">Total Alerts</h3>
             <div className="text-4xl font-bold text-white">{summary.total}</div>
             <p className="text-xs text-gray-500 mt-1">Last {summary.period_days} days</p>
           </div>
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+          <div className="bg-brand-bg2 p-6 rounded-lg border border-brand-line">
             <h3 className="text-sm font-medium text-gray-400 mb-2">Unacknowledged</h3>
             <div className="text-4xl font-bold text-yellow-400">{summary.unacknowledged}</div>
             <p className="text-xs text-gray-500 mt-1">Needs attention</p>
           </div>
-          <div className="bg-gray-800 p-6 rounded-lg border border-red-700">
+          <div className="bg-brand-bg2 p-6 rounded-lg border border-red-700">
             <h3 className="text-sm font-medium text-gray-400 mb-2">Critical</h3>
             <div className="text-4xl font-bold text-red-400">{summary.by_severity.critical}</div>
           </div>
-          <div className="bg-gray-800 p-6 rounded-lg border border-yellow-700">
+          <div className="bg-brand-bg2 p-6 rounded-lg border border-yellow-700">
             <h3 className="text-sm font-medium text-gray-400 mb-2">Warning</h3>
             <div className="text-4xl font-bold text-yellow-400">{summary.by_severity.warning}</div>
           </div>
-          <div className="bg-gray-800 p-6 rounded-lg border border-blue-700">
+          <div className="bg-brand-bg2 p-6 rounded-lg border border-blue-700">
             <h3 className="text-sm font-medium text-gray-400 mb-2">Info</h3>
             <div className="text-4xl font-bold text-blue-400">{summary.by_severity.info}</div>
           </div>
@@ -156,7 +156,7 @@ const DetectorAlertsPage: React.FC = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-gray-800 p-4 rounded-lg mb-6 flex gap-4">
+      <div className="bg-brand-bg2 p-4 rounded-lg mb-6 flex gap-4">
         <select
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value)}

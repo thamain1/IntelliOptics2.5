@@ -148,11 +148,11 @@ const QueryHistoryPage: React.FC = () => {
   const hasMore = queries.length < total;
 
   return (
-    <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+    <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
       <h2 className="text-3xl font-bold text-white mb-8">Image Queries</h2>
 
       {/* Filter Controls */}
-      <div className="bg-gray-800 rounded-lg p-4 mb-6 border border-gray-700">
+      <div className="bg-brand-bg2 rounded-lg p-4 mb-6 border border-brand-line">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <h3 className="text-xl font-semibold text-white">
@@ -206,11 +206,11 @@ const QueryHistoryPage: React.FC = () => {
 
       {/* Query Cards Grid */}
       {loading && queries.length === 0 ? (
-        <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+        <div className="bg-brand-bg2 rounded-lg p-12 text-center border border-brand-line">
           <p className="text-gray-400 text-lg">Loading...</p>
         </div>
       ) : queries.length === 0 ? (
-        <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+        <div className="bg-brand-bg2 rounded-lg p-12 text-center border border-brand-line">
           <p className="text-gray-400 text-lg">
             {showVerified ? 'No queries found.' : 'No pending queries to review.'}
           </p>
@@ -221,11 +221,11 @@ const QueryHistoryPage: React.FC = () => {
           {queries.map((q) => (
             <div
               key={q.id}
-              className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-gray-600 transition"
+              className="bg-brand-bg2 rounded-lg overflow-hidden border border-brand-line hover:border-gray-600 transition"
             >
               {/* Image with Bounding Boxes */}
               <div
-                className="aspect-video bg-gray-900 flex items-center justify-center cursor-pointer relative"
+                className="aspect-video bg-brand-bg flex items-center justify-center cursor-pointer relative"
                 onClick={() => setPreviewQuery(q)}
               >
                 {q.image_url ? (
@@ -376,10 +376,10 @@ const QueryHistoryPage: React.FC = () => {
           onClick={() => setPreviewQuery(null)}
         >
           <div
-            className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            className="bg-brand-bg2 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+            <div className="p-4 border-b border-brand-line flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold text-white">Query Details</h3>
                 <p className="text-sm text-gray-400">ID: {previewQuery.id}</p>
@@ -418,12 +418,12 @@ const QueryHistoryPage: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="h-64 bg-gray-900 rounded flex items-center justify-center">
+                <div className="h-64 bg-brand-bg rounded flex items-center justify-center">
                   <span className="text-gray-500">No image available</span>
                 </div>
               )}
             </div>
-            <div className="p-4 border-t border-gray-700 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="p-4 border-t border-brand-line grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="text-gray-400">Result:</span>
                 <span className="text-white ml-2 font-medium">{previewQuery.result_label || '—'}</span>

@@ -593,7 +593,7 @@ const DemoStreamPage: React.FC = () => {
   const { totalCounts, latestFrameCounts, latestFrame } = activeSession ? getDetectionCounts() : { totalCounts: {}, latestFrameCounts: {}, latestFrame: 0 };
 
   return (
-    <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+    <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
       <ToastContainer />
       <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white mb-8">
         Live <span className="text-brand-primary">Stream</span>
@@ -601,7 +601,7 @@ const DemoStreamPage: React.FC = () => {
 
       {/* Configuration Section */}
       {!activeSession && (
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
+        <div className="bg-brand-bg2 rounded-lg p-6 mb-6">
           <h2 className="text-xl font-bold text-white mb-4">Configuration</h2>
 
           <div className="space-y-4">
@@ -833,7 +833,7 @@ const DemoStreamPage: React.FC = () => {
                 </button>
               </div>
 
-              <div className="space-y-2 max-h-48 overflow-y-auto p-2 bg-gray-900/50 rounded border border-gray-700">
+              <div className="space-y-2 max-h-48 overflow-y-auto p-2 bg-brand-bg/50 rounded border border-brand-line">
                 {filteredDetectors.length > 0 ? (
                   filteredDetectors.map((det) => (
                     <label key={det.id} className="flex items-center space-x-2 hover:bg-gray-700/50 p-1 rounded cursor-pointer transition">
@@ -885,7 +885,7 @@ const DemoStreamPage: React.FC = () => {
       {activeSession && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Video Player */}
-          <div className="bg-gray-800 rounded-lg p-6">
+          <div className="bg-brand-bg2 rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">
                 {activeSession.yoloworld_prompts
@@ -1000,7 +1000,7 @@ const DemoStreamPage: React.FC = () => {
                   className="bg-black"
                 />
               ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-center p-4">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-brand-bg text-center p-4">
                   <p className="text-gray-300 mb-2 animate-pulse">Waiting for first frame...</p>
                   <p className="text-gray-500 text-sm mb-4">
                     The server is capturing frames from the stream.
@@ -1161,7 +1161,7 @@ const DemoStreamPage: React.FC = () => {
           </div>
 
           {/* Results Feed */}
-          <div className="bg-gray-800 rounded-lg p-6">
+          <div className="bg-brand-bg2 rounded-lg p-6">
             <h2 className="text-xl font-bold text-white mb-4">Detection Results</h2>
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {results.map((result) => (

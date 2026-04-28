@@ -63,7 +63,7 @@ const ModeCard = ({ mode, currentMode, onSelect, icon, label, description, examp
     <div 
       onClick={() => onSelect(mode)}
       className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
-        isSelected ? 'border-blue-500 bg-blue-900/20' : 'border-gray-700 bg-gray-800 hover:border-gray-600'
+        isSelected ? 'border-blue-500 bg-blue-900/20' : 'border-brand-line bg-brand-bg2 hover:border-gray-600'
       }`}
     >
       <div className="flex items-center space-x-3 mb-2">
@@ -206,7 +206,7 @@ const DetectorsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+    <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
       
       <div className="flex justify-between items-center mb-8">
@@ -224,7 +224,7 @@ const DetectorsPage: React.FC = () => {
       </div>
 
       {showForm && (
-        <div className="bg-gray-800 rounded-lg shadow-xl p-8 mb-8 border border-gray-700 animate-fadeIn">
+        <div className="bg-brand-bg2 rounded-lg shadow-xl p-8 mb-8 border border-brand-line animate-fadeIn">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white">New Detector Configuration</h2>
             <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-gray-300">✕</button>
@@ -233,7 +233,7 @@ const DetectorsPage: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             {/* Section 1: Basic Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-blue-400 border-b border-gray-700 pb-2 uppercase tracking-wider">
+              <h3 className="text-lg font-semibold text-blue-400 border-b border-brand-line pb-2 uppercase tracking-wider">
                 1. Basic Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -296,7 +296,7 @@ const DetectorsPage: React.FC = () => {
 
             {/* Section 2: Detection Type */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-blue-400 border-b border-gray-700 pb-2 uppercase tracking-wider">
+              <h3 className="text-lg font-semibold text-blue-400 border-b border-brand-line pb-2 uppercase tracking-wider">
                 2. Detection Type *
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -326,10 +326,10 @@ const DetectorsPage: React.FC = () => {
             {/* Section 3: Classes (Conditional) */}
             {selectedMode !== "BINARY" && (
               <div className="space-y-4 animate-fadeIn">
-                <h3 className="text-lg font-semibold text-blue-400 border-b border-gray-700 pb-2 uppercase tracking-wider">
+                <h3 className="text-lg font-semibold text-blue-400 border-b border-brand-line pb-2 uppercase tracking-wider">
                   3. Define Classes *
                 </h3>
-                <div className="bg-gray-700/30 p-4 rounded-lg border border-gray-700">
+                <div className="bg-gray-700/30 p-4 rounded-lg border border-brand-line">
                   <div className="space-y-2 mb-4">
                     {fields.map((field, index) => (
                       <div key={field.id} className="flex items-center gap-2">
@@ -363,7 +363,7 @@ const DetectorsPage: React.FC = () => {
             {/* Section 3.5: Mode Configuration (Conditional) */}
             {selectedMode === "COUNTING" && (
               <div className="space-y-4 animate-fadeIn">
-                <h3 className="text-lg font-semibold text-blue-400 border-b border-gray-700 pb-2 uppercase tracking-wider">
+                <h3 className="text-lg font-semibold text-blue-400 border-b border-brand-line pb-2 uppercase tracking-wider">
                   4. Counting Configuration
                 </h3>
                 <div>
@@ -382,7 +382,7 @@ const DetectorsPage: React.FC = () => {
 
             {selectedMode === "BOUNDING_BOX" && (
               <div className="space-y-4 animate-fadeIn">
-                <h3 className="text-lg font-semibold text-blue-400 border-b border-gray-700 pb-2 uppercase tracking-wider">
+                <h3 className="text-lg font-semibold text-blue-400 border-b border-brand-line pb-2 uppercase tracking-wider">
                   4. Bounding Box Configuration
                 </h3>
                 <div>
@@ -401,7 +401,7 @@ const DetectorsPage: React.FC = () => {
 
             {/* Section 4/5: Settings */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-blue-400 border-b border-gray-700 pb-2 uppercase tracking-wider">
+              <h3 className="text-lg font-semibold text-blue-400 border-b border-brand-line pb-2 uppercase tracking-wider">
                 {selectedMode === "BINARY" ? "3. Settings" : selectedMode === "MULTICLASS" ? "4. Settings" : "5. Settings"}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -457,7 +457,7 @@ const DetectorsPage: React.FC = () => {
               </button>
               
               {showAdvanced && (
-                <div className="mt-4 p-4 bg-gray-900/50 rounded-lg border border-gray-800 space-y-6 animate-fadeIn">
+                <div className="mt-4 p-4 bg-brand-bg/50 rounded-lg border border-gray-800 space-y-6 animate-fadeIn">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-400 mb-1">Patience Time (seconds)</label>
@@ -496,7 +496,7 @@ const DetectorsPage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700">
+            <div className="flex justify-end space-x-4 pt-6 border-t border-brand-line">
               <button 
                 type="button" 
                 onClick={() => setShowForm(false)}
@@ -517,7 +517,7 @@ const DetectorsPage: React.FC = () => {
       )}
 
       {/* Filter Bar */}
-      <div className="bg-gray-800 rounded-lg p-4 mb-6 border border-gray-700">
+      <div className="bg-brand-bg2 rounded-lg p-4 mb-6 border border-brand-line">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <h3 className="text-xl font-semibold text-white">All Detectors</h3>
@@ -542,12 +542,12 @@ const DetectorsPage: React.FC = () => {
 
       {/* Detector Cards Grid */}
       {isLoading ? (
-        <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+        <div className="bg-brand-bg2 rounded-lg p-12 text-center border border-brand-line">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
           <p className="text-sm text-gray-500 mt-2">Loading detectors...</p>
         </div>
       ) : detectors.length === 0 ? (
-        <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+        <div className="bg-brand-bg2 rounded-lg p-12 text-center border border-brand-line">
           <p className="text-gray-400 text-lg">
             {selectedGroup ? `No detectors in group "${selectedGroup}".` : 'No detectors found. Create one to get started!'}
           </p>
@@ -557,11 +557,11 @@ const DetectorsPage: React.FC = () => {
           {detectors.map((det: any) => (
             <div
               key={det.id}
-              className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-gray-600 transition group relative"
+              className="bg-brand-bg2 rounded-lg overflow-hidden border border-brand-line hover:border-gray-600 transition group relative"
             >
               {/* Delete Confirmation Overlay */}
               {deleteConfirm === det.id && (
-                <div className="absolute inset-0 bg-gray-900/95 z-10 flex flex-col items-center justify-center p-4 rounded-lg">
+                <div className="absolute inset-0 bg-brand-bg/95 z-10 flex flex-col items-center justify-center p-4 rounded-lg">
                   <p className="text-white text-center mb-4">Delete "<span className="font-bold">{det.name}</span>"?</p>
                   <p className="text-gray-400 text-xs text-center mb-4">Historical data will be preserved.</p>
                   <div className="flex gap-2">
@@ -582,7 +582,7 @@ const DetectorsPage: React.FC = () => {
               )}
 
               {/* Card Header */}
-              <div className="p-4 border-b border-gray-700">
+              <div className="p-4 border-b border-brand-line">
                 <div className="flex items-center justify-between mb-2">
                   <span className={`px-2 py-1 text-xs font-semibold rounded uppercase ${
                     det.config?.mode === 'BINARY' ? 'bg-blue-900/50 text-blue-400' :
@@ -661,7 +661,7 @@ const DetectorsPage: React.FC = () => {
                 )}
 
                 {/* Footer */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-700 mt-3">
+                <div className="flex items-center justify-between pt-3 border-t border-brand-line mt-3">
                   <span className="text-xs text-gray-500">
                     {det.created_at ? new Date(det.created_at).toLocaleDateString() : ''}
                   </span>

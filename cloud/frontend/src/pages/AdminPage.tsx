@@ -212,7 +212,7 @@ const AdminPage: React.FC = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+    <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
       <h2 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white mb-8">
         System <span className="text-brand-primary">Admin</span>
       </h2>
@@ -244,7 +244,7 @@ const AdminPage: React.FC = () => {
       {/* User Management Tab */}
       {activeTab === 'users' && (
         <>
-          <div className="bg-gray-800 rounded-lg shadow-md p-6 mb-8 border border-gray-700">
+          <div className="bg-brand-bg2 rounded-lg shadow-md p-6 mb-8 border border-brand-line">
             <h3 className="text-lg font-semibold text-white mb-4">Add New User</h3>
             <form onSubmit={handleCreate} className="flex gap-4 items-end">
               <div className="flex-grow">
@@ -287,7 +287,7 @@ const AdminPage: React.FC = () => {
             </form>
           </div>
 
-          <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-700">
+          <div className="bg-brand-bg2 rounded-lg shadow-md overflow-hidden border border-brand-line">
             <table className="min-w-full divide-y divide-gray-700">
               <thead className="bg-gray-700">
                 <tr>
@@ -296,7 +296,7 @@ const AdminPage: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-gray-800 divide-y divide-gray-700">
+              <tbody className="bg-brand-bg2 divide-y divide-gray-700">
                 {users.map((u) => (
                   <tr key={u.id} className="hover:bg-gray-700 transition">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{u.email}</td>
@@ -330,7 +330,7 @@ const AdminPage: React.FC = () => {
       {activeTab === 'data' && (
         <div className="space-y-6">
           {/* Storage Stats */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-brand-bg2 rounded-lg p-6 border border-brand-line">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-white">Storage Statistics</h3>
               <button
@@ -392,7 +392,7 @@ const AdminPage: React.FC = () => {
           </div>
 
           {/* Retention Settings */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-brand-bg2 rounded-lg p-6 border border-brand-line">
             <h3 className="text-lg font-semibold text-white mb-4">Retention Settings</h3>
             {retentionSettings ? (
               <div className="space-y-4">
@@ -447,7 +447,7 @@ const AdminPage: React.FC = () => {
           </div>
 
           {/* Purge Data */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-brand-bg2 rounded-lg p-6 border border-brand-line">
             <h3 className="text-lg font-semibold text-white mb-4">Purge Data</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div>
@@ -507,7 +507,7 @@ const AdminPage: React.FC = () => {
           </div>
 
           {/* Training Export */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-brand-bg2 rounded-lg p-6 border border-brand-line">
             <h3 className="text-lg font-semibold text-white mb-4">Training Data Export</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div>

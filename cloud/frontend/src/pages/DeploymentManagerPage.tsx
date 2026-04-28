@@ -182,7 +182,7 @@ const DeploymentManagerPage = () => {
   }
 
   return (
-    <div className="p-8 bg-gray-900 text-gray-300 min-h-screen flex flex-col">
+    <div className="p-8 bg-brand-bg text-gray-300 min-h-screen flex flex-col">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
       <header className="mb-6">
         <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
@@ -204,7 +204,7 @@ const DeploymentManagerPage = () => {
       {/* Three-column selection grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow overflow-hidden">
         {/* Column 1: Detectors */}
-        <div className="bg-gray-800 rounded-lg p-4 flex flex-col min-h-0 overflow-hidden">
+        <div className="bg-brand-bg2 rounded-lg p-4 flex flex-col min-h-0 overflow-hidden">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
             <h2 className="text-lg font-semibold text-white">1. Select a Detector</h2>
             {groups.length > 0 && (
@@ -235,7 +235,7 @@ const DeploymentManagerPage = () => {
         </div>
 
         {/* Column 2: Hubs */}
-        <div className="bg-gray-800 rounded-lg p-4 flex flex-col min-h-0 overflow-hidden">
+        <div className="bg-brand-bg2 rounded-lg p-4 flex flex-col min-h-0 overflow-hidden">
           <h2 className="text-lg font-semibold text-white mb-2 flex-shrink-0">2. Select Edge Devices (Hubs)</h2>
           <div className="overflow-y-auto flex-grow pr-2">
             <ul className="space-y-2">
@@ -252,7 +252,7 @@ const DeploymentManagerPage = () => {
         </div>
 
         {/* Column 3: Cameras */}
-        <div className="bg-gray-800 rounded-lg p-4 flex flex-col min-h-0 overflow-hidden">
+        <div className="bg-brand-bg2 rounded-lg p-4 flex flex-col min-h-0 overflow-hidden">
           <h2 className="text-lg font-semibold text-white mb-2 flex-shrink-0">3. Assign Cameras</h2>
           <div className="overflow-y-auto flex-grow pr-2">
             {cameras.length === 0 ? (
@@ -280,9 +280,9 @@ const DeploymentManagerPage = () => {
 
       {/* Config preview section */}
       {generatedConfig && (
-        <div className="mt-6 bg-gray-800 rounded-lg p-4">
+        <div className="mt-6 bg-brand-bg2 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-white mb-2">Generated `edge-config.yaml` Preview</h3>
-          <pre className="bg-gray-900 p-4 rounded text-sm text-yellow-300 overflow-auto max-h-96">
+          <pre className="bg-brand-bg p-4 rounded text-sm text-yellow-300 overflow-auto max-h-96">
             <code>{generatedConfig}</code>
           </pre>
         </div>

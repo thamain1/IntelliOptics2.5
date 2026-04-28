@@ -26,11 +26,11 @@ const HubStatusPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-8 bg-gray-900 text-gray-300 min-h-screen">
+    <div className="p-8 bg-brand-bg text-gray-300 min-h-screen">
       <h2 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white mb-8">
         Edge <span className="text-brand-primary">Hubs</span>
       </h2>
-      <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div className="bg-brand-bg2 rounded-lg shadow-md overflow-hidden">
         <table className="min-w-full divide-y divide-gray-700">
           <thead className="bg-gray-700">
             <tr>
@@ -40,7 +40,7 @@ const HubStatusPage: React.FC = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
             </tr>
           </thead>
-          <tbody className="bg-gray-800 divide-y divide-gray-700">
+          <tbody className="bg-brand-bg2 divide-y divide-gray-700">
             {hubs.length === 0 ? (
                 <tr>
                     <td colSpan={4} className="px-6 py-4 text-center text-gray-500 italic">No hubs registered.</td>
