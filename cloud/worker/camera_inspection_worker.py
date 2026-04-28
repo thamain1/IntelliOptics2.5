@@ -112,8 +112,9 @@ class CameraInspectionWorker:
 
             cameras = []
             for hub in hubs:
-                if hub.get("cameras"):
-                    cameras.extend(hub["cameras"])
+                r = await self.client.get(f"{self.api_url}/hubs/{hub['id']}/cameras")
+                r.raise_for_status()
+                cameras.extend(r.json())
 
             return cameras
         except Exception as e:
