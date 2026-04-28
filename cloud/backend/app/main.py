@@ -62,6 +62,26 @@ def create_app() -> FastAPI:
     async def lifespan(app: FastAPI):
         from apscheduler.schedulers.background import BackgroundScheduler
         from .services.auto_training import run_auto_training_cycle
+        from .database import SessionLocal
+        from . import models
+
+        # Mark any sessions that were "active" before this restart as stopped.
+        # The in-memory session_manager is fresh on every start, so those
+        # grabbers are gone — the frontend would poll forever without this.
+        try:
+            db = SessionLocal()
+            orphaned = db.query(models.DemoSession).filter(
+                models.DemoSession.status == "active"
+            ).all()
+            if orphaned:
+                for s in orphaned:
+                    s.status = "stopped"
+                    s.stopped_at = datetime.utcnow()
+                db.commit()
+                logger.info("Marked %d orphaned demo session(s) as stopped on startup", len(orphaned))
+            db.close()
+        except Exception as exc:
+            logger.warning("Could not clean up orphaned sessions on startup: %s", exc)
 
         scheduler = BackgroundScheduler()
         scheduler.add_job(
