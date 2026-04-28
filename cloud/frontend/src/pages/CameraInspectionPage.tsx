@@ -122,6 +122,25 @@ const CameraInspectionPage: React.FC = () => {
     }
   };
 
+  // Strip credentials from a stream URL for display.
+  // rtsp://user:pass@host:port/path  ->  rtsp://host:port/path
+  // Falls back to a generic placeholder if the URL is unparseable.
+  const maskStreamUrl = (url: string): string => {
+    if (!url) return '';
+    try {
+      const u = new URL(url);
+      if (u.username || u.password) {
+        u.username = '';
+        u.password = '';
+        return u.toString();
+      }
+      return url;
+    } catch {
+      // URL constructor fails on some valid RTSP URLs — fall back to regex.
+      return url.replace(/^([a-z]+:\/\/)[^@/]+@/i, '$1');
+    }
+  };
+
   const detectStreamType = (url: string): string => {
     if (!url) return '';
     const u = url.trim().toLowerCase();
@@ -1066,55 +1085,66 @@ const CameraInspectionPage: React.FC = () => {
                 {hubName}
               </h2>
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {hubCameras.map(({ camera, health, alerts }) => (
-                  <div key={camera.id} className="bg-brand-bg2 rounded-lg p-4">
-                    {/* Camera Header */}
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-white">{camera.name}</h3>
-                        <p className="text-xs text-gray-400 truncate" title={camera.url}>
-                          {camera.url}
-                        </p>
-                      </div>
+                  <div
+                    key={camera.id}
+                    className="bg-brand-bg border border-brand-line rounded p-4 flex flex-col"
+                  >
+                    {/* Header: name + status pill */}
+                    <div className="flex justify-between items-start gap-3 mb-2">
+                      <h3 className="font-display uppercase tracking-ioWide text-sm font-bold text-white truncate">
+                        {camera.name}
+                      </h3>
                       {health && getStatusBadge(health.status)}
                     </div>
 
-                    {/* Health Metrics Grid */}
+                    {/* Masked stream URL — credentials stripped for display */}
+                    <p
+                      className="text-[11px] font-mono text-gray-500 truncate mb-3"
+                      title={maskStreamUrl(camera.url)}
+                    >
+                      {maskStreamUrl(camera.url)}
+                    </p>
+
+                    {/* Compact 2x2 health metrics — only the ones that read at a glance */}
                     {health && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-3 text-sm">
                         <div>
-                          <p className="text-xs text-gray-400">Frame Rate</p>
+                          <p className="text-[10px] uppercase tracking-ioWide text-brand-textDim">FPS</p>
                           <p className="text-white font-bold">
-                            {health.fps?.toFixed(1) || 'N/A'} / {health.expected_fps} FPS
+                            {health.fps?.toFixed(1) || '—'}
+                            <span className="text-brand-textDim text-xs">/{health.expected_fps}</span>
                             {health.fps && health.fps < health.expected_fps * 0.5 && (
-                              <span className="text-yellow-400 ml-1">⚠️</span>
+                              <span className="text-yellow-400 ml-1">⚠</span>
                             )}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-400">Resolution</p>
-                          <p className="text-white font-bold">{health.resolution || 'N/A'}</p>
+                          <p className="text-[10px] uppercase tracking-ioWide text-brand-textDim">Resolution</p>
+                          <p className="text-white font-bold">{health.resolution || '—'}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-400">Last Frame</p>
+                          <p className="text-[10px] uppercase tracking-ioWide text-brand-textDim">Latency</p>
+                          <p className="text-white font-bold">{health.latency_ms ? `${health.latency_ms} ms` : '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-ioWide text-brand-textDim">Last Frame</p>
                           <p className="text-white font-bold">
-                            {health.last_frame_at ? new Date(health.last_frame_at).toLocaleTimeString() : 'N/A'}
+                            {health.last_frame_at ? new Date(health.last_frame_at).toLocaleTimeString() : '—'}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-400">Uptime (24h)</p>
-                          <p className="text-white font-bold">{health.uptime_24h?.toFixed(1) || 'N/A'}%</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-400">Latency</p>
-                          <p className="text-white font-bold">{health.latency_ms || 'N/A'} ms</p>
-                        </div>
+                        {health.uptime_24h !== null && health.uptime_24h !== undefined && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-ioWide text-brand-textDim">Uptime 24h</p>
+                            <p className="text-white font-bold">{health.uptime_24h.toFixed(1)}%</p>
+                          </div>
+                        )}
                         {health.view_similarity_score !== null && health.view_similarity_score !== undefined && (
                           <div>
-                            <p className="text-xs text-gray-400">View Similarity</p>
+                            <p className="text-[10px] uppercase tracking-ioWide text-brand-textDim">View Match</p>
                             <p className="text-white font-bold">
-                              {(health.view_similarity_score * 100).toFixed(1)}%
+                              {(health.view_similarity_score * 100).toFixed(0)}%
                               {health.view_change_detected && <span className="text-red-400 ml-1">🚨</span>}
                             </p>
                           </div>
@@ -1122,44 +1152,34 @@ const CameraInspectionPage: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Alerts */}
+                    {/* Alerts — compact, only show count + most recent */}
                     {alerts.length > 0 && (
-                      <div className="bg-brand-bg2 p-3 rounded mb-4">
-                        <h4 className="text-sm font-bold text-white mb-2">Active Alerts</h4>
-                        <div className="space-y-2">
-                          {alerts.map(alert => (
-                            <div key={alert.id} className="flex justify-between items-center bg-brand-bg2 p-2 rounded">
-                              <div>
-                                <p className="text-white text-sm">{alert.message}</p>
-                                <p className="text-xs text-gray-400">
-                                  {new Date(alert.created_at).toLocaleString()}
-                                  {alert.muted_until && (
-                                    <span className="ml-2 text-yellow-400">
-                                      Muted until {new Date(alert.muted_until).toLocaleDateString()}
-                                    </span>
-                                  )}
-                                </p>
-                              </div>
-                              {!alert.acknowledged && !alert.muted_until && (
-                                <button
-                                  onClick={() => handleAcknowledgeAlert(camera.id, alert.id)}
-                                  className="bg-brand-primary hover:bg-brand-primaryH text-black text-xs px-3 py-1 rounded"
-                                >
-                                  Acknowledge
-                                </button>
-                              )}
-                            </div>
-                          ))}
+                      <div className="border border-yellow-700/50 bg-yellow-900/15 px-3 py-2 mb-3 text-xs">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-yellow-300 font-bold uppercase tracking-ioWide text-[10px]">
+                            {alerts.length} alert{alerts.length === 1 ? '' : 's'}
+                          </span>
+                          {alerts[0] && !alerts[0].acknowledged && !alerts[0].muted_until && (
+                            <button
+                              onClick={() => handleAcknowledgeAlert(camera.id, alerts[0].id)}
+                              className="bg-brand-primary hover:bg-brand-primaryH text-black font-display uppercase tracking-ioWide text-[10px] font-bold px-2 py-1"
+                            >
+                              Ack
+                            </button>
+                          )}
                         </div>
+                        <p className="text-yellow-200 mt-1 truncate" title={alerts[0]?.message}>
+                          {alerts[0]?.message}
+                        </p>
                       </div>
                     )}
 
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 flex-wrap">
+                    {/* Footer actions — pinned to card bottom */}
+                    <div className="mt-auto flex gap-2 flex-wrap items-center pt-2 border-t border-brand-line">
                       {health?.view_change_detected && (
                         <button
                           onClick={() => handleUpdateBaseline(camera.id)}
-                          className="bg-orange-600 hover:bg-orange-500 text-white text-sm px-3 py-1 rounded"
+                          className="border border-brand-line hover:border-brand-primary text-brand-sage hover:text-white font-display uppercase tracking-ioWide text-[10px] font-bold px-2.5 py-1 transition-colors"
                         >
                           Update Baseline
                         </button>
@@ -1171,9 +1191,9 @@ const CameraInspectionPage: React.FC = () => {
                             e.target.value = '';
                           }
                         }}
-                        className="bg-gray-600 text-white text-sm px-3 py-1 rounded"
+                        className="bg-brand-bg2 border border-brand-line text-brand-textDim font-display uppercase tracking-ioWide text-[10px] font-bold px-2 py-1 ml-auto"
                       >
-                        <option value="">Mute Alerts...</option>
+                        <option value="">Mute…</option>
                         <option value="1">1 Day</option>
                         <option value="7">7 Days</option>
                         <option value="14">14 Days</option>
