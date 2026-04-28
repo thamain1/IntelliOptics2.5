@@ -1,3 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── 4wardmotion brand foundation ─────────────────────────────────────── */
+/* Tokens are also exposed to Tailwind via tailwind.config.cjs.            */
+
+:root {
+  --io-bg:          #0a0f08;  /* dark green-black, base canvas             */
+  --io-bg-2:        #11180e;  /* slight elevation (panels, cards)          */
+  --io-panel-line:  rgba(144, 194, 38, 0.2);
+  --io-primary:     #90C226;  /* electric lime — CTAs and accents          */
+  --io-primary-h:   #54A021;  /* primary hover                              */
+  --io-sage:        #B9D181;  /* secondary accent                           */
+  --io-text:        #f1f5f9;  /* default body text on dark                  */
+  --io-text-dim:    #94a3b8;  /* muted slate                                */
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: var(--io-bg);
+    color: var(--io-text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--io-primary); color: #000; }
+}
+
+/* Display utility — Oswald uppercase tracking-widest, used everywhere
+   we want headlines, button labels, and section markers to assert. */
+.io-display {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+}
