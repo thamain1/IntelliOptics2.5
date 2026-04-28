@@ -1126,7 +1126,12 @@ const CameraInspectionPage: React.FC = () => {
                         </div>
                         <div>
                           <p className="text-[10px] uppercase tracking-ioWide text-brand-textDim">Latency</p>
-                          <p className="text-white font-bold">{health.latency_ms ? `${health.latency_ms} ms` : '—'}</p>
+                          <p className={`font-bold ${health.latency_ms && config && health.latency_ms > config.latency_threshold_ms ? 'text-yellow-400' : 'text-white'}`}>
+                            {health.latency_ms ? `${health.latency_ms} ms` : '—'}
+                            {health.latency_ms && config && health.latency_ms > config.latency_threshold_ms && (
+                              <span className="ml-1 text-[10px]">⚠</span>
+                            )}
+                          </p>
                         </div>
                         <div>
                           <p className="text-[10px] uppercase tracking-ioWide text-brand-textDim">Last Frame</p>
