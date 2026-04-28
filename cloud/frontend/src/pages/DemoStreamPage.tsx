@@ -231,9 +231,9 @@ const DemoStreamPage: React.FC = () => {
       setResults([]);
 
       if (openVocabUseStream) {
-        toast.success(`${captureMode === 'yoloe' ? 'IO-E Detect' : 'IntelliSearch'} stream demo started!`);
+        toast.success(`${captureMode === 'yoloe' ? 'Detect' : 'IntelliSearch'} stream demo started!`);
       } else if (isOpenVocab) {
-        toast.success(`${captureMode === 'yoloe' ? 'IO-E Detect' : 'IntelliSearch'} webcam demo started!`);
+        toast.success(`${captureMode === 'yoloe' ? 'Detect' : 'IntelliSearch'} webcam demo started!`);
       } else {
         toast.success('Demo session started!');
       }
@@ -592,7 +592,7 @@ const DemoStreamPage: React.FC = () => {
             {captureMode === 'yoloe' && (
               <div className="p-3 bg-orange-900/30 border border-orange-700 rounded">
                 <p className="text-orange-400 text-sm">
-                  <strong>IO-E Open-Vocabulary Detection</strong> — Type what you want to detect! Live bounding boxes rendered over video.
+                  <strong>Real-time Detection</strong> — Type what you want to detect! Live bounding boxes rendered over video.
                   {youtubeUrl.trim()
                     ? ' Server will capture frames from the stream URL.'
                     : ' Leave the URL empty to use your webcam, or enter a stream URL.'}
@@ -603,7 +603,7 @@ const DemoStreamPage: React.FC = () => {
             {captureMode === 'yoloworld' && (
               <div className="p-3 bg-purple-900/30 border border-purple-700 rounded">
                 <p className="text-purple-400 text-sm">
-                  <strong>IntelliSearch Open-Vocabulary Detection</strong> — Type what you want to detect!
+                  <strong>IntelliSearch — Describe to Find</strong> — Type what you want to detect!
                   {youtubeUrl.trim()
                     ? ' Server will capture frames from the stream URL and run AI detection based on your prompts.'
                     : ' Leave the URL empty to use your webcam, or enter a stream URL for server-side capture.'}
@@ -664,7 +664,7 @@ const DemoStreamPage: React.FC = () => {
                       : 'bg-gray-700 text-gray-400'
                   }`}
                 >
-                  IO-E Detect
+                  Detect
                 </button>
                 <button
                   onClick={() => setCaptureMode('yoloworld')}
@@ -803,7 +803,7 @@ const DemoStreamPage: React.FC = () => {
               }`}
             >
               {captureMode === 'yoloe'
-                ? (youtubeUrl.trim() ? 'Start IO-E Detect (Stream)' : 'Start IO-E Detect (Webcam)')
+                ? (youtubeUrl.trim() ? 'Start Detect (Stream)' : 'Start Detect (Webcam)')
                 : captureMode === 'yoloworld'
                   ? (youtubeUrl.trim() ? 'Start IntelliSearch (Stream)' : 'Start IntelliSearch (Webcam)')
                   : 'Start Demo Session'}
@@ -820,7 +820,7 @@ const DemoStreamPage: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">
                 {activeSession.yoloworld_prompts
-                  ? (captureMode === 'yoloe' ? 'IO-E Stream' : 'IntelliSearch Stream')
+                  ? (captureMode === 'yoloe' ? 'Detect Stream' : 'IntelliSearch Stream')
                   : 'Stream'}
               </h2>
               <button

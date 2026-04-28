@@ -175,7 +175,7 @@ function App() {
 
             {/* AI Tools Dropdown */}
             <NavDropdown label="AI Tools" items={[
-              { to: '/open-vocab', label: 'IO-E Detect' },
+              { to: '/open-vocab', label: 'Visual Insight' },
               { to: '/vehicles', label: 'Vehicle Search' },
               { to: '/forensic-search', label: 'BOLO Search' },
               { to: '/parking', label: 'Parking' },

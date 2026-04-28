@@ -737,8 +737,8 @@ const DetectorConfigPage = () => {
                                   )}
                                 />
                                 <p className="text-xs text-gray-500 mt-2">
-                                  IO-E detects these objects in real-time. Use IO-VLM for complex queries.
-                                  No custom model upload needed for open-vocab mode.
+                                  Real-time detection runs continuously; use Analyze Scene for complex queries.
+                                  No custom model upload needed for this mode.
                                 </p>
                               </div>
                             )}

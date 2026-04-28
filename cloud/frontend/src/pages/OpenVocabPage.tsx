@@ -103,7 +103,7 @@ export default function OpenVocabPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Open-Vocab Detection</h1>
+        <h1 className="text-2xl font-bold text-white">Visual Insight</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setMode('detect')}
@@ -111,7 +111,7 @@ export default function OpenVocabPage() {
               mode === 'detect' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
             }`}
           >
-            IO-E Detect
+            Detect
           </button>
           <button
             onClick={() => setMode('query')}
@@ -119,7 +119,7 @@ export default function OpenVocabPage() {
               mode === 'query' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300'
             }`}
           >
-            IO-VLM Query
+            Analyze Scene
           </button>
         </div>
       </div>
@@ -216,7 +216,7 @@ export default function OpenVocabPage() {
                   disabled={loading || !imageFile || !question.trim()}
                   className="w-full bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white py-2 rounded font-medium"
                 >
-                  {loading ? 'Thinking...' : 'Ask IO-VLM'}
+                  {loading ? 'Thinking...' : 'Analyze Scene'}
                 </button>
               </>
             )}
@@ -275,14 +275,14 @@ export default function OpenVocabPage() {
               <ul className="text-gray-500 text-xs space-y-1">
                 <li>1. Upload an image</li>
                 <li>2. Type what to detect (e.g., "person, car, fire")</li>
-                <li>3. IO-E finds objects matching your prompts — no training needed</li>
+                <li>3. The system finds objects matching your prompts — no training needed</li>
                 <li>4. Bounding boxes are drawn on the image in real-time</li>
               </ul>
             ) : (
               <ul className="text-gray-500 text-xs space-y-1">
                 <li>1. Upload an image</li>
                 <li>2. Ask a natural language question about it</li>
-                <li>3. IO-VLM analyzes the image and answers</li>
+                <li>3. The system analyzes the scene and answers</li>
                 <li>4. Supports complex queries like "Is the gate open?"</li>
               </ul>
             )}
