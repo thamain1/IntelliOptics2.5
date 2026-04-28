@@ -95,6 +95,10 @@ const CameraInspectionPage: React.FC = () => {
   const [newCamera, setNewCamera] = useState({ name: '', url: '', hubId: '' });
   const [savingCamera, setSavingCamera] = useState(false);
   const [addCameraError, setAddCameraError] = useState<string | null>(null);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [previewFrame, setPreviewFrame] = useState<string | null>(null); // data:image/jpeg;base64,...
+  const [testError, setTestError] = useState<string | null>(null);
+  const [setBaselineOnAdd, setSetBaselineOnAdd] = useState(true);
 
   const fetchHubs = async () => {
     try {
@@ -122,6 +126,41 @@ const CameraInspectionPage: React.FC = () => {
     return '';
   };
 
+  const handleTestConnection = async () => {
+    setTestError(null);
+    setPreviewFrame(null);
+    if (!newCamera.url.trim()) {
+      setTestError('Enter a URL first.');
+      return;
+    }
+    try {
+      setTestingConnection(true);
+      const res = await axios.post('/camera-inspection/cameras/test-url', {
+        url: newCamera.url.trim(),
+      });
+      if (res.data?.ok && res.data?.frame_base64) {
+        setPreviewFrame(`data:image/jpeg;base64,${res.data.frame_base64}`);
+      } else {
+        setTestError(res.data?.error || 'Could not capture a frame.');
+      }
+    } catch (err) {
+      const e = err as { response?: { data?: { detail?: string; message?: string } } };
+      setTestError(
+        e.response?.data?.detail || e.response?.data?.message || 'Test failed. Check that the backend is reachable.',
+      );
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
+  const resetAddCameraForm = () => {
+    setShowAddCamera(false);
+    setNewCamera({ name: '', url: '', hubId: newCamera.hubId });
+    setPreviewFrame(null);
+    setTestError(null);
+    setAddCameraError(null);
+  };
+
   const handleAddCamera = async () => {
     setAddCameraError(null);
     if (!newCamera.hubId) {
@@ -138,12 +177,24 @@ const CameraInspectionPage: React.FC = () => {
     }
     try {
       setSavingCamera(true);
-      await axios.post(`/hubs/${newCamera.hubId}/cameras`, {
+      const res = await axios.post(`/hubs/${newCamera.hubId}/cameras`, {
         name: newCamera.name.trim(),
         url: newCamera.url.trim(),
       });
-      setShowAddCamera(false);
-      setNewCamera({ name: '', url: '', hubId: newCamera.hubId });
+      const newCameraId: string | undefined = res.data?.id;
+
+      // Auto-set baseline immediately so view-drift detection has a reference frame.
+      // Non-fatal: if it fails (e.g. transient stream hiccup) the user can still
+      // hit "Update Baseline" later from the camera card.
+      if (setBaselineOnAdd && newCameraId) {
+        try {
+          await axios.post(`/camera-inspection/cameras/${newCameraId}/update-baseline`);
+        } catch (e) {
+          console.warn('Baseline capture failed (non-fatal):', e);
+        }
+      }
+
+      resetAddCameraForm();
       fetchDashboard();
     } catch (err) {
       const e = err as { response?: { data?: { detail?: string; message?: string } } };
@@ -340,10 +391,10 @@ const CameraInspectionPage: React.FC = () => {
       {showAddCamera && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
-          onClick={() => !savingCamera && setShowAddCamera(false)}
+          onClick={() => !savingCamera && !testingConnection && resetAddCameraForm()}
         >
           <div
-            className="bg-gray-800 rounded-lg p-6 max-w-lg w-full border border-gray-700"
+            className="bg-gray-800 rounded-lg p-6 max-w-lg w-full border border-gray-700 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-2xl font-bold text-white mb-4">Add Camera</h2>
@@ -389,7 +440,11 @@ const CameraInspectionPage: React.FC = () => {
                 <input
                   type="text"
                   value={newCamera.url}
-                  onChange={(e) => setNewCamera({ ...newCamera, url: e.target.value })}
+                  onChange={(e) => {
+                    setNewCamera({ ...newCamera, url: e.target.value });
+                    if (previewFrame) setPreviewFrame(null);
+                    if (testError) setTestError(null);
+                  }}
                   disabled={savingCamera}
                   placeholder="rtsp://user:pass@host:port/path  or  https://...m3u8  or  http://...mjpg"
                   className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none font-mono text-sm"
@@ -405,6 +460,50 @@ const CameraInspectionPage: React.FC = () => {
                 </p>
               </div>
 
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleTestConnection}
+                  disabled={testingConnection || savingCamera || !newCamera.url.trim()}
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
+                >
+                  {testingConnection ? 'Connecting…' : '📷 Test Connection'}
+                </button>
+                <span className="text-xs text-gray-500">
+                  Pulls one frame from the URL. Verifies credentials and reachability.
+                </span>
+              </div>
+
+              {testError && (
+                <div className="bg-yellow-900/40 border border-yellow-700 rounded p-3 text-yellow-300 text-sm">
+                  {testError}
+                </div>
+              )}
+
+              {previewFrame && (
+                <div className="bg-gray-900 border border-gray-700 rounded p-3">
+                  <p className="text-green-400 text-xs font-medium mb-2">✓ Connected — frame captured</p>
+                  <img
+                    src={previewFrame}
+                    alt="Camera preview"
+                    className="w-full rounded border border-gray-700"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={setBaselineOnAdd}
+                    onChange={(e) => setSetBaselineOnAdd(e.target.checked)}
+                    disabled={savingCamera}
+                    className="w-4 h-4"
+                  />
+                  Capture a baseline frame on add (enables view-drift detection)
+                </label>
+              </div>
+
               {addCameraError && (
                 <div className="bg-red-900/40 border border-red-700 rounded p-3 text-red-300 text-sm">
                   {addCameraError}
@@ -414,7 +513,7 @@ const CameraInspectionPage: React.FC = () => {
 
             <div className="flex justify-end gap-3 mt-6">
               <button
-                onClick={() => setShowAddCamera(false)}
+                onClick={resetAddCameraForm}
                 disabled={savingCamera}
                 className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition disabled:opacity-50"
               >

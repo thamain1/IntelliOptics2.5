@@ -1,7 +1,12 @@
 """
 Camera inspection endpoints for health monitoring dashboard and alerts.
 """
+import base64
+import logging
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from typing import List, Optional
@@ -9,8 +14,50 @@ from datetime import datetime, timedelta
 
 from .. import models, schemas
 from ..database import get_db
+from ..utils.frame_capture import capture_single_frame
+from ..utils.supabase_storage import upload_blob
+from ..config import get_settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/camera-inspection", tags=["Camera Inspection"])
+
+
+class TestUrlRequest(BaseModel):
+    url: str
+
+
+class TestUrlResponse(BaseModel):
+    ok: bool
+    frame_base64: Optional[str] = None
+    error: Optional[str] = None
+
+
+@router.post("/cameras/test-url", response_model=TestUrlResponse)
+def test_camera_url(payload: TestUrlRequest):
+    """Try to grab one frame from `url` and return it as a base64-encoded JPEG.
+
+    Used by the Add Camera modal's "Test Connection" button so the operator
+    can confirm the URL/credentials are correct before saving the camera.
+    Never raises — returns ok=false with an error string on failure so the
+    UI can show a friendly message.
+    """
+    if not payload.url or not payload.url.strip():
+        return TestUrlResponse(ok=False, error="URL is required")
+
+    try:
+        jpeg = capture_single_frame(payload.url.strip(), timeout_ms=8000)
+    except Exception as e:
+        logger.error(f"test-url capture exception: {e}", exc_info=True)
+        return TestUrlResponse(ok=False, error=f"Capture error: {e}")
+
+    if jpeg is None:
+        return TestUrlResponse(
+            ok=False,
+            error="Could not retrieve a frame. Verify the URL, credentials, and that the demo machine can reach the camera.",
+        )
+
+    return TestUrlResponse(ok=True, frame_base64=base64.b64encode(jpeg).decode("ascii"))
 
 
 @router.get("/dashboard", response_model=schemas.InspectionDashboard)
@@ -206,25 +253,44 @@ async def update_baseline_image(
     db: Session = Depends(get_db)
 ):
     """
-    Update baseline image for view change detection.
-    NOTE: This is a placeholder - actual implementation requires
-    capturing frame from camera and uploading to blob storage.
+    Capture a fresh frame from the camera, upload it to Supabase Storage,
+    and store the path on the Camera row. The inspection worker reads this
+    baseline to detect view drift on subsequent runs.
     """
     camera = db.query(models.Camera).filter(models.Camera.id == camera_id).first()
     if not camera:
         raise HTTPException(404, "Camera not found")
 
-    # TODO: Implement actual frame capture and upload
-    # For now, just update the timestamp
+    if not camera.url:
+        raise HTTPException(400, "Camera has no URL configured")
+
+    jpeg = capture_single_frame(camera.url, timeout_ms=10000)
+    if jpeg is None:
+        raise HTTPException(
+            502,
+            "Could not capture a frame from the camera. Confirm the camera is reachable and the URL/credentials are correct.",
+        )
+
+    settings = get_settings()
+    bucket = settings.supabase_storage_bucket or "images"
+    blob_name = f"camera-baselines/{camera_id}/{uuid.uuid4().hex}.jpg"
+    try:
+        path = upload_blob(bucket, blob_name, jpeg, content_type="image/jpeg")
+    except Exception as e:
+        logger.error(f"baseline upload failed: {e}", exc_info=True)
+        raise HTTPException(502, f"Storage upload failed: {e}")
+
+    camera.baseline_image_path = path
     camera.baseline_image_updated_at = datetime.utcnow()
     camera.view_change_detected = False
     camera.view_change_detected_at = None
-
     db.commit()
 
     return {
-        "message": "Baseline update initiated (implementation pending)",
-        "camera_id": camera_id
+        "message": "Baseline image captured and stored",
+        "camera_id": camera_id,
+        "baseline_image_path": path,
+        "frame_size_bytes": len(jpeg),
     }
 
 

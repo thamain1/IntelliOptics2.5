@@ -108,6 +108,27 @@ services:
     #           count: 1
     #           capabilities: [gpu]
 
+  # ── Camera Inspection Worker — automated health checks on registered cameras
+  # Connects to each camera via RTSP, measures FPS / latency / brightness /
+  # sharpness / view-drift on a configurable interval, writes results back
+  # via the cloud backend API. CPU-only, no GPU dependency.
+  camera-inspection:
+    build:
+      context: ../cloud/worker
+      dockerfile: Dockerfile.camera-inspection
+    container_name: io-camera-inspection
+    env_file:
+      - ./.env
+    environment:
+      - API_BASE_URL=http://cloud-backend:8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    depends_on:
+      cloud-backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - intellioptics-net
+
   # ============================================================
   # EDGE SERVICES
   # ============================================================
