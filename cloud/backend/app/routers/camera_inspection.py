@@ -4,6 +4,7 @@ Camera inspection endpoints for health monitoring dashboard and alerts.
 import base64
 import logging
 import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -58,6 +59,62 @@ def test_camera_url(payload: TestUrlRequest):
         )
 
     return TestUrlResponse(ok=True, frame_base64=base64.b64encode(jpeg).decode("ascii"))
+
+
+class NvrScanRequest(BaseModel):
+    host: str
+    port: int = 10554
+    username: str
+    password: str
+    channel_start: int = 101
+    channel_end: int = 1601
+    channel_step: int = 100
+
+
+class NvrChannel(BaseModel):
+    channel_id: int
+    url: str
+    frame_base64: str
+
+
+class NvrScanResponse(BaseModel):
+    channels: List[NvrChannel]
+
+
+def _probe_channel(host: str, port: int, username: str, password: str, channel_id: int) -> Optional[NvrChannel]:
+    url = f"rtsp://{username}:{password}@{host}:{port}/Streaming/Channels/{channel_id}"
+    jpeg = capture_single_frame(url, timeout_ms=3000)
+    if jpeg is None:
+        return None
+    return NvrChannel(
+        channel_id=channel_id,
+        url=url,
+        frame_base64=base64.b64encode(jpeg).decode("ascii"),
+    )
+
+
+@router.post("/nvr/scan", response_model=NvrScanResponse)
+def scan_nvr(payload: NvrScanRequest):
+    """Probe a Hikvision-style NVR for active RTSP channels.
+
+    Tries each channel from channel_start to channel_end (inclusive) in steps
+    of channel_step, in parallel. Returns only channels that yield a live frame.
+    """
+    channel_ids = list(range(payload.channel_start, payload.channel_end + 1, payload.channel_step))
+    found: List[NvrChannel] = []
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {
+            pool.submit(_probe_channel, payload.host, payload.port, payload.username, payload.password, ch): ch
+            for ch in channel_ids
+        }
+        for future in as_completed(futures):
+            result = future.result()
+            if result is not None:
+                found.append(result)
+
+    found.sort(key=lambda c: c.channel_id)
+    return NvrScanResponse(channels=found)
 
 
 @router.get("/dashboard", response_model=schemas.InspectionDashboard)

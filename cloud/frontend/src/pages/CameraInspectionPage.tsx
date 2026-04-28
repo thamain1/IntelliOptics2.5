@@ -100,6 +100,15 @@ const CameraInspectionPage: React.FC = () => {
   const [testError, setTestError] = useState<string | null>(null);
   const [setBaselineOnAdd, setSetBaselineOnAdd] = useState(true);
 
+  // NVR scan state
+  const [showNvrScan, setShowNvrScan] = useState(false);
+  const [nvrForm, setNvrForm] = useState({ host: '', port: '10554', username: '', password: '', hubId: '' });
+  const [scanningNvr, setScanningNvr] = useState(false);
+  const [nvrScanError, setNvrScanError] = useState<string | null>(null);
+  interface NvrDiscoveredChannel { channel_id: number; url: string; frame_base64: string; name: string; selected: boolean; }
+  const [nvrChannels, setNvrChannels] = useState<NvrDiscoveredChannel[]>([]);
+  const [addingNvrCameras, setAddingNvrCameras] = useState(false);
+
   const fetchHubs = async () => {
     try {
       const res = await axios.get('/hubs');
@@ -203,6 +212,57 @@ const CameraInspectionPage: React.FC = () => {
       );
     } finally {
       setSavingCamera(false);
+    }
+  };
+
+  const handleNvrScan = async () => {
+    setNvrScanError(null);
+    setNvrChannels([]);
+    if (!nvrForm.host.trim()) { setNvrScanError('Host is required.'); return; }
+    if (!nvrForm.username.trim()) { setNvrScanError('Username is required.'); return; }
+    try {
+      setScanningNvr(true);
+      const res = await axios.post('/camera-inspection/nvr/scan', {
+        host: nvrForm.host.trim(),
+        port: parseInt(nvrForm.port) || 10554,
+        username: nvrForm.username.trim(),
+        password: nvrForm.password,
+      });
+      const channels: NvrDiscoveredChannel[] = (res.data?.channels || []).map(
+        (ch: { channel_id: number; url: string; frame_base64: string }) => ({
+          ...ch,
+          name: '',
+          selected: true,
+        })
+      );
+      setNvrChannels(channels);
+      if (channels.length === 0) setNvrScanError('No active streams found on that NVR.');
+    } catch (err) {
+      const e = err as { response?: { data?: { detail?: string } } };
+      setNvrScanError(e.response?.data?.detail || 'Scan failed.');
+    } finally {
+      setScanningNvr(false);
+    }
+  };
+
+  const handleAddNvrCameras = async () => {
+    const toAdd = nvrChannels.filter((ch) => ch.selected && ch.name.trim());
+    if (!nvrForm.hubId) { setNvrScanError('Select a hub first.'); return; }
+    if (toAdd.length === 0) { setNvrScanError('Name at least one camera to add.'); return; }
+    try {
+      setAddingNvrCameras(true);
+      for (const ch of toAdd) {
+        await axios.post(`/hubs/${nvrForm.hubId}/cameras`, { name: ch.name.trim(), url: ch.url });
+      }
+      setShowNvrScan(false);
+      setNvrChannels([]);
+      setNvrForm({ host: '', port: '10554', username: '', password: '', hubId: '' });
+      fetchDashboard();
+    } catch (err) {
+      const e = err as { response?: { data?: { detail?: string } } };
+      setNvrScanError(e.response?.data?.detail || 'Failed to add cameras.');
+    } finally {
+      setAddingNvrCameras(false);
     }
   };
 
@@ -365,6 +425,17 @@ const CameraInspectionPage: React.FC = () => {
         <div className="flex gap-3">
           <button
             onClick={() => {
+              setNvrScanError(null);
+              setNvrChannels([]);
+              if (hubs.length > 0) setNvrForm(prev => ({ ...prev, hubId: hubs[0].id }));
+              setShowNvrScan(true);
+            }}
+            className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded font-bold transition"
+          >
+            Scan NVR
+          </button>
+          <button
+            onClick={() => {
               setAddCameraError(null);
               setShowAddCamera(true);
             }}
@@ -386,6 +457,171 @@ const CameraInspectionPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Scan NVR Modal */}
+      {showNvrScan && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={() => !scanningNvr && !addingNvrCameras && setShowNvrScan(false)}
+        >
+          <div
+            className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl border border-gray-700 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold text-white mb-1">Scan NVR</h2>
+            <p className="text-sm text-gray-400 mb-6">
+              Probe a Hikvision-style NVR for active RTSP channels. Name the cameras you want to register.
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Hub</label>
+                <select
+                  value={nvrForm.hubId}
+                  onChange={(e) => setNvrForm({ ...nvrForm, hubId: e.target.value })}
+                  disabled={scanningNvr || addingNvrCameras}
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none"
+                >
+                  {hubs.length === 0 ? (
+                    <option value="">No hubs available</option>
+                  ) : (
+                    hubs.map((h) => (
+                      <option key={h.id} value={h.id}>{h.name}</option>
+                    ))
+                  )}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">NVR Host / IP</label>
+                <input
+                  type="text"
+                  value={nvrForm.host}
+                  onChange={(e) => setNvrForm({ ...nvrForm, host: e.target.value })}
+                  disabled={scanningNvr || addingNvrCameras}
+                  placeholder="e.g. 10.17.0.202"
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none font-mono text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Port</label>
+                <input
+                  type="number"
+                  value={nvrForm.port}
+                  onChange={(e) => setNvrForm({ ...nvrForm, port: e.target.value })}
+                  disabled={scanningNvr || addingNvrCameras}
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none font-mono text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Username</label>
+                <input
+                  type="text"
+                  value={nvrForm.username}
+                  onChange={(e) => setNvrForm({ ...nvrForm, username: e.target.value })}
+                  disabled={scanningNvr || addingNvrCameras}
+                  autoComplete="off"
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                <input
+                  type="password"
+                  value={nvrForm.password}
+                  onChange={(e) => setNvrForm({ ...nvrForm, password: e.target.value })}
+                  disabled={scanningNvr || addingNvrCameras}
+                  autoComplete="off"
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleNvrScan}
+              disabled={scanningNvr || addingNvrCameras}
+              className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2 rounded font-bold transition disabled:opacity-50 mb-4"
+            >
+              {scanningNvr ? 'Scanning…' : 'Scan'}
+            </button>
+
+            {nvrScanError && (
+              <div className="bg-yellow-900/40 border border-yellow-700 rounded p-3 text-yellow-300 text-sm mb-4">
+                {nvrScanError}
+              </div>
+            )}
+
+            {nvrChannels.length > 0 && (
+              <>
+                <p className="text-green-400 text-sm font-medium mb-3">
+                  {nvrChannels.length} active channel{nvrChannels.length !== 1 ? 's' : ''} found — name the ones you want to add.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                  {nvrChannels.map((ch, idx) => (
+                    <div
+                      key={ch.channel_id}
+                      className={`bg-gray-900 rounded-lg border p-3 transition ${ch.selected ? 'border-purple-500' : 'border-gray-700 opacity-50'}`}
+                    >
+                      <div className="relative mb-2">
+                        <img
+                          src={`data:image/jpeg;base64,${ch.frame_base64}`}
+                          alt={`Channel ${ch.channel_id}`}
+                          className="w-full rounded"
+                        />
+                        <span className="absolute top-1 left-1 bg-black/70 text-gray-300 text-xs font-mono px-1 rounded">
+                          ch{ch.channel_id}
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={ch.selected}
+                          onChange={(e) => {
+                            const updated = [...nvrChannels];
+                            updated[idx] = { ...ch, selected: e.target.checked };
+                            setNvrChannels(updated);
+                          }}
+                          className="absolute top-1 right-1 w-4 h-4"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={ch.name}
+                        onChange={(e) => {
+                          const updated = [...nvrChannels];
+                          updated[idx] = { ...ch, name: e.target.value, selected: e.target.value.trim().length > 0 || ch.selected };
+                          setNvrChannels(updated);
+                        }}
+                        placeholder="Camera name…"
+                        disabled={addingNvrCameras}
+                        className="w-full bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 outline-none text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => { setShowNvrScan(false); setNvrChannels([]); }}
+                disabled={scanningNvr || addingNvrCameras}
+                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              {nvrChannels.length > 0 && (
+                <button
+                  onClick={handleAddNvrCameras}
+                  disabled={addingNvrCameras || !nvrChannels.some((ch) => ch.selected && ch.name.trim())}
+                  className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2 rounded font-bold transition disabled:opacity-50"
+                >
+                  {addingNvrCameras
+                    ? 'Adding…'
+                    : `Add ${nvrChannels.filter((ch) => ch.selected && ch.name.trim()).length} Camera${nvrChannels.filter((ch) => ch.selected && ch.name.trim()).length !== 1 ? 's' : ''}`}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Camera Modal */}
       {showAddCamera && (

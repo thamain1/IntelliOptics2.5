@@ -35,8 +35,105 @@ detectors: {}
   #   class_names: ["object"]
   #   hrm_enabled: false
 
-# RTSP camera streams (empty = no streams)
-streams: {}
+# RTSP camera streams - exec-pro-santamonica
+# NVR: 10.17.0.202:10554  |  Auth: 4wardmotion / M1ghty0n3!
+# NOTE: Replace detector_id values with actual detector UUIDs before go-live
+streams:
+  gate_entrance:
+    name: "Gate Entrance"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/101"
+    sampling_interval_seconds: 2.0
+
+  ramp:
+    name: "Ramp"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/201"
+    sampling_interval_seconds: 2.0
+
+  p1_lo:
+    name: "P1 Lo"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/301"
+    sampling_interval_seconds: 2.0
+
+  parking:
+    name: "Parking"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/401"
+    sampling_interval_seconds: 2.0
+
+  mid_courtyard:
+    name: "Mid Courtyard"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/501"
+    sampling_interval_seconds: 2.0
+
+  south_courtyard:
+    name: "South Courtyard"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/601"
+    sampling_interval_seconds: 2.0
+
+  lobby:
+    name: "Lobby"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/701"
+    sampling_interval_seconds: 2.0
+
+  gym:
+    name: "Gym"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/801"
+    sampling_interval_seconds: 2.0
+
+  north_exit:
+    name: "North Exit"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/901"
+    sampling_interval_seconds: 2.0
+
+  arizona_stairs:
+    name: "Arizona Stairs"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/1001"
+    sampling_interval_seconds: 2.0
+
+  fourth_street:
+    name: "4th Street"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/1101"
+    sampling_interval_seconds: 2.0
+
+  arizona_avenue:
+    name: "Arizona Avenue"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/1201"
+    sampling_interval_seconds: 2.0
+
+  east_server_room:
+    name: "East Server Room"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/1301"
+    sampling_interval_seconds: 2.0
+
+  west_server_room:
+    name: "West Server Room"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/1401"
+    sampling_interval_seconds: 2.0
+
+  north_courtyard:
+    name: "North Courtyard"
+    detector_id: det_placeholder
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/1501"
+    sampling_interval_seconds: 2.0
+
+  loading_dock:
+    name: "Loading Dock"
+    detector_id: 134bc637-497d-497f-aa01-8538ba732060
+    url: "rtsp://4wardmotion:M1ghty0n3!@10.17.0.202:10554/Streaming/Channels/1601"
+    sampling_interval_seconds: 2.0
 
 # SendGrid email alert configuration
 alerts:
