@@ -869,13 +869,7 @@ const DemoStreamPage: React.FC = () => {
 
             <button
               onClick={startSession}
-              className={`w-full font-bold py-2 px-4 rounded ${
-                captureMode === 'yoloe'
-                  ? 'bg-orange-600 hover:bg-orange-500 text-white'
-                  : captureMode === 'yoloworld'
-                    ? 'bg-purple-600 hover:bg-purple-500 text-white'
-                    : 'bg-green-600 hover:bg-green-500 text-white'
-              }`}
+              className="w-full bg-brand-primary hover:bg-brand-primaryH text-black font-display uppercase tracking-ioWide text-sm font-bold py-3 px-4 transition-colors"
             >
               {captureMode === 'yoloe'
                 ? (youtubeUrl.trim() ? 'Start Detect (Stream)' : 'Start Detect (Webcam)')

@@ -106,19 +106,19 @@ export default function OpenVocabPage() {
         <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
           Visual <span className="text-brand-primary">Insight</span>
         </h1>
-        <div className="flex gap-2">
+        <div className="inline-flex border border-brand-line">
           <button
             onClick={() => setMode('detect')}
-            className={`px-4 py-2 rounded text-sm font-medium ${
-              mode === 'detect' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+            className={`px-6 py-2.5 font-display uppercase tracking-ioWide text-xs font-bold border-r border-brand-line transition-colors ${
+              mode === 'detect' ? 'bg-brand-primary text-black' : 'bg-transparent text-brand-textDim hover:text-brand-primary'
             }`}
           >
             Detect
           </button>
           <button
             onClick={() => setMode('query')}
-            className={`px-4 py-2 rounded text-sm font-medium ${
-              mode === 'query' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300'
+            className={`px-6 py-2.5 font-display uppercase tracking-ioWide text-xs font-bold transition-colors ${
+              mode === 'query' ? 'bg-brand-primary text-black' : 'bg-transparent text-brand-textDim hover:text-brand-primary'
             }`}
           >
             Analyze Scene
@@ -194,7 +194,7 @@ export default function OpenVocabPage() {
                 <button
                   onClick={handleDetect}
                   disabled={loading || !imageFile || !prompts.trim()}
-                  className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white py-2 rounded font-medium"
+                  className="w-full bg-brand-primary hover:bg-brand-primaryH disabled:bg-gray-600 disabled:text-gray-400 text-black font-display uppercase tracking-ioWide text-sm font-bold py-3 transition-colors"
                 >
                   {loading ? 'Detecting...' : 'Run Detection'}
                 </button>
@@ -216,7 +216,7 @@ export default function OpenVocabPage() {
                 <button
                   onClick={handleQuery}
                   disabled={loading || !imageFile || !question.trim()}
-                  className="w-full bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white py-2 rounded font-medium"
+                  className="w-full bg-brand-primary hover:bg-brand-primaryH disabled:bg-gray-600 disabled:text-gray-400 text-black font-display uppercase tracking-ioWide text-sm font-bold py-3 transition-colors"
                 >
                   {loading ? 'Thinking...' : 'Analyze Scene'}
                 </button>

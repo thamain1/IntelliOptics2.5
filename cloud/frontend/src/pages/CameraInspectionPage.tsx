@@ -432,28 +432,28 @@ const CameraInspectionPage: React.FC = () => {
               if (hubs.length > 0) setNvrForm(prev => ({ ...prev, hubId: hubs[0].id }));
               setShowNvrScan(true);
             }}
-            className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded font-bold transition"
+            className="bg-brand-primary hover:bg-brand-primaryH text-black font-display uppercase tracking-ioWide text-xs font-bold px-5 py-2.5 transition-colors"
           >
-            Scan NVR
+            🔍 Scan NVR
           </button>
           <button
             onClick={() => {
               setAddCameraError(null);
               setShowAddCamera(true);
             }}
-            className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded font-bold transition"
+            className="bg-brand-primary hover:bg-brand-primaryH text-black font-display uppercase tracking-ioWide text-xs font-bold px-5 py-2.5 transition-colors"
           >
             + Add Camera
           </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded font-bold transition"
+            className="border border-brand-line hover:border-brand-primary text-brand-sage hover:text-white font-display uppercase tracking-ioWide text-xs font-bold px-5 py-2.5 transition-colors"
           >
-            {showSettings ? '✕ Close' : '⚙️ Settings'}
+            {showSettings ? '✕ Close' : '⚙ Settings'}
           </button>
           <button
             onClick={fetchDashboard}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold transition"
+            className="border border-brand-line hover:border-brand-primary text-brand-sage hover:text-white font-display uppercase tracking-ioWide text-xs font-bold px-5 py-2.5 transition-colors"
           >
             Refresh
           </button>
@@ -470,7 +470,9 @@ const CameraInspectionPage: React.FC = () => {
             className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl border border-gray-700 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-bold text-white mb-1">Scan NVR</h2>
+            <h2 className="font-display uppercase tracking-ioWide text-2xl font-bold text-white mb-1">
+              Scan <span className="text-brand-primary">NVR</span>
+            </h2>
             <p className="text-sm text-gray-400 mb-6">
               Probe a Hikvision-style NVR for active RTSP channels. Name the cameras you want to register.
             </p>
@@ -541,9 +543,9 @@ const CameraInspectionPage: React.FC = () => {
             <button
               onClick={handleNvrScan}
               disabled={scanningNvr || addingNvrCameras}
-              className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2 rounded font-bold transition disabled:opacity-50 mb-4"
+              className="bg-brand-primary hover:bg-brand-primaryH text-black font-display uppercase tracking-ioWide text-xs font-bold px-6 py-2.5 transition-colors disabled:opacity-50 mb-4"
             >
-              {scanningNvr ? 'Scanning…' : 'Scan'}
+              {scanningNvr ? 'Scanning…' : '🔍 Scan'}
             </button>
 
             {nvrScanError && (
@@ -613,7 +615,7 @@ const CameraInspectionPage: React.FC = () => {
                 <button
                   onClick={handleAddNvrCameras}
                   disabled={addingNvrCameras || !nvrChannels.some((ch) => ch.selected && ch.name.trim())}
-                  className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2 rounded font-bold transition disabled:opacity-50"
+                  className="bg-brand-primary hover:bg-brand-primaryH text-black font-display uppercase tracking-ioWide text-xs font-bold px-6 py-2.5 transition-colors disabled:opacity-50"
                 >
                   {addingNvrCameras
                     ? 'Adding…'
@@ -635,7 +637,9 @@ const CameraInspectionPage: React.FC = () => {
             className="bg-gray-800 rounded-lg p-6 max-w-lg w-full border border-gray-700 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-bold text-white mb-4">Add Camera</h2>
+            <h2 className="font-display uppercase tracking-ioWide text-2xl font-bold text-white mb-4">
+              Add <span className="text-brand-primary">Camera</span>
+            </h2>
             <p className="text-sm text-gray-400 mb-6">
               Register any IP camera or video stream. Supports RTSP, HTTP/MJPEG, HLS, RTMP, video files, and YouTube.
             </p>
@@ -703,7 +707,7 @@ const CameraInspectionPage: React.FC = () => {
                   type="button"
                   onClick={handleTestConnection}
                   disabled={testingConnection || savingCamera || !newCamera.url.trim()}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
+                  className="bg-brand-primary hover:bg-brand-primaryH text-black font-display uppercase tracking-ioWide text-xs font-bold px-5 py-2.5 transition-colors disabled:opacity-50"
                 >
                   {testingConnection ? 'Connecting…' : '📷 Test Connection'}
                 </button>
@@ -760,9 +764,9 @@ const CameraInspectionPage: React.FC = () => {
               <button
                 onClick={handleAddCamera}
                 disabled={savingCamera || hubs.length === 0}
-                className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded font-bold transition disabled:opacity-50"
+                className="bg-brand-primary hover:bg-brand-primaryH text-black font-display uppercase tracking-ioWide text-xs font-bold px-6 py-2.5 transition-colors disabled:opacity-50"
               >
-                {savingCamera ? 'Adding…' : 'Add Camera'}
+                {savingCamera ? 'Adding…' : '+ Add Camera'}
               </button>
             </div>
           </div>
@@ -906,9 +910,9 @@ const CameraInspectionPage: React.FC = () => {
             <button
               onClick={saveConfig}
               disabled={savingConfig}
-              className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded font-bold transition disabled:opacity-50"
+              className="bg-brand-primary hover:bg-brand-primaryH text-black font-display uppercase tracking-ioWide text-xs font-bold px-6 py-2.5 transition-colors disabled:opacity-50"
             >
-              {savingConfig ? 'Saving...' : 'Save Configuration'}
+              {savingConfig ? 'Saving…' : 'Save Configuration'}
             </button>
             <button
               onClick={triggerManualInspection}
