@@ -42,7 +42,7 @@ function NavDropdown({ label, items }: { label: string; items: { to: string; lab
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="px-3 py-2 text-sm text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded transition flex items-center gap-1"
+        className="px-4 py-2 font-display uppercase tracking-ioWide text-[11px] text-brand-textDim hover:text-brand-primary transition-colors flex items-center gap-1.5"
       >
         {label}
         <svg className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,13 +50,13 @@ function NavDropdown({ label, items }: { label: string; items: { to: string; lab
         </svg>
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl min-w-[180px] py-1 z-50">
+        <div className="absolute top-full left-0 mt-1 bg-brand-bg2 border border-brand-line min-w-[200px] py-1 z-50">
           {items.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               onClick={() => setOpen(false)}
-              className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition"
+              className="block px-4 py-3 font-display uppercase tracking-ioWide text-[11px] text-brand-textDim hover:text-brand-primary hover:bg-brand-panel transition-colors"
             >
               {item.label}
             </Link>
@@ -157,12 +157,24 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-300 flex flex-col">
-      <nav className="bg-gray-800 shadow border-b border-gray-700 relative z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center space-x-1">
-            <Link to="/" className="text-xl font-bold text-blue-500 mr-4">
-              IntelliOptics 2.5
+    <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col font-body">
+      <nav className="bg-brand-bg border-b border-brand-line relative z-50">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-6">
+            <Link to="/" className="flex items-center gap-3 mr-4 group">
+              <img
+                src="/4wardmotion-logo.png"
+                alt="4wardmotion"
+                className="h-9 w-auto"
+              />
+              <div className="leading-tight">
+                <div className="font-display uppercase tracking-ioWide text-[15px] text-brand-text group-hover:text-brand-primary transition-colors">
+                  Intelli<span className="text-brand-primary">Optics</span>
+                </div>
+                <div className="font-display uppercase tracking-ioWider text-[8px] text-brand-textDim">
+                  by 4wardmotion
+                </div>
+              </div>
             </Link>
 
             {/* Operations Dropdown */}
@@ -195,8 +207,11 @@ function App() {
               { to: '/admin', label: 'System Admin' },
             ]} />
           </div>
-          <button onClick={handleLogout} className="text-red-400 hover:text-red-300 font-bold text-sm">
-            Logout
+          <button
+            onClick={handleLogout}
+            className="font-display uppercase tracking-ioWide text-[11px] text-red-400 hover:text-red-300 px-4 py-2 border border-red-500/30 hover:border-red-400 transition-colors"
+          >
+            Sign Out
           </button>
         </div>
       </nav>
@@ -223,8 +238,10 @@ function App() {
       </div>
 
       {/* Footer */}
-      <footer className="py-4 text-center text-gray-500 text-sm border-t border-gray-800">
-        Powered By 4wardmotion Solutions, Inc
+      <footer className="py-5 text-center border-t border-brand-line">
+        <div className="font-display uppercase tracking-ioWider text-[10px] text-brand-textDim">
+          Powered by <span className="text-brand-primary">4wardmotion Solutions</span>
+        </div>
       </footer>
     </div>
   );
