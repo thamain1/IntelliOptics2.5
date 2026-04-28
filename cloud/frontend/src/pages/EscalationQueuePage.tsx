@@ -240,7 +240,7 @@ const EscalationQueuePage: React.FC = () => {
       
       <div className="bg-brand-bg2 rounded-lg shadow-md overflow-hidden mb-8">
         <table className="min-w-full divide-y divide-gray-700">
-          <thead className="bg-gray-700">
+          <thead className="bg-brand-bg2">
             <tr>
               <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">ID</th>
               <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Query</th>
@@ -255,7 +255,7 @@ const EscalationQueuePage: React.FC = () => {
                     <td colSpan={5} className="px-6 py-4 text-center text-gray-500 italic">No pending escalations.</td>
                 </tr>
             ) : escalations.map((esc) => (
-              <tr key={esc.id} className="hover:bg-gray-700 transition">
+              <tr key={esc.id} className="hover:bg-brand-bg2 transition">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-400">{esc.id.substring(0, 8)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-blue-400">{esc.query_id.substring(0, 8)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{new Date(esc.created_at).toLocaleString()}</td>
@@ -295,7 +295,7 @@ const EscalationQueuePage: React.FC = () => {
                   className={`px-3 py-1 rounded text-sm ${
                     annotationMode
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      : 'bg-brand-bg2 text-gray-300 hover:bg-gray-600'
                   }`}
                 >
                   {annotationMode ? 'Drawing Mode' : 'Enable Drawing'}
@@ -380,7 +380,7 @@ const EscalationQueuePage: React.FC = () => {
             <form onSubmit={submitAnnotation} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Ground Truth Label</label>
-                <select value={label} onChange={(e) => setLabel(e.target.value)} className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2">
+                <select value={label} onChange={(e) => setLabel(e.target.value)} className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2">
                   <option value="YES">YES (Correct)</option>
                   <option value="NO">NO (Incorrect)</option>
                   <option value="UNCLEAR">UNCLEAR</option>
@@ -396,7 +396,7 @@ const EscalationQueuePage: React.FC = () => {
                         max="1"
                         value={confidence}
                         onChange={(e) => setConfidence(e.target.value === '' ? '' : Number(e.target.value))}
-                        className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2"
+                        className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2"
                         placeholder="e.g. 0.95"
                     />
                 </div>
@@ -407,7 +407,7 @@ const EscalationQueuePage: React.FC = () => {
                         min="0"
                         value={count}
                         onChange={(e) => setCount(e.target.value === '' ? '' : Number(e.target.value))}
-                        className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2"
+                        className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2"
                     />
                 </div>
               </div>
@@ -417,7 +417,7 @@ const EscalationQueuePage: React.FC = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2"
                   placeholder="Add context for retraining..."
                 />
               </div>

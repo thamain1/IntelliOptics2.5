@@ -90,7 +90,7 @@ export default function VehicleSearchPage() {
               value={plateSearch}
               onChange={e => setPlateSearch(e.target.value)}
               placeholder="ABC-1234"
-              className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-gray-600"
+              className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-brand-line"
             />
           </div>
           <div>
@@ -98,7 +98,7 @@ export default function VehicleSearchPage() {
             <select
               value={colorFilter}
               onChange={e => setColorFilter(e.target.value)}
-              className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-gray-600"
+              className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-brand-line"
             >
               <option value="">Any Color</option>
               {['White', 'Black', 'Silver', 'Gray', 'Red', 'Blue', 'Green', 'Yellow', 'Brown', 'Orange'].map(c => (
@@ -111,7 +111,7 @@ export default function VehicleSearchPage() {
             <select
               value={typeFilter}
               onChange={e => setTypeFilter(e.target.value)}
-              className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-gray-600"
+              className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-brand-line"
             >
               <option value="">Any Type</option>
               {['car', 'truck', 'van', 'suv', 'vehicle'].map(t => (

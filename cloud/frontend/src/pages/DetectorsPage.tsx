@@ -63,7 +63,7 @@ const ModeCard = ({ mode, currentMode, onSelect, icon, label, description, examp
     <div 
       onClick={() => onSelect(mode)}
       className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
-        isSelected ? 'border-blue-500 bg-blue-900/20' : 'border-brand-line bg-brand-bg2 hover:border-gray-600'
+        isSelected ? 'border-blue-500 bg-blue-900/20' : 'border-brand-line bg-brand-bg2 hover:border-brand-line'
       }`}
     >
       <div className="flex items-center space-x-3 mb-2">
@@ -245,7 +245,7 @@ const DetectorsPage: React.FC = () => {
                     {...register("name")}
                     type="text"
                     placeholder="e.g., Vehicle Detection - Lot A"
-                    className={`w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary ${errors.name ? 'border-red-500' : ''}`}
+                    className={`w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 focus:ring-brand-primary focus:border-brand-primary ${errors.name ? 'border-red-500' : ''}`}
                   />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                 </div>
@@ -255,7 +255,7 @@ const DetectorsPage: React.FC = () => {
                     {...register("query_text")}
                     type="text"
                     placeholder="e.g., Is there a vehicle in the space?"
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
+                    className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                   />
                   <p className="text-[10px] text-gray-500 mt-1 italic">💡 Helps human reviewers understand the context</p>
                 </div>
@@ -266,7 +266,7 @@ const DetectorsPage: React.FC = () => {
                   {...register("description")}
                   rows={2}
                   placeholder="What does this detector do? Where is it used?"
-                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
+                  className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                 />
               </div>
               <div>
@@ -275,7 +275,7 @@ const DetectorsPage: React.FC = () => {
                   {...register("group_name")}
                   type="text"
                   placeholder="e.g., Building A Security, Production Line 1"
-                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
+                  className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                 />
                 <p className="text-[10px] text-gray-500 mt-1 italic">💡 Organize detectors into logical groups</p>
               </div>
@@ -331,14 +331,14 @@ const DetectorsPage: React.FC = () => {
                 <h3 className="text-lg font-semibold text-blue-400 border-b border-brand-line pb-2 uppercase tracking-wider">
                   3. Define Classes *
                 </h3>
-                <div className="bg-gray-700/30 p-4 rounded-lg border border-brand-line">
+                <div className="bg-brand-bg2/30 p-4 rounded-lg border border-brand-line">
                   <div className="space-y-2 mb-4">
                     {fields.map((field, index) => (
                       <div key={field.id} className="flex items-center gap-2">
                         <input
                           {...register(`class_names.${index}` as const)}
                           placeholder="Enter class name"
-                          className="flex-1 rounded-md bg-gray-700 border-gray-600 text-white p-2 text-sm focus:ring-brand-primary"
+                          className="flex-1 rounded-md bg-brand-bg2 border-brand-line text-white p-2 text-sm focus:ring-brand-primary"
                         />
                         <button
                           type="button"
@@ -375,7 +375,7 @@ const DetectorsPage: React.FC = () => {
                     {...register("max_count", { valueAsNumber: true })}
                     placeholder="e.g., 100"
                     min="1"
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
+                    className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                   />
                   <p className="text-[10px] text-gray-500 mt-1 italic">💡 Set upper limit for count validation (alerts if exceeded)</p>
                 </div>
@@ -394,7 +394,7 @@ const DetectorsPage: React.FC = () => {
                     {...register("max_num_bboxes", { valueAsNumber: true })}
                     placeholder="e.g., 50"
                     min="1"
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
+                    className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                   />
                   <p className="text-[10px] text-gray-500 mt-1 italic">💡 Limit number of detected objects per frame</p>
                 </div>
@@ -423,7 +423,7 @@ const DetectorsPage: React.FC = () => {
                         step="0.01"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        className="w-full h-2 bg-brand-bg2 rounded-lg appearance-none cursor-pointer accent-blue-600"
                       />
                     )}
                   />
@@ -438,7 +438,7 @@ const DetectorsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-400 mb-1">Edge Inference Profile</label>
                   <select
                     {...register("edge_inference_profile")}
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary"
+                    className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 focus:ring-brand-primary"
                   >
                     <option value="default">Default (Cloud Escalation Enabled)</option>
                     <option value="offline">Offline Mode (No Cloud Escalation)</option>
@@ -467,7 +467,7 @@ const DetectorsPage: React.FC = () => {
                         {...register("patience_time", { valueAsNumber: true })}
                         type="number"
                         step="0.1"
-                        className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 text-sm"
+                        className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 text-sm"
                       />
                       <p className="text-[10px] text-gray-500 mt-1">Debounce time between queries for this detector</p>
                     </div>
@@ -477,7 +477,7 @@ const DetectorsPage: React.FC = () => {
                         {...register("min_time_between_escalations", { valueAsNumber: true })}
                         type="number"
                         step="0.1"
-                        className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 text-sm"
+                        className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 text-sm"
                       />
                       <p className="text-[10px] text-gray-500 mt-1">Avoid flooding human reviewers</p>
                     </div>
@@ -490,7 +490,7 @@ const DetectorsPage: React.FC = () => {
                       {...register("pipeline_config")}
                       rows={4}
                       placeholder='{"preprocessing": {...}, "inference": {...}}'
-                      className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 text-xs font-mono"
+                      className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 text-xs font-mono"
                     />
                     <p className="text-[10px] text-orange-400 mt-1">⚠️ Advanced users only: Custom AI pipeline configuration (JSON)</p>
                   </div>
@@ -502,7 +502,7 @@ const DetectorsPage: React.FC = () => {
               <button 
                 type="button" 
                 onClick={() => setShowForm(false)}
-                className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-md transition"
+                className="bg-brand-bg2 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-md transition"
               >
                 Cancel
               </button>
@@ -531,7 +531,7 @@ const DetectorsPage: React.FC = () => {
             <select
               value={selectedGroup}
               onChange={(e) => setSelectedGroup(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-brand-primary focus:outline-none"
+              className="px-3 py-2 rounded bg-brand-bg2 border border-brand-line text-white text-sm focus:border-brand-primary focus:outline-none"
             >
               <option value="">All Groups</option>
               {groups.map(g => (
@@ -559,7 +559,7 @@ const DetectorsPage: React.FC = () => {
           {detectors.map((det: any) => (
             <div
               key={det.id}
-              className="bg-brand-bg2 rounded-lg overflow-hidden border border-brand-line hover:border-gray-600 transition group relative"
+              className="bg-brand-bg2 rounded-lg overflow-hidden border border-brand-line hover:border-brand-line transition group relative"
             >
               {/* Delete Confirmation Overlay */}
               {deleteConfirm === det.id && (
@@ -569,7 +569,7 @@ const DetectorsPage: React.FC = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setDeleteConfirm(null)}
-                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm"
+                      className="px-4 py-2 bg-brand-bg2 hover:bg-gray-600 text-white rounded text-sm"
                     >
                       Cancel
                     </button>
@@ -591,7 +591,7 @@ const DetectorsPage: React.FC = () => {
                     det.config?.mode === 'MULTICLASS' ? 'bg-purple-900/50 text-purple-400' :
                     det.config?.mode === 'COUNTING' ? 'bg-green-900/50 text-green-400' :
                     det.config?.mode === 'BOUNDING_BOX' ? 'bg-orange-900/50 text-orange-400' :
-                    'bg-gray-700 text-gray-400'
+                    'bg-brand-bg2 text-gray-400'
                   }`}>
                     {det.config?.mode || 'UNKNOWN'}
                   </span>
@@ -640,7 +640,7 @@ const DetectorsPage: React.FC = () => {
                 {/* Group Badge */}
                 {det.group_name && (
                   <div className="mb-3">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-700 text-gray-300 border border-gray-600">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-brand-bg2 text-gray-300 border border-brand-line">
                       <span className="mr-1">📁</span> {det.group_name}
                     </span>
                   </div>
@@ -653,7 +653,7 @@ const DetectorsPage: React.FC = () => {
                       <span>Confidence Threshold</span>
                       <span>{Math.round(det.config.confidence_threshold * 100)}%</span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-1.5">
+                    <div className="w-full bg-brand-bg2 rounded-full h-1.5">
                       <div
                         className="h-1.5 rounded-full bg-blue-500"
                         style={{ width: `${det.config.confidence_threshold * 100}%` }}

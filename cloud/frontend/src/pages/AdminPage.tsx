@@ -254,7 +254,7 @@ const AdminPage: React.FC = () => {
                   placeholder="user@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
                   required
                 />
               </div>
@@ -265,7 +265,7 @@ const AdminPage: React.FC = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
                   required
                   minLength={6}
                 />
@@ -275,7 +275,7 @@ const AdminPage: React.FC = () => {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
                 >
                   <option value="admin">Admin</option>
                   <option value="reviewer">Reviewer</option>
@@ -304,7 +304,7 @@ const AdminPage: React.FC = () => {
                       <select
                         value={u.roles}
                         onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                        className="rounded-md bg-brand-bg2 border-gray-600 text-white text-sm focus:border-blue-500 focus:ring-brand-primary p-1"
+                        className="rounded-md bg-brand-bg2 border-brand-line text-white text-sm focus:border-blue-500 focus:ring-brand-primary p-1"
                       >
                         <option value="admin">Admin</option>
                         <option value="reviewer">Reviewer</option>
@@ -408,7 +408,7 @@ const AdminPage: React.FC = () => {
                         ...retentionSettings,
                         retention_days: parseInt(e.target.value) || 30
                       })}
-                      className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white p-2"
+                      className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2"
                     />
                   </div>
                   <div className="flex items-center gap-4 pt-6">
@@ -420,7 +420,7 @@ const AdminPage: React.FC = () => {
                           ...retentionSettings,
                           exclude_verified: e.target.checked
                         })}
-                        className="rounded bg-brand-bg2 border-gray-600"
+                        className="rounded bg-brand-bg2 border-brand-line"
                       />
                       <span className="text-sm text-gray-300">Exclude verified queries</span>
                     </label>
@@ -458,7 +458,7 @@ const AdminPage: React.FC = () => {
                   max="365"
                   value={purgeDays}
                   onChange={(e) => setPurgeDays(parseInt(e.target.value) ?? 0)}
-                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2"
                 />
                 <span className="text-xs text-gray-500">0 = all data from today and earlier</span>
               </div>
@@ -469,7 +469,7 @@ const AdminPage: React.FC = () => {
                   placeholder="e.g., person"
                   value={purgeLabelFilter}
                   onChange={(e) => setPurgeLabelFilter(e.target.value)}
-                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2"
                 />
               </div>
               <div className="flex items-center pt-6">
@@ -478,7 +478,7 @@ const AdminPage: React.FC = () => {
                     type="checkbox"
                     checked={purgeExcludeVerified}
                     onChange={(e) => setPurgeExcludeVerified(e.target.checked)}
-                    className="rounded bg-brand-bg2 border-gray-600"
+                    className="rounded bg-brand-bg2 border-brand-line"
                   />
                   <span className="text-sm text-gray-300">Exclude verified</span>
                 </label>
@@ -528,7 +528,7 @@ const AdminPage: React.FC = () => {
                   placeholder="e.g., cat, dog, car"
                   value={exportLabelFilter}
                   onChange={(e) => setExportLabelFilter(e.target.value)}
-                  className="block w-full rounded-md bg-brand-bg2 border-gray-600 text-white p-2"
+                  className="block w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2"
                 />
               </div>
               <div className="flex flex-col gap-2 pt-6">
@@ -537,7 +537,7 @@ const AdminPage: React.FC = () => {
                     type="checkbox"
                     checked={exportStratify}
                     onChange={(e) => setExportStratify(e.target.checked)}
-                    className="rounded bg-brand-bg2 border-gray-600"
+                    className="rounded bg-brand-bg2 border-brand-line"
                   />
                   <span className="text-sm text-gray-300">Stratify by label</span>
                 </label>
@@ -546,7 +546,7 @@ const AdminPage: React.FC = () => {
                     type="checkbox"
                     checked={exportVerifiedOnly}
                     onChange={(e) => setExportVerifiedOnly(e.target.checked)}
-                    className="rounded bg-brand-bg2 border-gray-600"
+                    className="rounded bg-brand-bg2 border-brand-line"
                   />
                   <span className="text-sm text-gray-300">Verified only</span>
                 </label>

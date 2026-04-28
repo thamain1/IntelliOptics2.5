@@ -32,7 +32,7 @@ const HubStatusPage: React.FC = () => {
       </h2>
       <div className="bg-brand-bg2 rounded-lg shadow-md overflow-hidden">
         <table className="min-w-full divide-y divide-gray-700">
-          <thead className="bg-gray-700">
+          <thead className="bg-brand-bg2">
             <tr>
               <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Name</th>
               <th className="px-6 py-3 text-left font-display uppercase tracking-ioWide text-[11px] font-bold text-brand-sage">Status</th>
@@ -46,7 +46,7 @@ const HubStatusPage: React.FC = () => {
                     <td colSpan={4} className="px-6 py-4 text-center text-gray-500 italic">No hubs registered.</td>
                 </tr>
             ) : hubs.map((h) => (
-              <tr key={h.id} className="hover:bg-gray-700 transition">
+              <tr key={h.id} className="hover:bg-brand-bg2 transition">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{h.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

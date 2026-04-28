@@ -211,7 +211,7 @@ const DeploymentManagerPage = () => {
               <select
                 value={groupFilter}
                 onChange={(e) => setGroupFilter(e.target.value)}
-                className="bg-gray-700 text-white text-sm rounded px-2 py-1 border border-gray-600 focus:outline-none focus:border-brand-primary"
+                className="bg-brand-bg2 text-white text-sm rounded px-2 py-1 border border-brand-line focus:outline-none focus:border-brand-primary"
               >
                 <option value="all">All Groups</option>
                 {groups.map((g) => (
@@ -224,7 +224,7 @@ const DeploymentManagerPage = () => {
             <ul className="space-y-2">
               {filteredDetectors.map((d) => (
                 <li key={d.id}
-                    className={`p-2 rounded cursor-pointer transition-colors ${selectedDetector === d.id ? 'bg-blue-600 text-white shadow-lg border-l-4 border-blue-300' : 'bg-gray-700 hover:bg-gray-600 border-l-4 border-transparent'}`}
+                    className={`p-2 rounded cursor-pointer transition-colors ${selectedDetector === d.id ? 'bg-blue-600 text-white shadow-lg border-l-4 border-blue-300' : 'bg-brand-bg2 hover:bg-gray-600 border-l-4 border-transparent'}`}
                     onClick={() => setSelectedDetector(d.id)}>
                   <span>{d.name}</span>
                   {d.group_name && <span className="text-xs text-gray-400 ml-2">({d.group_name})</span>}
@@ -241,7 +241,7 @@ const DeploymentManagerPage = () => {
             <ul className="space-y-2">
               {hubs.map((h) => (
                 <li key={h.id}
-                    className={`p-2 rounded cursor-pointer flex items-center transition-colors ${selectedHubs.has(h.id) ? 'bg-blue-600 text-white' : 'bg-gray-700 hover:bg-gray-600'}`}
+                    className={`p-2 rounded cursor-pointer flex items-center transition-colors ${selectedHubs.has(h.id) ? 'bg-blue-600 text-white' : 'bg-brand-bg2 hover:bg-gray-600'}`}
                     onClick={() => handleHubSelection(h.id)}>
                   <input type="checkbox" readOnly checked={selectedHubs.has(h.id)} className="mr-3 h-4 w-4 rounded-sm border-gray-500 bg-gray-600 accent-blue-500" />
                   {h.name}
@@ -263,7 +263,7 @@ const DeploymentManagerPage = () => {
               <ul className="space-y-2">
                 {cameras.map((c) => (
                   <li key={c.id || c.name}
-                      className={`p-2 rounded cursor-pointer flex items-center transition-colors ${selectedCameras.has(c.id || c.name) ? 'bg-blue-600 text-white' : 'bg-gray-700 hover:bg-gray-600'}`}
+                      className={`p-2 rounded cursor-pointer flex items-center transition-colors ${selectedCameras.has(c.id || c.name) ? 'bg-blue-600 text-white' : 'bg-brand-bg2 hover:bg-gray-600'}`}
                       onClick={() => handleCameraSelection(c.id || c.name)}>
                     <input type="checkbox" readOnly checked={selectedCameras.has(c.id || c.name)} className="mr-3 h-4 w-4 rounded-sm border-gray-500 bg-gray-600 accent-blue-500" />
                     <div>

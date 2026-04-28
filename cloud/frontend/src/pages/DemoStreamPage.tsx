@@ -615,7 +615,7 @@ const DemoStreamPage: React.FC = () => {
                     <select
                       value={selectedCameraId}
                       onChange={(e) => handleSelectRegisteredCamera(e.target.value)}
-                      className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                      className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2"
                     >
                       <option value="">— Select a camera or enter URL below —</option>
                       {registeredCameras.map((c) => (
@@ -646,7 +646,7 @@ const DemoStreamPage: React.FC = () => {
                       }
                     }}
                     placeholder="rtsp://user:pass@host:port/path  ·  https://...m3u8  ·  YouTube/EarthCam URL"
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 font-mono text-sm"
+                    className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 font-mono text-sm"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Supports RTSP, RTMP, HLS, MJPEG, direct video, plus YouTube and EarthCam.
@@ -696,7 +696,7 @@ const DemoStreamPage: React.FC = () => {
                   className={`px-4 py-2 rounded ${
                     captureMode === 'polling'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-400'
+                      : 'bg-brand-bg2 text-gray-400'
                   }`}
                 >
                   Polling
@@ -706,7 +706,7 @@ const DemoStreamPage: React.FC = () => {
                   className={`px-4 py-2 rounded ${
                     captureMode === 'motion'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-400'
+                      : 'bg-brand-bg2 text-gray-400'
                   }`}
                 >
                   Motion Detection
@@ -716,7 +716,7 @@ const DemoStreamPage: React.FC = () => {
                   className={`px-4 py-2 rounded ${
                     captureMode === 'manual'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-400'
+                      : 'bg-brand-bg2 text-gray-400'
                   }`}
                 >
                   Manual
@@ -726,7 +726,7 @@ const DemoStreamPage: React.FC = () => {
                   className={`px-4 py-2 rounded ${
                     captureMode === 'webcam'
                       ? 'bg-green-600 text-white'
-                      : 'bg-gray-700 text-gray-400'
+                      : 'bg-brand-bg2 text-gray-400'
                   }`}
                 >
                   Local Camera
@@ -736,7 +736,7 @@ const DemoStreamPage: React.FC = () => {
                   className={`px-4 py-2 rounded ${
                     captureMode === 'yoloe'
                       ? 'bg-orange-600 text-white'
-                      : 'bg-gray-700 text-gray-400'
+                      : 'bg-brand-bg2 text-gray-400'
                   }`}
                 >
                   Detect
@@ -746,7 +746,7 @@ const DemoStreamPage: React.FC = () => {
                   className={`px-4 py-2 rounded ${
                     captureMode === 'yoloworld'
                       ? 'bg-purple-600 text-white'
-                      : 'bg-gray-700 text-gray-400'
+                      : 'bg-brand-bg2 text-gray-400'
                   }`}
                 >
                   IntelliSearch
@@ -781,7 +781,7 @@ const DemoStreamPage: React.FC = () => {
                   value={yoloworldPrompts}
                   onChange={(e) => setYoloworldPrompts(e.target.value)}
                   placeholder="person, car, fire, smoke, hard hat, safety vest"
-                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                  className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2"
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   Examples: "forklift, person, pallet" or "fire, smoke" or "dog, cat, bird"
@@ -802,14 +802,14 @@ const DemoStreamPage: React.FC = () => {
                     placeholder="Search detectors..."
                     value={detectorSearch}
                     onChange={(e) => setDetectorSearch(e.target.value)}
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 text-sm"
+                    className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 text-sm"
                   />
                 </div>
                 <div className="w-full md:w-48">
                   <select
                     value={selectedGroup}
                     onChange={(e) => setSelectedGroup(e.target.value)}
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 text-sm"
+                    className="w-full rounded-md bg-brand-bg2 border-brand-line text-white p-2 text-sm"
                   >
                     <option value="all">All Groups</option>
                     {detectorGroups.map(group => (
@@ -827,7 +827,7 @@ const DemoStreamPage: React.FC = () => {
                       setSelectedDetectors([...new Set([...selectedDetectors, ...filteredIds])]);
                     }
                   }}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-xs rounded text-gray-300 transition"
+                  className="px-4 py-2 bg-brand-bg2 hover:bg-gray-600 text-xs rounded text-gray-300 transition"
                 >
                   {filteredDetectors.every(d => selectedDetectors.includes(d.id)) && filteredDetectors.length > 0 ? 'Deselect All Filtered' : 'Select All Filtered'}
                 </button>
@@ -836,7 +836,7 @@ const DemoStreamPage: React.FC = () => {
               <div className="space-y-2 max-h-48 overflow-y-auto p-2 bg-brand-bg/50 rounded border border-brand-line">
                 {filteredDetectors.length > 0 ? (
                   filteredDetectors.map((det) => (
-                    <label key={det.id} className="flex items-center space-x-2 hover:bg-gray-700/50 p-1 rounded cursor-pointer transition">
+                    <label key={det.id} className="flex items-center space-x-2 hover:bg-brand-bg2/50 p-1 rounded cursor-pointer transition">
                       <input
                         type="checkbox"
                         checked={selectedDetectors.includes(det.id)}
@@ -849,7 +849,7 @@ const DemoStreamPage: React.FC = () => {
                             );
                           }
                         }}
-                        className="rounded border-gray-600 text-blue-600 focus:ring-brand-primary bg-gray-700"
+                        className="rounded border-brand-line text-blue-600 focus:ring-brand-primary bg-brand-bg2"
                       />
                       <div className="flex flex-col">
                         <span className="text-sm text-gray-200">{det.name}</span>
@@ -924,7 +924,7 @@ const DemoStreamPage: React.FC = () => {
                       }
                     }}
                     placeholder="person, car, fire, smoke"
-                    className="flex-1 rounded-md bg-gray-700 border-purple-600 text-white p-2"
+                    className="flex-1 rounded-md bg-brand-bg2 border-purple-600 text-white p-2"
                   />
                   <button
                     onClick={() => {
@@ -1035,7 +1035,7 @@ const DemoStreamPage: React.FC = () => {
                     type="checkbox"
                     checked={showOverlay}
                     onChange={(e) => setShowOverlay(e.target.checked)}
-                    className="rounded border-gray-600 bg-gray-700"
+                    className="rounded border-brand-line bg-brand-bg2"
                   />
                   Show Overlay
                 </label>
@@ -1044,7 +1044,7 @@ const DemoStreamPage: React.FC = () => {
                     type="checkbox"
                     checked={showLabels}
                     onChange={(e) => setShowLabels(e.target.checked)}
-                    className="rounded border-gray-600 bg-gray-700"
+                    className="rounded border-brand-line bg-brand-bg2"
                   />
                   Show Labels
                 </label>
@@ -1076,7 +1076,7 @@ const DemoStreamPage: React.FC = () => {
 
             <div className="mt-4 space-y-3">
               {/* Session Stats */}
-              <div className="bg-gray-700 rounded p-3">
+              <div className="bg-brand-bg2 rounded p-3">
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="text-sm font-semibold text-white">Session Stats</h3>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
@@ -1122,7 +1122,7 @@ const DemoStreamPage: React.FC = () => {
 
               {/* Total Detection Counts by Class */}
               {Object.keys(totalCounts).length > 0 && (
-                <div className="bg-gray-700 rounded p-3">
+                <div className="bg-brand-bg2 rounded p-3">
                   <h3 className="text-sm font-semibold text-white mb-2">Total Detections by Class</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     {Object.entries(totalCounts)
@@ -1139,7 +1139,7 @@ const DemoStreamPage: React.FC = () => {
 
               {/* Latest Frame Detection Counts */}
               {Object.keys(latestFrameCounts).length > 0 && (
-                <div className="bg-gray-700 rounded p-3">
+                <div className="bg-brand-bg2 rounded p-3">
                   <h3 className="text-sm font-semibold text-white mb-2">
                     Current Frame #{latestFrame}
                   </h3>
@@ -1167,7 +1167,7 @@ const DemoStreamPage: React.FC = () => {
               {results.map((result) => (
                 <div
                   key={result.id}
-                  className="bg-gray-700 rounded-lg p-3 border-l-4 border-blue-500"
+                  className="bg-brand-bg2 rounded-lg p-3 border-l-4 border-blue-500"
                 >
                   <div className="flex justify-between items-start">
                     <div>

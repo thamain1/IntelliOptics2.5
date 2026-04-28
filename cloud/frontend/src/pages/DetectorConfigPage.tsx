@@ -69,14 +69,14 @@ const Card = ({ title, children }: { title: string, children: React.ReactNode })
 const Input = ({ label, id, ...props }: any) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-400">{label}</label>
-        <input id={id} {...props} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm" />
+        <input id={id} {...props} className="mt-1 block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm" />
     </div>
 );
 
 const Select = ({ label, id, children, ...props }: any) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-400">{label}</label>
-        <select id={id} {...props} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm">
+        <select id={id} {...props} className="mt-1 block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm">
             {children}
         </select>
     </div>
@@ -84,7 +84,7 @@ const Select = ({ label, id, children, ...props }: any) => (
 
 const Checkbox = ({ label, id, ...props }: any) => (
     <div className="flex items-center">
-        <input id={id} {...props} type="checkbox" className="focus:ring-brand-primary h-4 w-4 text-blue-600 border-gray-600 rounded" />
+        <input id={id} {...props} type="checkbox" className="focus:ring-brand-primary h-4 w-4 text-blue-600 border-brand-line rounded" />
         <label htmlFor={id} className="ml-2 block text-sm text-gray-300">{label}</label>
     </div>
 );
@@ -288,10 +288,10 @@ const DetectorConfigPage = () => {
                     <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
                       Detector <span className="text-brand-primary">Configuration</span>
                     </h1>
-                    <p className="text-gray-400">ID: <span className="font-mono bg-gray-700 px-2 py-1 rounded text-xs">{detectorId}</span></p>
+                    <p className="text-gray-400">ID: <span className="font-mono bg-brand-bg2 px-2 py-1 rounded text-xs">{detectorId}</span></p>
                 </div>
                 <div className="flex space-x-4">
-                    <button type="button" onClick={() => navigate('/detectors')} className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition">
+                    <button type="button" onClick={() => navigate('/detectors')} className="bg-brand-bg2 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition">
                         Cancel
                     </button>
                     <button type="button" onClick={handleSubmit((data) => onSubmit(data, false), onFormError)} disabled={isSubmitting} className="bg-brand-primary hover:bg-brand-primaryH text-black font-bold py-2 px-4 rounded transition disabled:bg-gray-500">
@@ -355,7 +355,7 @@ const DetectorConfigPage = () => {
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor="description" className="block text-sm font-medium text-gray-400">Description</label>
-                                    <textarea id="description" {...field} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm h-24" />
+                                    <textarea id="description" {...field} className="mt-1 block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm h-24" />
                                 </div>
                             )}
                         />
@@ -370,7 +370,7 @@ const DetectorConfigPage = () => {
                                         {...field}
                                         list="group-suggestions"
                                         placeholder="e.g., Building A Security, Production Line 1"
-                                        className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm"
+                                        className="mt-1 block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm"
                                     />
                                     <datalist id="group-suggestions">
                                         {groupSuggestions.map(g => (
@@ -388,7 +388,7 @@ const DetectorConfigPage = () => {
                             <select
                                 value={metricsTimeRange}
                                 onChange={(e) => setMetricsTimeRange(e.target.value)}
-                                className="bg-gray-700 border border-gray-600 text-gray-300 text-[10px] rounded px-2 py-1"
+                                className="bg-brand-bg2 border border-brand-line text-gray-300 text-[10px] rounded px-2 py-1"
                             >
                                 <option value="1d">24h</option>
                                 <option value="7d">7d</option>
@@ -404,7 +404,7 @@ const DetectorConfigPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Input Configuration */}
                         <div className="space-y-4">
-                          <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-gray-600 pb-2">
+                          <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-brand-line pb-2">
                             Input Configuration
                           </h3>
 
@@ -459,7 +459,7 @@ const DetectorConfigPage = () => {
                                   type="text"
                                   {...field}
                                   placeholder="0.485, 0.456, 0.406"
-                                  className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm"
+                                  className="mt-1 block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">ImageNet defaults shown</p>
                               </div>
@@ -476,7 +476,7 @@ const DetectorConfigPage = () => {
                                   type="text"
                                   {...field}
                                   placeholder="0.229, 0.224, 0.225"
-                                  className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm"
+                                  className="mt-1 block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm"
                                 />
                               </div>
                             )}
@@ -485,7 +485,7 @@ const DetectorConfigPage = () => {
 
                         {/* Output Configuration */}
                         <div className="space-y-4">
-                          <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-gray-600 pb-2">
+                          <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-brand-line pb-2">
                             Output Configuration
                           </h3>
 
@@ -560,7 +560,7 @@ const DetectorConfigPage = () => {
                     {/* Model Management moved to left column */}
                     <Card title="Model Management">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-gray-700 p-4 rounded-lg border border-brand-line">
+                            <div className="bg-brand-bg2 p-4 rounded-lg border border-brand-line">
                                 <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wider">Primary Inference Model</h3>
                                 <p className="text-xs text-gray-400 mb-4 truncate" title={detector.primary_model_blob_path}>
                                     {detector.primary_model_blob_path || 'No model uploaded'}
@@ -578,7 +578,7 @@ const DetectorConfigPage = () => {
                                 {isUploadingPrimary && <p className="text-xs text-blue-400 mt-2 animate-pulse">Uploading primary model...</p>}
                             </div>
 
-                            <div className="bg-gray-700 p-4 rounded-lg border border-brand-line">
+                            <div className="bg-brand-bg2 p-4 rounded-lg border border-brand-line">
                                 <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wider">OODD Model (Ground Truth)</h3>
                                 <p className="text-xs text-gray-400 mb-4 truncate" title={detector.oodd_model_blob_path}>
                                     {detector.oodd_model_blob_path || 'No model uploaded'}
@@ -626,7 +626,7 @@ const DetectorConfigPage = () => {
 
                         {testResult && (
                           <div className="mt-4 space-y-3">
-                            <div className="bg-gray-700 p-3 rounded-md">
+                            <div className="bg-brand-bg2 p-3 rounded-md">
                               <h4 className="text-sm font-bold text-white mb-2">Results</h4>
 
                               {testResult.detections && testResult.detections.length > 0 ? (
@@ -645,7 +645,7 @@ const DetectorConfigPage = () => {
                               )}
                             </div>
 
-                            <div className="bg-gray-700 p-3 rounded-md">
+                            <div className="bg-brand-bg2 p-3 rounded-md">
                               <h4 className="text-sm font-bold text-white mb-2">Performance</h4>
                               <div className="space-y-1 text-sm">
                                 <div className="flex justify-between">
@@ -667,7 +667,7 @@ const DetectorConfigPage = () => {
                                 <img
                                   src={testResult.annotated_image_url}
                                   alt="Annotated detection"
-                                  className="w-full rounded-md border border-gray-600"
+                                  className="w-full rounded-md border border-brand-line"
                                 />
                               </div>
                             )}
@@ -714,7 +714,7 @@ const DetectorConfigPage = () => {
                                               field.onChange(updated);
                                             }}
                                             placeholder="e.g., person, fire, red truck"
-                                            className="flex-1 bg-gray-700 text-white rounded px-3 py-1.5 text-sm border border-gray-600"
+                                            className="flex-1 bg-brand-bg2 text-white rounded px-3 py-1.5 text-sm border border-brand-line"
                                           />
                                           <button
                                             type="button"
@@ -783,7 +783,7 @@ const DetectorConfigPage = () => {
                                               field.onChange(newClassNames);
                                             }}
                                             placeholder="Enter class name"
-                                            className="flex-1 rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm px-3 py-2"
+                                            className="flex-1 rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm px-3 py-2"
                                           />
                                           <button
                                             type="button"
@@ -805,7 +805,7 @@ const DetectorConfigPage = () => {
                                         onClick={() => {
                                           field.onChange([...(field.value || []), ""]);
                                         }}
-                                        className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md border border-gray-600 transition"
+                                        className="w-full bg-brand-bg2 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md border border-brand-line transition"
                                       >
                                         + Add Class
                                       </button>
@@ -833,7 +833,7 @@ const DetectorConfigPage = () => {
                                             min="0"
                                             max="1"
                                             step="0.01"
-                                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                            className="w-full h-2 bg-brand-bg2 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                             {...field}
                                             onChange={e => field.onChange(parseFloat(e.target.value))}
                                         />
@@ -844,7 +844,7 @@ const DetectorConfigPage = () => {
 
                             {/* Detection Parameters for BOUNDING_BOX mode */}
                             {watch("mode") === "BOUNDING_BOX" && (
-                              <div className="mt-4 p-4 bg-gray-700 rounded-md border border-gray-600">
+                              <div className="mt-4 p-4 bg-brand-bg2 rounded-md border border-brand-line">
                                 <h3 className="text-sm font-bold text-white mb-3 uppercase tracking-wider">
                                   Object Detection Parameters
                                 </h3>
@@ -980,7 +980,7 @@ const DetectorConfigPage = () => {
                                 name="edge_inference_config.disable_cloud_escalation"
                                 control={control}
                                 render={({ field }) => (
-                                    <div className="bg-gray-700 p-3 rounded-md border border-gray-600">
+                                    <div className="bg-brand-bg2 p-3 rounded-md border border-brand-line">
                                         <Checkbox
                                             label="Enable Offline Mode"
                                             id="disable_cloud_escalation"
@@ -1018,7 +1018,7 @@ const DetectorConfigPage = () => {
                         ) : (
                             <div className="space-y-4">
                                 {deployments.map(dep => (
-                                    <div key={dep.id} className="bg-gray-700 p-3 rounded-md flex items-center justify-between border-l-4 border-green-500">
+                                    <div key={dep.id} className="bg-brand-bg2 p-3 rounded-md flex items-center justify-between border-l-4 border-green-500">
                                         <div>
                                             <p className="text-sm font-bold text-white">{dep.hub_name || 'Edge Device'}</p>
                                             <p className="text-xs text-gray-400">{new Date(dep.deployed_at).toLocaleDateString()}</p>
@@ -1035,10 +1035,10 @@ const DetectorConfigPage = () => {
 
                     <Card title="Quick Actions">
                         <div className="space-y-2">
-                            <button type="button" onClick={() => navigate('/queries', { state: { detector_id: detectorId } })} className="w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded text-sm flex items-center">
+                            <button type="button" onClick={() => navigate('/queries', { state: { detector_id: detectorId } })} className="w-full text-left bg-brand-bg2 hover:bg-gray-600 p-3 rounded text-sm flex items-center">
                                 <span className="mr-3">📊</span> View Query History
                             </button>
-                            <button type="button" onClick={() => navigate('/escalations', { state: { detector_id: detectorId } })} className="w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded text-sm flex items-center">
+                            <button type="button" onClick={() => navigate('/escalations', { state: { detector_id: detectorId } })} className="w-full text-left bg-brand-bg2 hover:bg-gray-600 p-3 rounded text-sm flex items-center">
                                 <span className="mr-3">🚨</span> View Escalation Queue
                             </button>
                         </div>
@@ -1162,7 +1162,7 @@ const DetectorAlertsConfig = ({ detectorId }: { detectorId: string }) => {
                                 <textarea
                                     value={(config.alert_emails || []).join('\n')}
                                     onChange={(e) => setConfig({ ...config, alert_emails: e.target.value.split('\n').filter((s: string) => s.trim()) })}
-                                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm h-24"
+                                    className="mt-1 block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm h-24"
                                     placeholder="security@company.com&#10;ops@company.com"
                                 />
                             </div>
@@ -1194,7 +1194,7 @@ const DetectorAlertsConfig = ({ detectorId }: { detectorId: string }) => {
                                 <textarea
                                     value={config.custom_message || ''}
                                     onChange={(e) => setConfig({ ...config, custom_message: e.target.value })}
-                                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm h-24"
+                                    className="mt-1 block w-full rounded-md bg-brand-bg2 border-brand-line text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm h-24"
                                     placeholder="Person detected on {camera_name} with {confidence} confidence"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
@@ -1347,7 +1347,7 @@ const StatusBadge = ({ status }: { status: string }) => {
         failed:    'bg-red-900/60 text-red-300',
     };
     return (
-        <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase font-mono ${styles[status] ?? 'bg-gray-700 text-gray-400'}`}>
+        <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase font-mono ${styles[status] ?? 'bg-brand-bg2 text-gray-400'}`}>
             {status}
         </span>
     );
@@ -1356,7 +1356,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 const MetricPill = ({ label, value }: { label: string; value: number | undefined }) => {
     if (value === undefined || value === null) return null;
     return (
-        <span className="bg-gray-700 px-2 py-0.5 rounded text-xs font-mono">
+        <span className="bg-brand-bg2 px-2 py-0.5 rounded text-xs font-mono">
             <span className="text-gray-400">{label}: </span>
             <span className="text-white font-bold">{(value * 100).toFixed(1)}%</span>
         </span>
@@ -1483,7 +1483,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
             <Card title="Live Model">
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                        <div className="bg-brand-bg2 p-4 rounded-lg border border-brand-line">
                             <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Primary (Live)</p>
                             <p className="text-sm text-white font-mono break-all">
                                 {modelStatus?.primary_model_path
@@ -1491,7 +1491,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                     : <span className="text-gray-500 italic">No model deployed</span>}
                             </p>
                         </div>
-                        <div className={`p-4 rounded-lg border ${modelStatus?.candidate_model_path ? 'bg-green-900/20 border-green-700' : 'bg-gray-700 border-gray-600'}`}>
+                        <div className={`p-4 rounded-lg border ${modelStatus?.candidate_model_path ? 'bg-green-900/20 border-green-700' : 'bg-brand-bg2 border-brand-line'}`}>
                             <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
                                 Candidate {modelStatus?.candidate_model_version ? `(v${modelStatus.candidate_model_version})` : ''}
                             </p>
@@ -1517,14 +1517,14 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                         <button
                             onClick={handlePromote}
                             disabled={!modelStatus?.can_promote || isPromoting}
-                            className="bg-green-700 hover:bg-green-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 px-5 rounded transition text-sm"
+                            className="bg-green-700 hover:bg-green-600 disabled:bg-brand-bg2 disabled:text-gray-500 text-white font-bold py-2 px-5 rounded transition text-sm"
                         >
                             {isPromoting ? 'Promoting…' : '▲ Promote Candidate'}
                         </button>
                         <button
                             onClick={handleRollback}
                             disabled={!modelStatus?.can_rollback || isRollingBack}
-                            className="bg-orange-700 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 px-5 rounded transition text-sm"
+                            className="bg-orange-700 hover:bg-orange-600 disabled:bg-brand-bg2 disabled:text-gray-500 text-white font-bold py-2 px-5 rounded transition text-sm"
                         >
                             {isRollingBack ? 'Rolling back…' : '↩ Rollback'}
                         </button>
@@ -1541,7 +1541,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
             <Card title="Dataset & Training">
                 <div className="space-y-5">
                     {/* Export section */}
-                    <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                    <div className="bg-brand-bg2 p-4 rounded-lg border border-brand-line">
                         <div className="flex items-center justify-between mb-3">
                             <div>
                                 <h3 className="text-sm font-bold text-white">Labeled Dataset</h3>
@@ -1557,7 +1557,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                         </div>
 
                         {lastExport && (
-                            <div className="space-y-2 pt-2 border-t border-gray-600">
+                            <div className="space-y-2 pt-2 border-t border-brand-line">
                                 <div className="flex gap-6 text-sm">
                                     <span className="text-gray-400">Total: <span className="text-white font-bold">{lastExport.sample_count}</span></span>
                                     <span className="text-gray-400">Train: <span className="text-white font-bold">{lastExport.train_count}</span></span>
@@ -1589,7 +1589,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                     </div>
 
                     {/* Trigger training section */}
-                    <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                    <div className="bg-brand-bg2 p-4 rounded-lg border border-brand-line">
                         <h3 className="text-sm font-bold text-white mb-3">Trigger Fine-Tuning</h3>
                         <div className="grid grid-cols-2 gap-4 mb-4">
                             <div>
@@ -1597,7 +1597,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                 <select
                                     value={baseModel}
                                     onChange={e => setBaseModel(e.target.value)}
-                                    className="w-full bg-brand-bg2 border border-gray-600 text-white rounded px-3 py-2 text-sm"
+                                    className="w-full bg-brand-bg2 border border-brand-line text-white rounded px-3 py-2 text-sm"
                                 >
                                     <option value="yolov8n.pt">YOLOv8n (nano — fastest)</option>
                                     <option value="yolov8s.pt">YOLOv8s (small — recommended)</option>
@@ -1613,7 +1613,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                     max={300}
                                     value={epochs}
                                     onChange={e => setEpochs(parseInt(e.target.value) || 50)}
-                                    className="w-full bg-brand-bg2 border border-gray-600 text-white rounded px-3 py-2 text-sm"
+                                    className="w-full bg-brand-bg2 border border-brand-line text-white rounded px-3 py-2 text-sm"
                                 />
                             </div>
                         </div>
@@ -1649,17 +1649,17 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                         the last completed training run.
                     </p>
                     <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-gray-700 rounded-lg p-3 border border-gray-600 text-center">
+                        <div className="bg-brand-bg2 rounded-lg p-3 border border-brand-line text-center">
                             <p className="text-xs text-gray-400 mb-1">Threshold</p>
                             <p className="text-lg font-bold text-white font-mono">100</p>
                             <p className="text-xs text-gray-500">samples</p>
                         </div>
-                        <div className="bg-gray-700 rounded-lg p-3 border border-gray-600 text-center">
+                        <div className="bg-brand-bg2 rounded-lg p-3 border border-brand-line text-center">
                             <p className="text-xs text-gray-400 mb-1">Check interval</p>
                             <p className="text-lg font-bold text-white font-mono">1 h</p>
                             <p className="text-xs text-gray-500">configurable</p>
                         </div>
-                        <div className="bg-gray-700 rounded-lg p-3 border border-gray-600 text-center">
+                        <div className="bg-brand-bg2 rounded-lg p-3 border border-brand-line text-center">
                             <p className="text-xs text-gray-400 mb-1">Auto runs</p>
                             <p className="text-lg font-bold text-purple-300 font-mono">
                                 {trainingRuns.filter(r => r.auto_triggered).length}
@@ -1706,7 +1706,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                         {(Object.keys(canaryReport.primary_label_distribution).length > 0 ||
                           Object.keys(canaryReport.shadow_label_distribution).length > 0) && (
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-gray-700 p-3 rounded-lg border border-gray-600">
+                                <div className="bg-brand-bg2 p-3 rounded-lg border border-brand-line">
                                     <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Primary labels</p>
                                     <div className="space-y-1">
                                         {Object.entries(canaryReport.primary_label_distribution).map(([lbl, cnt]) => (
@@ -1717,7 +1717,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                         ))}
                                     </div>
                                 </div>
-                                <div className="bg-gray-700 p-3 rounded-lg border border-green-800/50">
+                                <div className="bg-brand-bg2 p-3 rounded-lg border border-green-800/50">
                                     <p className="text-xs text-green-400 uppercase tracking-wider mb-2">Candidate labels</p>
                                     <div className="space-y-1">
                                         {Object.entries(canaryReport.shadow_label_distribution).map(([lbl, cnt]) => {
@@ -1761,7 +1761,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                         </thead>
                                         <tbody>
                                             {canaryReport.recent_disagreements.map(d => (
-                                                <tr key={d.id} className="border-b border-gray-800 hover:bg-gray-700/40">
+                                                <tr key={d.id} className="border-b border-gray-800 hover:bg-brand-bg2/40">
                                                     <td className="py-1 pr-3 text-gray-500 whitespace-nowrap">
                                                         {d.created_at ? new Date(d.created_at).toLocaleString() : '—'}
                                                     </td>
@@ -1801,7 +1801,7 @@ const ModelTrainingTab = ({ detectorId }: { detectorId: string }) => {
                                 className={`p-4 rounded-lg border ${
                                     run.status === 'failed' ? 'bg-red-900/10 border-red-800' :
                                     run.status === 'completed' ? 'bg-green-900/10 border-green-800' :
-                                    'bg-gray-700 border-gray-600'
+                                    'bg-brand-bg2 border-brand-line'
                                 }`}
                             >
                                 <div className="flex items-start justify-between gap-3">

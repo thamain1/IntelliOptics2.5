@@ -235,7 +235,7 @@ const DetectorAlertConfigPage: React.FC = () => {
               type="text"
               value={alertName}
               onChange={(e) => setAlertName(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
+              className="w-full bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
               placeholder="IntelliOptics Alert"
             />
           </div>
@@ -245,7 +245,7 @@ const DetectorAlertConfigPage: React.FC = () => {
               type="text"
               value={detector?.name || ''}
               disabled
-              className="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-gray-400"
+              className="w-full bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-gray-400"
             />
           </div>
         </div>
@@ -260,7 +260,7 @@ const DetectorAlertConfigPage: React.FC = () => {
           <select
             value={conditionType}
             onChange={(e) => setConditionType(e.target.value)}
-            className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
+            className="bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
           >
             <option value="LABEL_MATCH">Gives answer</option>
             <option value="CONFIDENCE_ABOVE">Confidence above</option>
@@ -273,7 +273,7 @@ const DetectorAlertConfigPage: React.FC = () => {
             <select
               value={conditionValue}
               onChange={(e) => setConditionValue(e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary min-w-[120px]"
+              className="bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary min-w-[120px]"
             >
               {labelOptions.map((label) => (
                 <option key={label} value={label}>
@@ -291,7 +291,7 @@ const DetectorAlertConfigPage: React.FC = () => {
               step="0.05"
               value={conditionValue}
               onChange={(e) => setConditionValue(e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary w-24"
+              className="bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary w-24"
               placeholder="0.85"
             />
           )}
@@ -304,14 +304,14 @@ const DetectorAlertConfigPage: React.FC = () => {
             max="100"
             value={consecutiveCount}
             onChange={(e) => setConsecutiveCount(parseInt(e.target.value) || 1)}
-            className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary w-20"
+            className="bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary w-20"
           />
 
           {/* Count Mode */}
           <select
             value={countMode}
             onChange={(e) => setCountMode(e.target.value as 'consecutive' | 'time_window')}
-            className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
+            className="bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
           >
             <option value="consecutive">Consecutive answer(s)</option>
             <option value="time_window">Times within</option>
@@ -326,7 +326,7 @@ const DetectorAlertConfigPage: React.FC = () => {
                 max="1440"
                 value={timeWindowMinutes || 5}
                 onChange={(e) => setTimeWindowMinutes(parseInt(e.target.value) || 5)}
-                className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary w-20"
+                className="bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary w-20"
               />
               <span className="text-gray-400">minutes</span>
             </>
@@ -339,7 +339,7 @@ const DetectorAlertConfigPage: React.FC = () => {
             type="checkbox"
             checked={confirmWithCloud}
             onChange={(e) => setConfirmWithCloud(e.target.checked)}
-            className="rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-brand-primary"
+            className="rounded bg-brand-bg2 border-brand-line text-blue-600 focus:ring-brand-primary"
           />
           <span>Confirm with cloud labelers before triggering action</span>
         </label>
@@ -359,7 +359,7 @@ const DetectorAlertConfigPage: React.FC = () => {
               onChange={(e) => setNewEmail(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addEmail()}
               placeholder="recipient@example.com"
-              className="flex-grow bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
+              className="flex-grow bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
             />
             <button
               onClick={addEmail}
@@ -372,7 +372,7 @@ const DetectorAlertConfigPage: React.FC = () => {
             {alertEmails.map((email) => (
               <span
                 key={email}
-                className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                className="bg-brand-bg2 text-gray-300 px-3 py-1 rounded-full text-sm flex items-center gap-2"
               >
                 {email}
                 <button onClick={() => removeEmail(email)} className="text-red-400 hover:text-red-300">
@@ -386,7 +386,7 @@ const DetectorAlertConfigPage: React.FC = () => {
               type="checkbox"
               checked={includeImage}
               onChange={(e) => setIncludeImage(e.target.checked)}
-              className="rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-brand-primary"
+              className="rounded bg-brand-bg2 border-brand-line text-blue-600 focus:ring-brand-primary"
             />
             <span>Include image in email</span>
           </label>
@@ -402,7 +402,7 @@ const DetectorAlertConfigPage: React.FC = () => {
               onChange={(e) => setNewPhone(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addPhone()}
               placeholder="+1 555 123 4567"
-              className="flex-grow bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
+              className="flex-grow bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
             />
             <button
               onClick={addPhone}
@@ -415,7 +415,7 @@ const DetectorAlertConfigPage: React.FC = () => {
             {alertPhones.map((phone) => (
               <span
                 key={phone}
-                className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                className="bg-brand-bg2 text-gray-300 px-3 py-1 rounded-full text-sm flex items-center gap-2"
               >
                 {phone}
                 <button onClick={() => removePhone(phone)} className="text-red-400 hover:text-red-300">
@@ -429,7 +429,7 @@ const DetectorAlertConfigPage: React.FC = () => {
               type="checkbox"
               checked={includeImageSms}
               onChange={(e) => setIncludeImageSms(e.target.checked)}
-              className="rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-brand-primary"
+              className="rounded bg-brand-bg2 border-brand-line text-blue-600 focus:ring-brand-primary"
             />
             <span>Include image in message (Only for US phone #s)</span>
           </label>
@@ -445,7 +445,7 @@ const DetectorAlertConfigPage: React.FC = () => {
               onChange={(e) => setNewWebhook(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addWebhook()}
               placeholder="https://api.example.com/webhook"
-              className="flex-grow bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
+              className="flex-grow bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
             />
             <button
               onClick={addWebhook}
@@ -458,7 +458,7 @@ const DetectorAlertConfigPage: React.FC = () => {
             {alertWebhooks.map((url) => (
               <span
                 key={url}
-                className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                className="bg-brand-bg2 text-gray-300 px-3 py-1 rounded-full text-sm flex items-center gap-2"
               >
                 {url}
                 <button onClick={() => removeWebhook(url)} className="text-red-400 hover:text-red-300">
@@ -477,7 +477,7 @@ const DetectorAlertConfigPage: React.FC = () => {
                 value={webhookTemplate}
                 onChange={(e) => setWebhookTemplate(e.target.value)}
                 rows={6}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-yellow-300 font-mono text-sm focus:outline-none focus:border-brand-primary"
+                className="w-full bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-yellow-300 font-mono text-sm focus:outline-none focus:border-brand-primary"
                 placeholder='{"detector_name": "{{detector_name}}", ...}'
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -498,7 +498,7 @@ const DetectorAlertConfigPage: React.FC = () => {
             <select
               value={severity}
               onChange={(e) => setSeverity(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
+              className="w-full bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
             >
               <option value="critical">Critical</option>
               <option value="warning">Warning</option>
@@ -517,7 +517,7 @@ const DetectorAlertConfigPage: React.FC = () => {
                 max="1440"
                 value={cooldownMinutes}
                 onChange={(e) => setCooldownMinutes(parseInt(e.target.value) || 5)}
-                className="flex-grow bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
+                className="flex-grow bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
               />
               <span className="text-gray-400">minutes</span>
             </div>
@@ -529,7 +529,7 @@ const DetectorAlertConfigPage: React.FC = () => {
               type="text"
               value={customMessage}
               onChange={(e) => setCustomMessage(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
+              className="w-full bg-brand-bg2 border border-brand-line rounded px-4 py-2 text-white focus:outline-none focus:border-brand-primary"
               placeholder="Optional custom message..."
             />
           </div>

@@ -160,7 +160,7 @@ const DetectorAlertsPage: React.FC = () => {
         <select
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value)}
-          className="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+          className="bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
         >
           <option value="">All Severities</option>
           <option value="critical">Critical</option>
@@ -171,7 +171,7 @@ const DetectorAlertsPage: React.FC = () => {
         <select
           value={acknowledgedFilter}
           onChange={(e) => setAcknowledgedFilter(e.target.value)}
-          className="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+          className="bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
         >
           <option value="">All Alerts</option>
           <option value="false">Unacknowledged Only</option>
@@ -181,7 +181,7 @@ const DetectorAlertsPage: React.FC = () => {
         <select
           value={daysFilter}
           onChange={(e) => setDaysFilter(parseInt(e.target.value))}
-          className="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+          className="bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
         >
           <option value={1}>Last 24 hours</option>
           <option value={7}>Last 7 days</option>
@@ -279,7 +279,7 @@ const DetectorAlertsPage: React.FC = () => {
                         navigate(`/detectors/${detector.id}/configure`);
                         // TODO: Switch to alerts tab
                       }}
-                      className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold py-2 px-4 rounded transition"
+                      className="bg-brand-bg2 hover:bg-gray-600 text-white text-sm font-bold py-2 px-4 rounded transition"
                     >
                       Configure Alerts
                     </button>

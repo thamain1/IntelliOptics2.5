@@ -136,7 +136,7 @@ export default function OpenVocabPage() {
               type="file"
               accept="image/*"
               onChange={handleImageSelect}
-              className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:bg-gray-700 file:text-white file:border-0 hover:file:bg-gray-600"
+              className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:bg-brand-bg2 file:text-white file:border-0 hover:file:bg-gray-600"
             />
           </div>
 
@@ -174,7 +174,7 @@ export default function OpenVocabPage() {
                     value={prompts}
                     onChange={e => setPrompts(e.target.value)}
                     placeholder="person, car, fire, red truck..."
-                    className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600 focus:border-brand-primary focus:outline-none"
+                    className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-brand-line focus:border-brand-primary focus:outline-none"
                   />
                 </div>
                 <div>
@@ -210,7 +210,7 @@ export default function OpenVocabPage() {
                     value={question}
                     onChange={e => setQuestion(e.target.value)}
                     placeholder="Is there a person wearing a red hat?"
-                    className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-brand-line focus:border-purple-500 focus:outline-none"
                   />
                 </div>
                 <button
@@ -241,7 +241,7 @@ export default function OpenVocabPage() {
               </h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {detections.map((det, i) => (
-                  <div key={i} className="flex items-center justify-between bg-gray-700 rounded p-2">
+                  <div key={i} className="flex items-center justify-between bg-brand-bg2 rounded p-2">
                     <span className="text-white text-sm font-medium">{det.label}</span>
                     <span className="text-gray-400 text-sm">
                       {(det.confidence * 100).toFixed(1)}%
@@ -258,7 +258,7 @@ export default function OpenVocabPage() {
               <h3 className="text-sm font-medium text-gray-400 mb-3">Query History</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {queryHistory.map(result => (
-                  <div key={result.id} className="bg-gray-700 rounded p-3">
+                  <div key={result.id} className="bg-brand-bg2 rounded p-3">
                     <p className="text-purple-400 text-sm font-medium">Q: {result.question}</p>
                     <p className="text-white text-sm mt-1">A: {result.answer}</p>
                     <p className="text-gray-500 text-xs mt-1">

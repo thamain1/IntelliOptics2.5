@@ -394,11 +394,11 @@ const CameraInspectionPage: React.FC = () => {
       connected: 'bg-green-900 text-green-300',
       degraded: 'bg-yellow-900 text-yellow-300',
       offline: 'bg-red-900 text-red-300',
-      unknown: 'bg-gray-700 text-gray-400'
+      unknown: 'bg-brand-bg2 text-gray-400'
     };
 
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-bold ${colors[status] || 'bg-gray-700'}`}>
+      <span className={`px-3 py-1 rounded-full text-xs font-bold ${colors[status] || 'bg-brand-bg2'}`}>
         {badges[status] || status}
       </span>
     );
@@ -484,7 +484,7 @@ const CameraInspectionPage: React.FC = () => {
                   value={nvrForm.hubId}
                   onChange={(e) => setNvrForm({ ...nvrForm, hubId: e.target.value })}
                   disabled={scanningNvr || addingNvrCameras}
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none"
+                  className="w-full bg-brand-bg2 text-white px-3 py-2 rounded border border-brand-line focus:border-purple-500 outline-none"
                 >
                   {hubs.length === 0 ? (
                     <option value="">No hubs available</option>
@@ -503,7 +503,7 @@ const CameraInspectionPage: React.FC = () => {
                   onChange={(e) => setNvrForm({ ...nvrForm, host: e.target.value })}
                   disabled={scanningNvr || addingNvrCameras}
                   placeholder="e.g. 10.17.0.202"
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none font-mono text-sm"
+                  className="w-full bg-brand-bg2 text-white px-3 py-2 rounded border border-brand-line focus:border-purple-500 outline-none font-mono text-sm"
                 />
               </div>
               <div>
@@ -513,7 +513,7 @@ const CameraInspectionPage: React.FC = () => {
                   value={nvrForm.port}
                   onChange={(e) => setNvrForm({ ...nvrForm, port: e.target.value })}
                   disabled={scanningNvr || addingNvrCameras}
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none font-mono text-sm"
+                  className="w-full bg-brand-bg2 text-white px-3 py-2 rounded border border-brand-line focus:border-purple-500 outline-none font-mono text-sm"
                 />
               </div>
               <div>
@@ -524,7 +524,7 @@ const CameraInspectionPage: React.FC = () => {
                   onChange={(e) => setNvrForm({ ...nvrForm, username: e.target.value })}
                   disabled={scanningNvr || addingNvrCameras}
                   autoComplete="off"
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none"
+                  className="w-full bg-brand-bg2 text-white px-3 py-2 rounded border border-brand-line focus:border-purple-500 outline-none"
                 />
               </div>
               <div>
@@ -535,7 +535,7 @@ const CameraInspectionPage: React.FC = () => {
                   onChange={(e) => setNvrForm({ ...nvrForm, password: e.target.value })}
                   disabled={scanningNvr || addingNvrCameras}
                   autoComplete="off"
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 outline-none"
+                  className="w-full bg-brand-bg2 text-white px-3 py-2 rounded border border-brand-line focus:border-purple-500 outline-none"
                 />
               </div>
             </div>
@@ -595,7 +595,7 @@ const CameraInspectionPage: React.FC = () => {
                         }}
                         placeholder="Camera name…"
                         disabled={addingNvrCameras}
-                        className="w-full bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 outline-none text-sm"
+                        className="w-full bg-brand-bg2 text-white px-2 py-1 rounded border border-brand-line focus:border-purple-500 outline-none text-sm"
                       />
                     </div>
                   ))}
@@ -607,7 +607,7 @@ const CameraInspectionPage: React.FC = () => {
               <button
                 onClick={() => { setShowNvrScan(false); setNvrChannels([]); }}
                 disabled={scanningNvr || addingNvrCameras}
-                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition disabled:opacity-50"
+                className="bg-brand-bg2 hover:bg-gray-600 text-white px-4 py-2 rounded transition disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -651,7 +651,7 @@ const CameraInspectionPage: React.FC = () => {
                   value={newCamera.hubId}
                   onChange={(e) => setNewCamera({ ...newCamera, hubId: e.target.value })}
                   disabled={savingCamera}
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-brand-primary outline-none"
+                  className="w-full bg-brand-bg2 text-white px-3 py-2 rounded border border-brand-line focus:border-brand-primary outline-none"
                 >
                   {hubs.length === 0 ? (
                     <option value="">No hubs available</option>
@@ -673,7 +673,7 @@ const CameraInspectionPage: React.FC = () => {
                   onChange={(e) => setNewCamera({ ...newCamera, name: e.target.value })}
                   disabled={savingCamera}
                   placeholder="e.g., Front Gate, Loading Dock 3, Lobby Cam"
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-brand-primary outline-none"
+                  className="w-full bg-brand-bg2 text-white px-3 py-2 rounded border border-brand-line focus:border-brand-primary outline-none"
                 />
               </div>
 
@@ -689,7 +689,7 @@ const CameraInspectionPage: React.FC = () => {
                   }}
                   disabled={savingCamera}
                   placeholder="rtsp://user:pass@host:port/path  or  https://...m3u8  or  http://...mjpg"
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-brand-primary outline-none font-mono text-sm"
+                  className="w-full bg-brand-bg2 text-white px-3 py-2 rounded border border-brand-line focus:border-brand-primary outline-none font-mono text-sm"
                 />
                 {newCamera.url && (
                   <p className="text-xs text-gray-500 mt-2">
@@ -757,7 +757,7 @@ const CameraInspectionPage: React.FC = () => {
               <button
                 onClick={resetAddCameraForm}
                 disabled={savingCamera}
-                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition disabled:opacity-50"
+                className="bg-brand-bg2 hover:bg-gray-600 text-white px-4 py-2 rounded transition disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -790,7 +790,7 @@ const CameraInspectionPage: React.FC = () => {
                 <select
                   value={config.inspection_interval_minutes}
                   onChange={(e) => setConfig({...config, inspection_interval_minutes: parseInt(e.target.value)})}
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
                 >
                   <option value={30}>30 minutes</option>
                   <option value={60}>1 hour (Recommended)</option>
@@ -809,7 +809,7 @@ const CameraInspectionPage: React.FC = () => {
                   type="number"
                   value={config.offline_threshold_minutes}
                   onChange={(e) => setConfig({...config, offline_threshold_minutes: parseInt(e.target.value)})}
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
                   min={1}
                   max={60}
                 />
@@ -824,7 +824,7 @@ const CameraInspectionPage: React.FC = () => {
                   step="0.1"
                   value={config.fps_drop_threshold_pct * 100}
                   onChange={(e) => setConfig({...config, fps_drop_threshold_pct: parseFloat(e.target.value) / 100})}
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
                   min={0}
                   max={100}
                 />
@@ -839,7 +839,7 @@ const CameraInspectionPage: React.FC = () => {
                   type="number"
                   value={config.latency_threshold_ms}
                   onChange={(e) => setConfig({...config, latency_threshold_ms: parseInt(e.target.value)})}
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
                   min={100}
                   max={5000}
                 />
@@ -857,7 +857,7 @@ const CameraInspectionPage: React.FC = () => {
                   step="0.05"
                   value={config.view_change_threshold}
                   onChange={(e) => setConfig({...config, view_change_threshold: parseFloat(e.target.value)})}
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
                   min={0}
                   max={1}
                 />
@@ -872,7 +872,7 @@ const CameraInspectionPage: React.FC = () => {
                   type="text"
                   value={config.alert_emails.join(', ')}
                   onChange={(e) => setConfig({...config, alert_emails: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
                   placeholder="admin@example.com, ops@example.com"
                 />
               </div>
@@ -885,7 +885,7 @@ const CameraInspectionPage: React.FC = () => {
                   type="number"
                   value={config.dashboard_retention_days}
                   onChange={(e) => setConfig({...config, dashboard_retention_days: parseInt(e.target.value)})}
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
                   min={1}
                   max={90}
                 />
@@ -899,7 +899,7 @@ const CameraInspectionPage: React.FC = () => {
                   type="number"
                   value={config.database_retention_days}
                   onChange={(e) => setConfig({...config, database_retention_days: parseInt(e.target.value)})}
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line"
                   min={1}
                   max={365}
                 />
@@ -928,7 +928,7 @@ const CameraInspectionPage: React.FC = () => {
           {recentRuns.length > 0 && (
             <div>
               <h3 className="text-xl font-bold text-white mb-3">Recent Inspection Runs</h3>
-              <div className="bg-gray-700 rounded-lg overflow-hidden">
+              <div className="bg-brand-bg2 rounded-lg overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-brand-bg2">
                     <tr>
@@ -948,7 +948,7 @@ const CameraInspectionPage: React.FC = () => {
                         ? Math.round((new Date(run.completed_at).getTime() - new Date(run.started_at).getTime()) / 1000)
                         : null;
                       return (
-                        <tr key={run.id} className="border-t border-gray-600">
+                        <tr key={run.id} className="border-t border-brand-line">
                           <td className="text-sm text-gray-300 px-4 py-3">
                             {new Date(run.started_at).toLocaleString()}
                           </td>
@@ -1039,12 +1039,12 @@ const CameraInspectionPage: React.FC = () => {
           placeholder="Search cameras..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          className="flex-1 bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 focus:border-brand-primary outline-none"
+          className="flex-1 bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line focus:border-brand-primary outline-none"
         />
         <select
           value={filterStatus}
           onChange={e => setFilterStatus(e.target.value)}
-          className="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 outline-none"
+          className="bg-brand-bg2 text-white px-4 py-2 rounded border border-brand-line outline-none"
         >
           <option value="">All Statuses</option>
           <option value="connected">Healthy</option>
@@ -1068,7 +1068,7 @@ const CameraInspectionPage: React.FC = () => {
 
               <div className="space-y-4">
                 {hubCameras.map(({ camera, health, alerts }) => (
-                  <div key={camera.id} className="bg-gray-700 rounded-lg p-4">
+                  <div key={camera.id} className="bg-brand-bg2 rounded-lg p-4">
                     {/* Camera Header */}
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -1128,7 +1128,7 @@ const CameraInspectionPage: React.FC = () => {
                         <h4 className="text-sm font-bold text-white mb-2">Active Alerts</h4>
                         <div className="space-y-2">
                           {alerts.map(alert => (
-                            <div key={alert.id} className="flex justify-between items-center bg-gray-700 p-2 rounded">
+                            <div key={alert.id} className="flex justify-between items-center bg-brand-bg2 p-2 rounded">
                               <div>
                                 <p className="text-white text-sm">{alert.message}</p>
                                 <p className="text-xs text-gray-400">

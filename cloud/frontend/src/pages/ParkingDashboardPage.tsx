@@ -203,7 +203,7 @@ export default function ParkingDashboardPage() {
                     </span>
                   </div>
 
-                  <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-brand-bg2 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all ${
                         occupancyPct > 90 ? 'bg-red-500' :
@@ -256,7 +256,7 @@ export default function ParkingDashboardPage() {
                 <p className="text-gray-500 text-xs">No active violations.</p>
               )}
               {violations.map(v => (
-                <div key={v.id} className="bg-gray-700 rounded p-2">
+                <div key={v.id} className="bg-brand-bg2 rounded p-2">
                   <div className="flex justify-between items-center">
                     <span className="text-red-400 text-xs font-medium uppercase">
                       {v.violation_type.replace('_', ' ')}
@@ -296,7 +296,7 @@ export default function ParkingDashboardPage() {
                   value={newZoneName}
                   onChange={e => setNewZoneName(e.target.value)}
                   placeholder="Lot A - Main Entrance"
-                  className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-brand-line"
                 />
               </div>
               <div>
@@ -305,7 +305,7 @@ export default function ParkingDashboardPage() {
                   type="number"
                   value={newZoneCapacity}
                   onChange={e => setNewZoneCapacity(parseInt(e.target.value) || 0)}
-                  className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-brand-line"
                 />
               </div>
               <div>
@@ -313,7 +313,7 @@ export default function ParkingDashboardPage() {
                 <select
                   value={newZoneType}
                   onChange={e => setNewZoneType(e.target.value)}
-                  className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600"
+                  className="w-full bg-brand-bg2 text-white rounded px-3 py-2 text-sm border border-brand-line"
                 >
                   <option value="general">General</option>
                   <option value="permit">Permit Only</option>

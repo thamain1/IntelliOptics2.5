@@ -169,7 +169,7 @@ const QueryHistoryPage: React.FC = () => {
               placeholder="Filter by label..."
               value={labelFilter}
               onChange={(e) => setLabelFilter(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-brand-primary focus:outline-none w-40"
+              className="px-3 py-2 rounded bg-brand-bg2 border border-brand-line text-white text-sm focus:border-brand-primary focus:outline-none w-40"
             />
             {/* Confidence Slider */}
             <div className="flex items-center gap-2">
@@ -194,7 +194,7 @@ const QueryHistoryPage: React.FC = () => {
               onClick={() => setShowVerified(!showVerified)}
               className={`px-4 py-2 rounded text-sm font-medium transition ${
                 showVerified
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  ? 'bg-brand-bg2 text-gray-300 hover:bg-gray-600'
                   : 'bg-blue-600 text-white hover:bg-blue-500'
               }`}
             >
@@ -221,7 +221,7 @@ const QueryHistoryPage: React.FC = () => {
           {queries.map((q) => (
             <div
               key={q.id}
-              className="bg-brand-bg2 rounded-lg overflow-hidden border border-brand-line hover:border-gray-600 transition"
+              className="bg-brand-bg2 rounded-lg overflow-hidden border border-brand-line hover:border-brand-line transition"
             >
               {/* Image with Bounding Boxes */}
               <div
@@ -284,7 +284,7 @@ const QueryHistoryPage: React.FC = () => {
                       <span>Confidence</span>
                       <span>{(q.confidence * 100).toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-1.5">
+                    <div className="w-full bg-brand-bg2 rounded-full h-1.5">
                       <div
                         className={`h-1.5 rounded-full ${
                           q.confidence >= 0.8 ? 'bg-green-500' :
@@ -305,7 +305,7 @@ const QueryHistoryPage: React.FC = () => {
                 {/* Ground Truth Actions */}
                 {q.ground_truth ? (
                   <div className={`text-center py-2 rounded ${
-                    q.ground_truth === 'skipped' ? 'bg-gray-700 text-gray-400' :
+                    q.ground_truth === 'skipped' ? 'bg-brand-bg2 text-gray-400' :
                     q.is_correct ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'
                   }`}>
                     <span className="text-xs font-medium">
@@ -358,7 +358,7 @@ const QueryHistoryPage: React.FC = () => {
           <div className="mt-6 text-center">
             <button
               onClick={handleLoadMore}
-              className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded transition"
+              className="bg-brand-bg2 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded transition"
             >
               Load More ({total - queries.length} remaining)
             </button>
