@@ -595,11 +595,28 @@ class CameraInspectionWorker:
                 f"High latency: {health_data['latency_ms']}ms"
             )
 
+    async def _abandon_stale_runs(self):
+        """Mark any lingering 'running' runs as abandoned before starting a new cycle."""
+        try:
+            resp = await self.client.get(f"{self.api_url}/camera-inspection/runs?limit=20")
+            resp.raise_for_status()
+            for run in resp.json():
+                if run.get("status") == "running":
+                    await self.client.put(
+                        f"{self.api_url}/camera-inspection/runs/{run['id']}",
+                        params={"status": "abandoned"},
+                    )
+                    logger.info(f"Marked stale run {run['id']} as abandoned")
+        except Exception as e:
+            logger.warning(f"Could not clean up stale runs: {e}")
+
     async def run_inspection_cycle(self):
         """
         Run a complete inspection cycle for all cameras.
         """
         logger.info("=== Starting inspection cycle ===")
+
+        await self._abandon_stale_runs()
 
         # Get configuration
         config = await self.get_inspection_config()
