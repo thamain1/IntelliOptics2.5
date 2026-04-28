@@ -99,6 +99,9 @@ def create_app() -> FastAPI:
     app.add_middleware(StripTrailingSlashMiddleware)
     # Create database tables if they don't exist
     Base.metadata.create_all(bind=engine)
+    # Seed admin users (idempotent — no-op if they already exist)
+    from .seed_admin import seed_admin_user
+    seed_admin_user()
     # Include routers
     app.include_router(auth.router) # Add the new auth router for /token
     app.include_router(detectors.router)

@@ -45,6 +45,8 @@ AZURE_BLOB_CONNECTION_STRING = os.getenv("AZURE_BLOB_CONNECTION_STRING")
 AZURE_BLOB_CONTAINER = os.getenv("AZURE_BLOB_CONTAINER", "camera-baselines")
 WORKER_EMAIL = os.getenv("ADMIN_EMAIL", os.getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@intellioptics.com"))
 WORKER_PASSWORD = os.getenv("ADMIN_PASSWORD", os.getenv("BOOTSTRAP_ADMIN_PASSWORD", "admin123"))
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
 
 
 class CameraInspectionWorker:
@@ -287,10 +289,29 @@ class CameraInspectionWorker:
         if camera_id in self.baseline_cache:
             return self.baseline_cache[camera_id]
 
-        # TODO: Download from Azure Blob Storage
-        # For now, return None (baseline images not yet implemented)
-        logger.warning(f"Baseline image download not implemented yet for camera {camera_id}")
-        return None
+        if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+            logger.warning("SUPABASE_URL/SUPABASE_SERVICE_KEY not set — skipping baseline download")
+            return None
+
+        try:
+            # baseline_path is stored as "bucket/blob" (e.g. "images/camera-baselines/xyz.jpg")
+            url = f"{SUPABASE_URL}/storage/v1/object/{baseline_path}"
+            headers = {
+                "apikey": SUPABASE_SERVICE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+            }
+            resp = httpx.get(url, headers=headers, timeout=10.0)
+            if resp.status_code != 200:
+                logger.warning(f"Baseline download failed ({resp.status_code}) for camera {camera_id}")
+                return None
+            nparr = np.frombuffer(resp.content, np.uint8)
+            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if frame is not None:
+                self.baseline_cache[camera_id] = frame
+            return frame
+        except Exception as e:
+            logger.error(f"Baseline download error for camera {camera_id}: {e}")
+            return None
 
     async def inspect_camera(self, camera: Dict, config: Dict) -> Dict:
         """
