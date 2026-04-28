@@ -90,6 +90,70 @@ const CameraInspectionPage: React.FC = () => {
   const [config, setConfig] = useState<InspectionConfig | null>(null);
   const [recentRuns, setRecentRuns] = useState<InspectionRun[]>([]);
   const [savingConfig, setSavingConfig] = useState(false);
+  const [showAddCamera, setShowAddCamera] = useState(false);
+  const [hubs, setHubs] = useState<{ id: string; name: string }[]>([]);
+  const [newCamera, setNewCamera] = useState({ name: '', url: '', hubId: '' });
+  const [savingCamera, setSavingCamera] = useState(false);
+  const [addCameraError, setAddCameraError] = useState<string | null>(null);
+
+  const fetchHubs = async () => {
+    try {
+      const res = await axios.get('/hubs');
+      const list = (res.data || []).map((h: { id: string; name: string }) => ({ id: h.id, name: h.name }));
+      setHubs(list);
+      if (list.length > 0 && !newCamera.hubId) {
+        setNewCamera(prev => ({ ...prev, hubId: list[0].id }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch hubs:', err);
+    }
+  };
+
+  const detectStreamType = (url: string): string => {
+    if (!url) return '';
+    const u = url.trim().toLowerCase();
+    if (u.startsWith('rtsp://')) return 'RTSP';
+    if (u.startsWith('rtmp://')) return 'RTMP';
+    if (u.includes('youtube.com') || u.includes('youtu.be')) return 'YouTube';
+    if (u.match(/\.(mp4|webm|mov|avi|mkv)(\?|$)/)) return 'Video file';
+    if (u.match(/\.(m3u8)(\?|$)/)) return 'HLS';
+    if (u.includes('mjpg') || u.includes('mjpeg')) return 'MJPEG';
+    if (u.startsWith('http://') || u.startsWith('https://')) return 'HTTP stream';
+    return '';
+  };
+
+  const handleAddCamera = async () => {
+    setAddCameraError(null);
+    if (!newCamera.hubId) {
+      setAddCameraError('Pick a hub.');
+      return;
+    }
+    if (!newCamera.name.trim()) {
+      setAddCameraError('Camera name is required.');
+      return;
+    }
+    if (!newCamera.url.trim()) {
+      setAddCameraError('Stream URL is required.');
+      return;
+    }
+    try {
+      setSavingCamera(true);
+      await axios.post(`/hubs/${newCamera.hubId}/cameras`, {
+        name: newCamera.name.trim(),
+        url: newCamera.url.trim(),
+      });
+      setShowAddCamera(false);
+      setNewCamera({ name: '', url: '', hubId: newCamera.hubId });
+      fetchDashboard();
+    } catch (err) {
+      const e = err as { response?: { data?: { detail?: string; message?: string } } };
+      setAddCameraError(
+        e.response?.data?.detail || e.response?.data?.message || 'Failed to add camera.',
+      );
+    } finally {
+      setSavingCamera(false);
+    }
+  };
 
   const fetchDashboard = async () => {
     try {
@@ -176,6 +240,7 @@ const CameraInspectionPage: React.FC = () => {
     fetchDashboard();
     fetchConfig();
     fetchRecentRuns();
+    fetchHubs();
     // No auto-refresh - dashboard updates on login/manual refresh only
   }, [filterHub, filterStatus]);
 
@@ -248,6 +313,15 @@ const CameraInspectionPage: React.FC = () => {
         <h1 className="text-3xl font-bold text-white">Camera Health Inspection</h1>
         <div className="flex gap-3">
           <button
+            onClick={() => {
+              setAddCameraError(null);
+              setShowAddCamera(true);
+            }}
+            className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded font-bold transition"
+          >
+            + Add Camera
+          </button>
+          <button
             onClick={() => setShowSettings(!showSettings)}
             className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded font-bold transition"
           >
@@ -261,6 +335,102 @@ const CameraInspectionPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Add Camera Modal */}
+      {showAddCamera && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={() => !savingCamera && setShowAddCamera(false)}
+        >
+          <div
+            className="bg-gray-800 rounded-lg p-6 max-w-lg w-full border border-gray-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold text-white mb-4">Add Camera</h2>
+            <p className="text-sm text-gray-400 mb-6">
+              Register any IP camera or video stream. Supports RTSP, HTTP/MJPEG, HLS, RTMP, video files, and YouTube.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Hub</label>
+                <select
+                  value={newCamera.hubId}
+                  onChange={(e) => setNewCamera({ ...newCamera, hubId: e.target.value })}
+                  disabled={savingCamera}
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none"
+                >
+                  {hubs.length === 0 ? (
+                    <option value="">No hubs available</option>
+                  ) : (
+                    hubs.map((h) => (
+                      <option key={h.id} value={h.id}>
+                        {h.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Camera Name</label>
+                <input
+                  type="text"
+                  value={newCamera.name}
+                  onChange={(e) => setNewCamera({ ...newCamera, name: e.target.value })}
+                  disabled={savingCamera}
+                  placeholder="e.g., Front Gate, Loading Dock 3, Lobby Cam"
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Stream URL</label>
+                <input
+                  type="text"
+                  value={newCamera.url}
+                  onChange={(e) => setNewCamera({ ...newCamera, url: e.target.value })}
+                  disabled={savingCamera}
+                  placeholder="rtsp://user:pass@host:port/path  or  https://...m3u8  or  http://...mjpg"
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none font-mono text-sm"
+                />
+                {newCamera.url && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Detected: <span className="text-blue-400 font-mono">{detectStreamType(newCamera.url) || 'unknown'}</span>
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-2">
+                  Credentials embedded in the URL are stored as part of the camera record. Do not paste shared
+                  credentials into demo accounts.
+                </p>
+              </div>
+
+              {addCameraError && (
+                <div className="bg-red-900/40 border border-red-700 rounded p-3 text-red-300 text-sm">
+                  {addCameraError}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowAddCamera(false)}
+                disabled={savingCamera}
+                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddCamera}
+                disabled={savingCamera || hubs.length === 0}
+                className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded font-bold transition disabled:opacity-50"
+              >
+                {savingCamera ? 'Adding…' : 'Add Camera'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Settings Panel */}
       {showSettings && config && (
