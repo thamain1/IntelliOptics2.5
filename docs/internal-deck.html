@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IntelliOptics 2.5 — Technical Architecture (Internal)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0b1426;
+      color: #1e293b;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── COLOR TOKENS ─────────────────────────────────────────────── */
+    :root {
+      --navy:     #0b1426;
+      --blue:     #0078ff;
+      --cyan:     #00c9ff;
+      --white:    #ffffff;
+      --offwhite: #f1f5f9;
+      --light-bg: #F4F7FF;
+      --dark-text: #1e293b;
+      --mid-text:  #475569;
+      --card-dark: rgba(255,255,255,0.05);
+      --card-dark-border: rgba(255,255,255,0.08);
+      --card-light: #ffffff;
+    }
+
+    /* ─── NAV ──────────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: rgba(15, 20, 35, 0.97);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 201, 255, 0.12);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .nav-brand {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-right: 2rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex: 1;
+    }
+    .nav-links::-webkit-scrollbar { display: none; }
+    .nav-links a {
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: 0.76rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover { color: #fff; background: rgba(0,201,255,0.1); }
+    .nav-links a.active { color: var(--cyan); background: rgba(0,201,255,0.1); }
+
+    /* ─── SECTION SHARED ───────────────────────────────────────────── */
+    section {
+      min-height: 100vh;
+      padding: 6rem 2rem 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .container { max-width: 1200px; margin: 0 auto; width: 100%; }
+
+    /* DARK sections */
+    .section-dark {
+      background: var(--navy);
+      color: var(--white);
+    }
+    /* LIGHT sections */
+    .section-light {
+      background: var(--light-bg);
+      color: var(--dark-text);
+    }
+
+    /* ─── TYPOGRAPHY ───────────────────────────────────────────────── */
+    .section-label {
+      display: inline-block;
+      font-size: clamp(0.65rem, 1vw, 0.75rem);
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 0.75rem;
+    }
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      color: var(--white);
+    }
+    h1 span.h1-sub {
+      display: block;
+      color: var(--cyan);
+    }
+    h2 {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .section-dark h2 { color: var(--white); }
+    .section-light h2 { color: var(--navy); }
+
+    .subtitle {
+      font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+      font-weight: 400;
+      line-height: 1.65;
+      max-width: 680px;
+      margin-top: 0.75rem;
+    }
+    .section-dark .subtitle { color: rgba(255,255,255,0.65); }
+    .section-light .subtitle { color: var(--mid-text); }
+
+    code, .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82em;
+    }
+
+    /* ─── GOLD/CYAN LINE ───────────────────────────────────────────── */
+    .gold-line {
+      width: 60px;
+      height: 3px;
+      background: var(--cyan);
+      border-radius: 2px;
+      margin: 1.5rem 0;
+    }
+
+    /* ─── CARDS ────────────────────────────────────────────────────── */
+    .card {
+      border-radius: 16px;
+      padding: 1.75rem 2rem;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    }
+    .card-dark {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .card-dark:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+    .card-light {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .card-light:hover { box-shadow: 0 14px 40px rgba(0,120,255,0.12); }
+
+    .card-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 0.85rem;
+    }
+    .card-dark .card-title { color: var(--cyan); }
+    .card-light .card-title { color: var(--blue); }
+
+    /* ─── GRIDS ────────────────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+    .grid-2x3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+
+    @media (max-width: 900px) {
+      .grid-3, .grid-2x3 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4, .grid-2x3 { grid-template-columns: 1fr; }
+      nav { padding: 0 1rem; }
+      section { padding: 5rem 1rem 3rem; }
+    }
+
+    /* ─── STAT CARDS ───────────────────────────────────────────────── */
+    .stat-row {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-top: 2.5rem;
+    }
+    .stat-card {
+      flex: 1;
+      min-width: 160px;
+      background: rgba(0, 201, 255, 0.07);
+      border: 1px solid rgba(0, 201, 255, 0.2);
+      border-radius: 16px;
+      padding: 1.5rem 1.75rem;
+      text-align: center;
+    }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      color: var(--cyan);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-top: 0.4rem;
+    }
+    .section-light .stat-card {
+      background: rgba(0,120,255,0.06);
+      border-color: rgba(0,120,255,0.18);
+    }
+    .section-light .stat-number { color: var(--blue); }
+    .section-light .stat-label { color: var(--mid-text); }
+
+    /* ─── BADGE PILLS ──────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+    .badge-cyan { background: rgba(0,201,255,0.12); color: var(--cyan); border: 1px solid rgba(0,201,255,0.3); }
+    .badge-blue { background: rgba(0,120,255,0.12); color: var(--blue); border: 1px solid rgba(0,120,255,0.3); }
+    .badge-green { background: rgba(0,200,120,0.12); color: #00c878; border: 1px solid rgba(0,200,120,0.3); }
+    .badge-yellow { background: rgba(255,190,0,0.12); color: #f5a623; border: 1px solid rgba(255,190,0,0.3); }
+    .badge-mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      background: rgba(0,120,255,0.08);
+      color: var(--blue);
+      border: 1px solid rgba(0,120,255,0.2);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    /* ─── NOTE BOX ─────────────────────────────────────────────────── */
+    .note-box {
+      border-left: 3px solid var(--cyan);
+      background: rgba(0,201,255,0.06);
+      border-radius: 0 12px 12px 0;
+      padding: 1rem 1.5rem;
+      margin-top: 1.5rem;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    .section-dark .note-box { color: rgba(255,255,255,0.75); }
+    .section-light .note-box { color: var(--mid-text); border-left-color: var(--blue); background: rgba(0,120,255,0.06); }
+
+    /* ─── SERVICE LIST ─────────────────────────────────────────────── */
+    .service-list { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+    .service-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.8);
+    }
+    .service-item .svc-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--cyan);
+      white-space: nowrap;
+      min-width: 130px;
+    }
+    .service-item .svc-port {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+      min-width: 80px;
+    }
+    .service-item .svc-desc { color: rgba(255,255,255,0.65); }
+
+    /* ─── PIPELINE ─────────────────────────────────────────────────── */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+    .pipeline-step {
+      flex: 1;
+      min-width: 140px;
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px;
+      padding: 1.2rem 1rem;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    .pipeline-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.6rem;
+    }
+    .pipeline-step h4 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 0.3rem;
+    }
+    .pipeline-step p {
+      font-size: 0.72rem;
+      color: var(--mid-text);
+      line-height: 1.45;
+    }
+    .pipeline-arrow {
+      color: var(--blue);
+      font-size: 1.3rem;
+      padding: 0 0.5rem;
+      flex-shrink: 0;
+    }
+
+    /* ─── NUMBERED QUALITY ITEM ────────────────────────────────────── */
+    .quality-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      padding: 1.1rem 1.4rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      transition: background 0.2s;
+    }
+    .quality-item:hover { background: rgba(0,201,255,0.06); }
+    .quality-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--cyan);
+      line-height: 1;
+      min-width: 2rem;
+      margin-top: 0.1rem;
+    }
+    .quality-content h4 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.95);
+      margin-bottom: 0.3rem;
+    }
+    .quality-content p {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.5;
+    }
+
+    /* ─── DECISION CARD ────────────────────────────────────────────── */
+    .decision-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .decision-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(0,120,255,0.12);
+    }
+    .decision-left {
+      background: var(--navy);
+      padding: 1.4rem 1.5rem;
+    }
+    .decision-left h4 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.45;
+    }
+    .decision-left code {
+      color: var(--cyan);
+    }
+    .decision-right {
+      padding: 1.4rem 1.5rem;
+      background: #fff;
+    }
+    .decision-right p {
+      font-size: 0.84rem;
+      color: var(--mid-text);
+      line-height: 1.55;
+    }
+    .decision-right code { color: var(--blue); }
+    .decision-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 0.5rem;
+    }
+    .rationale-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid-text);
+      margin-bottom: 0.5rem;
+      opacity: 0.6;
+    }
+    @media (max-width: 600px) {
+      .decision-card { grid-template-columns: 1fr; }
+    }
+
+    /* ─── HERO ─────────────────────────────────────────────────────── */
+    #hero {
+      background: linear-gradient(135deg, #07101f 0%, #0b1426 50%, #0a1830 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: -200px; right: -200px;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,201,255,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    #hero::after {
+      content: '';
+      position: absolute;
+      bottom: -100px; left: 20%;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,120,255,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-top: 3rem;
+    }
+
+    /* ─── TECH STACK LIST ──────────────────────────────────────────── */
+    .stack-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .stack-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.75);
+    }
+    .stack-list li::before {
+      content: '›';
+      color: var(--cyan);
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    /* ─── BBOX OVERLAY DETAIL ──────────────────────────────────────── */
+    .feature-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.75);
+    }
+    .feature-row .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      flex-shrink: 0;
+      margin-top: 0.45rem;
+    }
+
+    /* ─── TABLE LIST ───────────────────────────────────────────────── */
+    .table-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    /* ─── ROADMAP COLUMNS ──────────────────────────────────────────── */
+    .roadmap-col h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      color: var(--navy);
+    }
+    .roadmap-items { display: flex; flex-direction: column; gap: 0.6rem; }
+    .roadmap-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      font-size: 0.88rem;
+      color: var(--dark-text);
+      line-height: 1.5;
+    }
+
+    /* ─── FOOTER ───────────────────────────────────────────────────── */
+    .deck-footer {
+      text-align: center;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(0,0,0,0.1);
+      margin-top: 3rem;
+    }
+    .deck-footer p {
+      font-size: 0.82rem;
+      color: var(--mid-text);
+    }
+    .deck-footer a { color: var(--blue); text-decoration: none; }
+    .deck-footer a:hover { text-decoration: underline; }
+
+    /* ─── UTILTIES ─────────────────────────────────────────────────── */
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mt-3 { margin-top: 1.5rem; }
+    .mt-4 { margin-top: 2rem; }
+    .mt-5 { margin-top: 2.5rem; }
+    .gap-1 { gap: 0.5rem; }
+    .flex-wrap { flex-wrap: wrap; }
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════ NAV -->
+<nav>
+  <div class="nav-brand">IntelliOptics 2.5</div>
+  <div class="nav-links">
+    <a href="#hero" data-section="hero">Overview</a>
+    <a href="#inference" data-section="inference">Inference</a>
+    <a href="#routing" data-section="routing">Routing</a>
+    <a href="#quality" data-section="quality">Quality</a>
+    <a href="#active-learning" data-section="active-learning">Active Learning</a>
+    <a href="#phases" data-section="phases">Phases</a>
+    <a href="#data-layer" data-section="data-layer">Data Layer</a>
+    <a href="#auth" data-section="auth">Auth</a>
+    <a href="#frontend" data-section="frontend">Frontend</a>
+    <a href="#decisions" data-section="decisions">Decisions</a>
+    <a href="#roadmap" data-section="roadmap">Roadmap</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 1. HERO -->
+<section id="hero" class="section-dark">
+  <div class="container">
+    <span class="section-label">Internal Build Overview</span>
+    <h1>
+      IntelliOptics 2.5
+      <span class="h1-sub">Technical Architecture</span>
+    </h1>
+    <div class="gold-line"></div>
+    <p class="subtitle">
+      7-service Docker stack &nbsp;·&nbsp; YOLOE + VLM inference &nbsp;·&nbsp; Full active learning loop &nbsp;·&nbsp; April 2026
+    </p>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-number">7</div>
+        <div class="stat-label">Docker Services</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">170+</div>
+        <div class="stat-label">API Endpoints</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">6</div>
+        <div class="stat-label">Active Learning Phases</div>
+      </div>
+    </div>
+
+    <p class="hero-tag">4ward Motions Engineering &nbsp;—&nbsp; Confidential</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 2. SYSTEM OVERVIEW -->
+<section id="overview" class="section-light">
+  <div class="container">
+    <span class="section-label">Architecture</span>
+    <h2>Seven Services, One Network</h2>
+    <div class="gold-line" style="background: var(--blue);"></div>
+    <p class="subtitle">
+      All containers on <code>intellioptics-net</code> bridge. Cloud + edge co-located on a single machine.
+    </p>
+
+    <div class="grid-2 mt-5">
+      <!-- CLOUD SERVICES -->
+      <div class="card" style="background: var(--navy); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2rem;">
+        <div class="card-title">Cloud Services</div>
+        <ul class="service-list">
+          <li class="service-item">
+            <span class="svc-name">cloud-nginx</span>
+            <span class="svc-port">:80 / :443</span>
+            <span class="svc-desc">Reverse proxy, CORS termination</span>
+          </li>
+          <li class="service-item">
+            <span class="svc-name">cloud-backend</span>
+            <span class="svc-port">:8000</span>
+            <span class="svc-desc">FastAPI, SQLAlchemy, APScheduler</span>
+          </li>
+          <li class="service-item">
+            <span class="svc-name">cloud-frontend</span>
+            <span class="svc-port">:3000</span>
+            <span class="svc-desc">React 18 + TypeScript + Vite</span>
+          </li>
+          <li class="service-item">
+            <span class="svc-name">cloud-worker</span>
+            <span class="svc-port">:8081</span>
+            <span class="svc-desc">ONNX inference, shadow mode</span>
+          </li>
+          <li class="service-item">
+            <span class="svc-name">cloud-trainer</span>
+            <span class="svc-port">:8082</span>
+            <span class="svc-desc">YOLO fine-tuning (ultralytics, AGPL-3.0 isolated)</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- EDGE SERVICES -->
+      <div class="card" style="background: var(--navy); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2rem;">
+        <div class="card-title">Edge Services</div>
+        <ul class="service-list">
+          <li class="service-item">
+            <span class="svc-name">edge-nginx</span>
+            <span class="svc-port">:30101</span>
+            <span class="svc-desc">Edge gateway</span>
+          </li>
+          <li class="service-item">
+            <span class="svc-name">edge-api</span>
+            <span class="svc-port">:8718</span>
+            <span class="svc-desc">Edge orchestration</span>
+          </li>
+          <li class="service-item">
+            <span class="svc-name">edge-inference</span>
+            <span class="svc-port">:8001</span>
+            <span class="svc-desc">YOLOE ONNX + Moondream VLM</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Integration badges -->
+    <div class="flex flex-wrap gap-1 mt-4" style="gap: 0.65rem;">
+      <span class="badge badge-blue">Supabase PostgreSQL</span>
+      <span class="badge badge-blue">Supabase Storage</span>
+      <span class="badge badge-blue">SendGrid</span>
+      <span class="badge badge-cyan">Docker Bridge Network</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 3. INFERENCE -->
+<section id="inference" class="section-dark">
+  <div class="container">
+    <span class="section-label">Inference</span>
+    <h2>Three-Track Inference Architecture</h2>
+    <div class="gold-line"></div>
+
+    <div class="grid-3 mt-5">
+      <!-- YOLOE -->
+      <div class="card card-dark">
+        <div class="card-title">YOLOE — Primary</div>
+        <div class="feature-row"><div class="dot"></div><span>Pure ONNX Runtime — Apache 2.0</span></div>
+        <div class="feature-row"><div class="dot"></div><span><code>yolov8s-worldv2.onnx</code> · 376-class baked vocab</span></div>
+        <div class="feature-row"><div class="dot"></div><span><code>detect_tiled()</code> — 2×2 grid, cross-tile NMS</span></div>
+        <div class="feature-row"><div class="dot"></div><span>Fires on every query</span></div>
+        <div style="margin-top:1rem;">
+          <span class="badge badge-green">~50ms latency</span>
+        </div>
+      </div>
+
+      <!-- MOONDREAM VLM -->
+      <div class="card card-dark">
+        <div class="card-title">Moondream VLM — Fallback</div>
+        <div class="feature-row"><div class="dot"></div><span>HuggingFace transformers + PyTorch</span></div>
+        <div class="feature-row"><div class="dot"></div><span>Moondream 2B fp32 · <code>vikhyatk/moondream2</code></span></div>
+        <div class="feature-row"><div class="dot"></div><span>Fires when YOLOE misses OR max_conf &lt; 0.25</span></div>
+        <div class="feature-row"><div class="dot"></div><span><code>/vlm/query</code>, <code>/vlm/detect</code>, <code>/vlm/ocr</code></span></div>
+        <div class="feature-row"><div class="dot"></div><span>Runs on CPU (~80s first load, fast after)</span></div>
+        <div style="margin-top:1rem;">
+          <span class="badge badge-yellow">CPU inference</span>
+        </div>
+      </div>
+
+      <!-- CLOUD WORKER -->
+      <div class="card card-dark">
+        <div class="card-title">Cloud Worker — Standard Detectors</div>
+        <div class="feature-row"><div class="dot"></div><span>ONNX Runtime via multipart POST</span></div>
+        <div class="feature-row"><div class="dot"></div><span>Per-detector model loaded from Supabase Storage</span></div>
+        <div class="feature-row"><div class="dot"></div><span>OODD ResNet18 model — out-of-domain filtering</span></div>
+        <div class="feature-row"><div class="dot"></div><span>Per-class thresholds · normalized 0–1 xyxy bbox output</span></div>
+        <div class="feature-row"><div class="dot"></div><span>Shadow/canary inference when candidate model set</span></div>
+        <div style="margin-top:1rem;">
+          <span class="badge badge-cyan">:8081</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <strong style="color: var(--cyan);">AGPL-3.0 Isolation:</strong> ultralytics is AGPL-3.0 — kept in <code>cloud-trainer</code> container to preserve the Apache 2.0 inference path. Never imported in <code>cloud-worker</code>.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 4. ROUTING -->
+<section id="routing" class="section-light">
+  <div class="container">
+    <span class="section-label">Request Flow</span>
+    <h2>How a Frame Gets Processed</h2>
+    <div class="gold-line" style="background: var(--blue);"></div>
+
+    <div class="pipeline mt-5">
+      <div class="pipeline-step">
+        <div class="pipeline-num">1</div>
+        <h4>Camera Frame</h4>
+        <p>Arrives at <code style="color:var(--blue);">edge-api :8718</code></p>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">2</div>
+        <h4>inference_is_available()</h4>
+        <p>Always returns <code style="color:var(--blue);">False</code> — checks K8s hostnames Docker doesn't have</p>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">3</div>
+        <h4>Cloud SDK Fallthrough</h4>
+        <p>Routes to <code style="color:var(--blue);">cloud-backend</code> via SDK</p>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">4</div>
+        <h4>inference_service.py</h4>
+        <p>Multipart POST → <code style="color:var(--blue);">cloud-worker :8081</code></p>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">5</div>
+        <h4>Save + Alert</h4>
+        <p>ONNX result → <code style="color:var(--blue);">queries</code> table → trigger alerts</p>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <strong style="color: var(--blue);">Architectural Note:</strong> The K8s hostname check is an artifact from IntelliOptics 2.0. In 2.5, all inference routes through the cloud worker. This is intentional — <code>edge-inference</code> handles open vocab (YOLOE) via a separate path.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 5. QUALITY -->
+<section id="quality" class="section-dark">
+  <div class="container">
+    <span class="section-label">Quality Items Shipped</span>
+    <h2>Seven Detection Quality Fixes</h2>
+    <div class="gold-line"></div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 2rem;">
+
+      <div class="quality-item">
+        <div class="quality-num">1–2</div>
+        <div class="quality-content">
+          <h4>Per-class thresholds at edge + model version stamping on escalations</h4>
+          <p>Drift endpoint at <code>GET /detectors/{id}/drift</code> — per-detector threshold calibration applied at inference time, escalations carry model version for auditability.</p>
+        </div>
+      </div>
+
+      <div class="quality-item">
+        <div class="quality-num">3</div>
+        <div class="quality-content">
+          <h4>detect_tiled() — 2×2 grid with cross-tile NMS + low-conf VLM fallback</h4>
+          <p>Tiled inference improves small-object recall. Results merged with NMS across tile boundaries. VLM fallback fires when <code>max_conf &lt; 0.25</code>.</p>
+        </div>
+      </div>
+
+      <div class="quality-item">
+        <div class="quality-num">4</div>
+        <div class="quality-content">
+          <h4>Escalation queue priority — filename prefix sort</h4>
+          <p><code>p{nn}-</code> filename prefix, sorted by <code>QueueReader</code> — high-confidence detections escalate ahead of ambiguous ones.</p>
+        </div>
+      </div>
+
+      <div class="quality-item">
+        <div class="quality-num">5</div>
+        <div class="quality-content">
+          <h4>Temporal deduplication — IoU-based within 2s window</h4>
+          <p>IoU ≥ 0.7 within 2-second window prevents alert flooding from repeated detections of the same object across frames.</p>
+        </div>
+      </div>
+
+      <div class="quality-item">
+        <div class="quality-num">6</div>
+        <div class="quality-content">
+          <h4>OODD per-detector calibrated threshold</h4>
+          <p>ResNet18-based out-of-domain detector now uses per-detector calibrated threshold — replaces hardcoded <code>0.444</code> default.</p>
+        </div>
+      </div>
+
+      <div class="quality-item">
+        <div class="quality-num">7</div>
+        <div class="quality-content">
+          <h4>Letterbox padding 114 → 0</h4>
+          <p>Black padding (value 0) matches ImageNet training distribution. Previous gray padding (114) caused subtle inference drift on padded regions.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-number">All 7</div>
+        <div class="stat-label">Items Shipped</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">4</div>
+        <div class="stat-label">Containers Rebuilt</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">&lt;2ms</div>
+        <div class="stat-label">Dedup Window</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 6. ACTIVE LEARNING -->
+<section id="active-learning" class="section-light">
+  <div class="container">
+    <span class="section-label">Active Learning</span>
+    <h2>The Full Learning Loop</h2>
+    <div class="gold-line" style="background: var(--blue);"></div>
+    <p class="subtitle">Six phases. Closed loop from labeled data to deployed model — automatically.</p>
+
+    <div class="grid-2x3 mt-5">
+
+      <div class="card card-light">
+        <div class="card-title" style="color: var(--blue);">Phase 1 — Dataset Export</div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>80/20 train/val split, YOLO format zip</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Minimum 50 samples required</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Uploads to Supabase <code>models</code> bucket</span></div>
+      </div>
+
+      <div class="card card-light">
+        <div class="card-title" style="color: var(--blue);">Phase 2 — YOLO Fine-Tuning</div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span><code>cloud-trainer</code> runs ultralytics</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Auto-detects GPU (CUDA 7.0+)</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Exports ONNX candidate</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Updates <code>training_runs</code> via PostgREST</span></div>
+      </div>
+
+      <div class="card card-light">
+        <div class="card-title" style="color: var(--blue);">Phase 3 — Canary Shadow</div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Candidate runs alongside primary on every live query</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Results saved to <code>shadow_detections</code></span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Agreement rate tracked over time</span></div>
+      </div>
+
+      <div class="card card-light">
+        <div class="card-title" style="color: var(--blue);">Phase 4+5 — Promote / Rollback</div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Promote candidate to primary</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>One-level rollback via <code>previous_primary_model_path</code></span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Edge picks up new model in ≤ 60s</span></div>
+      </div>
+
+      <div class="card card-light">
+        <div class="card-title" style="color: var(--blue);">Phase 6 — Auto-Trigger</div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>APScheduler 1h check</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Fires when ≥ 100 new labeled samples</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>SendGrid email on trigger + completion</span></div>
+      </div>
+
+      <!-- placeholder card for visual symmetry -->
+      <div class="card" style="background: linear-gradient(135deg, rgba(0,120,255,0.06), rgba(0,201,255,0.06)); border: 2px dashed rgba(0,120,255,0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; min-height: 140px;">
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; color: rgba(0,120,255,0.3); line-height:1;">&#8635;</div>
+          <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(0,120,255,0.4); margin-top: 0.4rem;">Closed Loop</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 7. PHASES DEEP DIVE -->
+<section id="phases" class="section-dark">
+  <div class="container">
+    <span class="section-label">Implementation Detail</span>
+    <h2>Key Implementation Notes</h2>
+    <div class="gold-line"></div>
+
+    <div class="grid-3 mt-5">
+
+      <!-- Card A -->
+      <div class="card card-dark">
+        <div class="card-title">Dataset Export Priority Chain</div>
+        <p style="font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 0.75rem;">Bbox source priority:</p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--cyan); background: rgba(0,201,255,0.1); border-radius: 4px; padding: 0.15rem 0.4rem; white-space: nowrap;">1st</span>
+            <span style="font-size: 0.84rem; color: rgba(255,255,255,0.8);"><code>image_annotations</code> — human-drawn, normalized</span>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #f5a623; background: rgba(245,166,35,0.1); border-radius: 4px; padding: 0.15rem 0.4rem; white-space: nowrap;">2nd</span>
+            <span style="font-size: 0.84rem; color: rgba(255,255,255,0.8);"><code>detections_json</code> — pixel → normalize by image dims</span>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.05); border-radius: 4px; padding: 0.15rem 0.4rem; white-space: nowrap;">3rd</span>
+            <span style="font-size: 0.84rem; color: rgba(255,255,255,0.8);">Full-frame fallback <code>[0, 0, 1, 1]</code></span>
+          </div>
+        </div>
+        <p style="font-size: 0.78rem; font-weight: 600; color: var(--cyan); letter-spacing: 0.08em; margin-bottom: 0.5rem;">YOLO Output Structure</p>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.55); line-height: 1.8;">
+          images/train/<br>
+          labels/train/<br>
+          images/val/<br>
+          labels/val/<br>
+          data.yaml
+        </div>
+      </div>
+
+      <!-- Card B -->
+      <div class="card card-dark">
+        <div class="card-title">Trainer Architecture</div>
+        <div class="feature-row"><div class="dot"></div><span>PostgREST for DB writes — no JWT callback complexity</span></div>
+        <div class="feature-row"><div class="dot"></div>
+          <span><code>training_runs</code> status flow:<br>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: rgba(255,255,255,0.45);">pending → running → completed / failed</span>
+          </span>
+        </div>
+        <div class="feature-row"><div class="dot"></div><span><code>auto_triggered</code> flag + <code>notified_at</code> for notification dedup</span></div>
+
+        <p style="font-size: 0.78rem; font-weight: 600; color: var(--cyan); letter-spacing: 0.08em; margin: 1rem 0 0.5rem;">TrainingRun Fields</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+          <span class="badge-mono badge">base_model_version</span>
+          <span class="badge-mono badge">candidate_model_path</span>
+          <span class="badge-mono badge">metrics (JSONB)</span>
+          <span class="badge-mono badge">auto_triggered</span>
+          <span class="badge-mono badge">notified_at</span>
+        </div>
+      </div>
+
+      <!-- Card C -->
+      <div class="card card-dark">
+        <div class="card-title">Canary Report</div>
+        <div class="feature-row">
+          <div class="dot"></div>
+          <span><code>GET /detectors/{id}/canary-report</code></span>
+        </div>
+        <p style="font-size: 0.78rem; font-weight: 600; color: var(--cyan); letter-spacing: 0.08em; margin: 0.85rem 0 0.5rem;">Returns</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem;">
+          <span class="badge-mono badge">agreement_rate</span>
+          <span class="badge-mono badge">primary_label_distribution</span>
+          <span class="badge-mono badge">shadow_label_distribution</span>
+          <span class="badge-mono badge">recent_disagreements[]</span>
+        </div>
+        <p style="font-size: 0.78rem; font-weight: 600; color: var(--cyan); letter-spacing: 0.08em; margin-bottom: 0.5rem;">Frontend Color Coding</p>
+        <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.82rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #00c878; flex-shrink:0;"></span>
+            <span style="color: rgba(255,255,255,0.7);">Green — agreement rate ≥ 90%</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #f5a623; flex-shrink:0;"></span>
+            <span style="color: rgba(255,255,255,0.7);">Yellow — agreement rate ≥ 75%</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; flex-shrink:0;"></span>
+            <span style="color: rgba(255,255,255,0.7);">Red — below 75%</span>
+          </div>
+        </div>
+        <div class="feature-row mt-2"><div class="dot"></div><span>Promote button enabled when candidate exists</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 8. DATA LAYER -->
+<section id="data-layer" class="section-light">
+  <div class="container">
+    <span class="section-label">Database</span>
+    <h2>Data Layer</h2>
+    <div class="gold-line" style="background: var(--blue);"></div>
+    <p class="subtitle">
+      Supabase PostgreSQL — project <code>uwhbbnouxmpounqeudiw</code>
+    </p>
+
+    <div class="grid-2 mt-5">
+
+      <!-- LEFT: Key Tables -->
+      <div class="card card-light">
+        <div class="card-title">Key Tables</div>
+        <div class="table-list">
+          <span class="badge-mono badge">detectors</span>
+          <span class="badge-mono badge">detector_configs</span>
+          <span class="badge-mono badge">queries</span>
+          <span class="badge-mono badge">feedback</span>
+          <span class="badge-mono badge">escalations</span>
+          <span class="badge-mono badge">image_annotations</span>
+          <span class="badge-mono badge">training_datasets</span>
+          <span class="badge-mono badge">training_runs</span>
+          <span class="badge-mono badge">shadow_detections</span>
+          <span class="badge-mono badge">users</span>
+          <span class="badge-mono badge">hubs</span>
+          <span class="badge-mono badge">deployments</span>
+          <span class="badge-mono badge">parking_events</span>
+          <span class="badge-mono badge">forensic_search_jobs</span>
+          <span class="badge-mono badge">vehicle_records</span>
+          <span class="badge-mono badge">parking_zones</span>
+          <span class="badge-mono badge">parking_violations</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Storage & Access -->
+      <div class="card card-light">
+        <div class="card-title">Storage &amp; Access</div>
+
+        <p style="font-size: 0.78rem; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.6rem;">Supabase Storage Buckets</p>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span><code>images</code> — query frames</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span><code>models</code> — ONNX files + training zips</span></div>
+
+        <div style="height: 1rem;"></div>
+        <p style="font-size: 0.78rem; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.6rem;">Migrations</p>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Management API only — direct DB is IPv6-only</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Pooler at <code>aws-1-us-east-1.pooler.supabase.com:6543</code></span></div>
+
+        <div style="height: 1rem;"></div>
+        <p style="font-size: 0.78rem; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.6rem;">Access Patterns</p>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Trainer writes via PostgREST — no auth complexity</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Signed URLs via <code>generate_signed_url()</code> — 60min expiry</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 9. AUTH -->
+<section id="auth" class="section-dark">
+  <div class="container">
+    <span class="section-label">Security</span>
+    <h2>Auth &amp; Security Model</h2>
+    <div class="gold-line"></div>
+
+    <div class="grid-2 mt-5">
+
+      <div class="card card-dark">
+        <div class="card-title">JWT HS256</div>
+        <div class="feature-row"><div class="dot"></div><span>120-minute access tokens</span></div>
+        <div class="feature-row"><div class="dot"></div><span>Roles as comma-separated string: <code>admin,reviewer</code></span></div>
+        <div class="feature-row"><div class="dot"></div><span>Fallback token (24h) for edge device cloud escalation path</span></div>
+      </div>
+
+      <div class="card card-dark">
+        <div class="card-title">Route Guards</div>
+        <div class="feature-row"><div class="dot"></div><span><code>get_current_admin</code> on training / promote / rollback routes</span></div>
+        <div class="feature-row"><div class="dot"></div><span><code>get_current_user</code> on all read endpoints</span></div>
+        <div class="feature-row"><div class="dot"></div><span>Role checked in dependency injection, not middleware</span></div>
+      </div>
+
+      <div class="card card-dark">
+        <div class="card-title">API Key Auth</div>
+        <div class="feature-row"><div class="dot"></div><span>Hub heartbeat uses separate key auth — not JWT</span></div>
+        <div class="feature-row"><div class="dot"></div><span>Keys scoped per hub, stored in Supabase</span></div>
+        <div class="feature-row"><div class="dot"></div><span>Independent rotation from user credentials</span></div>
+      </div>
+
+      <div class="card card-dark">
+        <div class="card-title">CORS &amp; Middleware</div>
+        <div class="feature-row"><div class="dot"></div><span><code>allow_origin_regex</code> — localhost dev + explicit prod origins</span></div>
+        <div class="feature-row"><div class="dot"></div><span><code>StripTrailingSlashMiddleware</code> — prevents 307 CORS breakage on redirects</span></div>
+        <div class="feature-row"><div class="dot"></div><span>No wildcard origins in production</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 10. FRONTEND -->
+<section id="frontend" class="section-light">
+  <div class="container">
+    <span class="section-label">Frontend</span>
+    <h2>React Frontend</h2>
+    <div class="gold-line" style="background: var(--blue);"></div>
+
+    <div class="grid-2 mt-5">
+
+      <!-- LEFT: Stack -->
+      <div class="card card-light">
+        <div class="card-title">Stack &amp; Scale</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem;">
+          <span class="badge badge-blue">React 18</span>
+          <span class="badge badge-blue">TypeScript</span>
+          <span class="badge badge-blue">Vite</span>
+          <span class="badge badge-blue">Tailwind CSS</span>
+          <span class="badge badge-blue">axios</span>
+          <span class="badge badge-blue">react-toastify</span>
+          <span class="badge badge-blue">recharts</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div style="text-align: center; background: rgba(0,120,255,0.06); border-radius: 12px; padding: 1rem;">
+            <div style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 800; color: var(--blue);">17</div>
+            <div style="font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mid-text); margin-top: 0.25rem;">Pages</div>
+          </div>
+          <div style="text-align: center; background: rgba(0,120,255,0.06); border-radius: 12px; padding: 1rem;">
+            <div style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 800; color: var(--blue);">19</div>
+            <div style="font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mid-text); margin-top: 0.25rem;">Routers</div>
+          </div>
+          <div style="text-align: center; background: rgba(0,120,255,0.06); border-radius: 12px; padding: 1rem;">
+            <div style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 800; color: var(--blue);">170+</div>
+            <div style="font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mid-text); margin-top: 0.25rem;">Endpoints</div>
+          </div>
+        </div>
+
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Custom tabs — no shadcn/ui dependency</span></div>
+        <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>nginx: <code>/api/</code> → cloud-backend, <code>/</code> → static build</span></div>
+      </div>
+
+      <!-- RIGHT: LiveBboxOverlay + Training Tab -->
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div class="card card-light">
+          <div class="card-title">LiveBboxOverlay</div>
+          <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Canvas-based 30fps overlay</span></div>
+          <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Normalized 0–1 xyxy coordinates</span></div>
+          <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Per-label color hashing — consistent colors per class</span></div>
+          <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>ResizeObserver — scales with container width</span></div>
+        </div>
+
+        <div class="card card-light">
+          <div class="card-title">Model Training Tab</div>
+          <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Export dataset, trigger training, canary report</span></div>
+          <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>Promote / rollback controls</span></div>
+          <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span>10s auto-refresh when a run is active</span></div>
+          <div class="feature-row" style="color: var(--dark-text);"><div class="dot" style="background: var(--blue);"></div><span><code>AUTO</code> badge on auto-triggered runs</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 11. KEY DECISIONS -->
+<section id="decisions" class="section-dark">
+  <div class="container">
+    <span class="section-label">Architecture Decisions</span>
+    <h2>Why We Built It This Way</h2>
+    <div class="gold-line"></div>
+
+    <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 2.5rem;">
+
+      <div class="decision-card">
+        <div class="decision-left">
+          <div class="decision-label">Decision</div>
+          <h4>ultralytics in a separate <code>cloud-trainer</code> container</h4>
+        </div>
+        <div class="decision-right">
+          <div class="rationale-label">Rationale</div>
+          <p>AGPL-3.0 never touches the Apache 2.0 inference path. <code>cloud-worker</code> uses pure ONNX Runtime — safe to ship commercially without license concerns.</p>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-left">
+          <div class="decision-label">Decision</div>
+          <h4>Trainer writes via PostgREST, not direct Supabase client</h4>
+        </div>
+        <div class="decision-right">
+          <div class="rationale-label">Rationale</div>
+          <p>Background workers don't have a user JWT session. PostgREST accepts the service key and handles writes cleanly without callback auth complexity.</p>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-left">
+          <div class="decision-label">Decision</div>
+          <h4>Shadow mode lives in <code>cloud-worker</code>, not <code>edge-api</code></h4>
+        </div>
+        <div class="decision-right">
+          <div class="rationale-label">Rationale</div>
+          <p><code>inference_is_available()</code> always returns <code>False</code> in Docker — K8s hostnames don't exist. All inference routes through cloud-worker anyway, making it the natural host for canary logic.</p>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-left">
+          <div class="decision-label">Decision</div>
+          <h4>Normalize bboxes 0–1 xyxy at worker output</h4>
+        </div>
+        <div class="decision-right">
+          <div class="rationale-label">Rationale</div>
+          <p>Frontend overlays work correctly without needing original image dimensions. Canvas scaling just multiplies by container dimensions — no coordinate conversion per-frame.</p>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-left">
+          <div class="decision-label">Decision</div>
+          <h4>APScheduler in-process (not a separate container)</h4>
+        </div>
+        <div class="decision-right">
+          <div class="rationale-label">Rationale</div>
+          <p>No extra container to manage. Survives backend restarts. <code>next_run_time</code> offset avoids cold-start triggering on first boot.</p>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-left">
+          <div class="decision-label">Decision</div>
+          <h4>Letterbox padding value: 0 (black), not 114 (gray)</h4>
+        </div>
+        <div class="decision-right">
+          <div class="rationale-label">Rationale</div>
+          <p>Matches ImageNet training distribution. Gray padding (114) caused subtle inference drift on padded border regions — detections near frame edges were less reliable.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ 12. ROADMAP -->
+<section id="roadmap" class="section-light">
+  <div class="container">
+    <span class="section-label">What's Next</span>
+    <h2>Roadmap</h2>
+    <div class="gold-line" style="background: var(--blue);"></div>
+
+    <div class="grid-2 mt-5">
+
+      <!-- DONE -->
+      <div class="card card-light">
+        <div class="card-title">Shipped</div>
+        <div class="roadmap-items">
+          <div class="roadmap-item">
+            <span class="badge badge-green" style="flex-shrink:0;">Done</span>
+            <span>All 7 detection quality items</span>
+          </div>
+          <div class="roadmap-item">
+            <span class="badge badge-green" style="flex-shrink:0;">Done</span>
+            <span>Active learning phases 1–6, full closed loop</span>
+          </div>
+          <div class="roadmap-item">
+            <span class="badge badge-green" style="flex-shrink:0;">Done</span>
+            <span>Bbox overlays across all detector types</span>
+          </div>
+          <div class="roadmap-item">
+            <span class="badge badge-green" style="flex-shrink:0;">Done</span>
+            <span>Edge-api temporal dedup + priority queue live</span>
+          </div>
+          <div class="roadmap-item">
+            <span class="badge badge-green" style="flex-shrink:0;">Done</span>
+            <span>SendGrid key rotated, notification emails working</span>
+          </div>
+          <div class="roadmap-item">
+            <span class="badge badge-green" style="flex-shrink:0;">Done</span>
+            <span>Canary report endpoint + frontend UI</span>
+          </div>
+          <div class="roadmap-item">
+            <span class="badge badge-green" style="flex-shrink:0;">Done</span>
+            <span>OODD per-detector calibrated threshold</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENDING -->
+      <div class="card card-light">
+        <div class="card-title">Pending</div>
+        <div class="roadmap-items">
+          <div class="roadmap-item" style="flex-direction: column; align-items: flex-start;">
+            <span class="badge badge-blue" style="flex-shrink:0; margin-bottom: 0.5rem;">Planned</span>
+            <strong style="font-size: 0.9rem; color: var(--navy);">Florence-2 VLM Upgrade</strong>
+            <p style="font-size: 0.84rem; color: var(--mid-text); margin-top: 0.35rem; line-height: 1.55;">
+              Dual-model VLM architecture — Florence-2 for detection and bounding box output, Moondream retained for conversational Q&amp;A. Florence-2 expected to outperform Moondream on structured detection tasks with better bbox precision.
+            </p>
+            <div style="margin-top: 0.5rem;">
+              <span class="badge badge-yellow">User decision pending</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="deck-footer">
+      <p>4ward Motions Engineering &nbsp;·&nbsp; Jesse Morgan &nbsp;·&nbsp; <a href="mailto:jmorgan@4wardmotions.com">jmorgan@4wardmotions.com</a></p>
+      <p style="margin-top: 0.4rem; font-size: 0.75rem; color: #94a3b8;">IntelliOptics 2.5 &nbsp;·&nbsp; Internal Technical Deck &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp; Confidential</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════ JS -->
+<script>
+  // ─── IntersectionObserver for active nav link ───────────────────────
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a[data-section]');
+
+  const sectionIdToNav = {};
+  navLinks.forEach(link => {
+    const sec = link.getAttribute('data-section');
+    sectionIdToNav[sec] = link;
+  });
+
+  // Map nav section keys to actual section IDs
+  const navToSectionId = {
+    'hero': 'hero',
+    'inference': 'inference',
+    'routing': 'routing',
+    'quality': 'quality',
+    'active-learning': 'active-learning',
+    'phases': 'phases',
+    'data-layer': 'data-layer',
+    'auth': 'auth',
+    'frontend': 'frontend',
+    'decisions': 'decisions',
+    'roadmap': 'roadmap',
+  };
+
+  // The overview section doesn't have a dedicated nav link — map it to hero
+  const sectionNavMap = {
+    'hero': 'hero',
+    'overview': 'hero',  // section #overview → highlight "Overview" nav
+    'inference': 'inference',
+    'routing': 'routing',
+    'quality': 'quality',
+    'active-learning': 'active-learning',
+    'phases': 'phases',
+    'data-layer': 'data-layer',
+    'auth': 'auth',
+    'frontend': 'frontend',
+    'decisions': 'decisions',
+    'roadmap': 'roadmap',
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const sectionId = entry.target.id;
+        const navKey = sectionNavMap[sectionId] || sectionId;
+        navLinks.forEach(l => l.classList.remove('active'));
+        const activeLink = sectionIdToNav[navKey];
+        if (activeLink) activeLink.classList.add('active');
+      }
+    });
+  }, {
+    rootMargin: '-30% 0px -60% 0px',
+    threshold: 0
+  });
+
+  sections.forEach(sec => observer.observe(sec));
+
+  // ─── Smooth nav click ───────────────────────────────────────────────
+  navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const href = link.getAttribute('href');
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+
+<footer style="background:#0a0a0a;color:#555;text-align:center;padding:2rem;font-size:0.85rem;font-family:'Inter',sans-serif;letter-spacing:0.05em;">
+  Built by 4WardMotion Solutions, Inc
+</footer>
+</body>
+</html>

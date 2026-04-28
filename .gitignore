@@ -99,6 +99,8 @@ docs/SAS Keys.txt
 docs/Twilio Recovery.txt
 docs/intellioptics_api_key.txt
 docs/Blob Storage.txt
+docs/supabaseinfo.txt
+docs/secrets-for-remote.env
 
 # Internal documentation (not for public repo)
 docs/COST-FORECAST-*.md

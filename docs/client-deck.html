@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IntelliOptics 2.5 — Your Cameras. Comprehended.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ───────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:      #0b1426;
+      --blue:      #0078ff;
+      --cyan:      #00c9ff;
+      --light-bg:  #F4F7FF;
+      --dark-text: #1e293b;
+      --mid-text:  #475569;
+      --nav-h:     68px;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--dark-text);
+      background: var(--navy);
+      line-height: 1.6;
+    }
+
+    /* ─── Nav ────────────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      height: var(--nav-h);
+      background: rgba(15, 20, 35, 0.97);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 201, 255, 0.12);
+      display: flex;
+      align-items: center;
+      padding: 0 2rem;
+      gap: 2rem;
+    }
+
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #fff;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .nav-brand span { color: var(--cyan); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.1rem;
+      list-style: none;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-links::-webkit-scrollbar { display: none; }
+
+    .nav-links a {
+      display: block;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+
+    .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.07); }
+    .nav-links a.active { color: var(--cyan); background: rgba(0,201,255,0.1); }
+
+    /* ─── Sections ───────────────────────────────────────────────────── */
+    section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: calc(var(--nav-h) + 4rem) 2rem 5rem;
+    }
+
+    section.dark  { background: var(--navy); color: #fff; }
+    section.light { background: var(--light-bg); color: var(--dark-text); }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ─── Typography helpers ─────────────────────────────────────────── */
+    .section-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-variant: small-caps;
+      color: var(--cyan);
+      margin-bottom: 0.75rem;
+    }
+
+    .accent-line {
+      width: 60px;
+      height: 3px;
+      background: var(--cyan);
+      border-radius: 2px;
+      margin: 1.5rem 0;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.6rem, 6vw, 5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+
+    p { line-height: 1.7; }
+
+    /* ─── Cards ──────────────────────────────────────────────────────── */
+    .card {
+      border-radius: 16px;
+      padding: 2rem;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+
+    .card-dark {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .card-light {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    .card-navy {
+      background: var(--navy);
+      border: 1px solid rgba(0,201,255,0.15);
+      color: #fff;
+    }
+
+    .card-warm {
+      background: #FFF8F3;
+      border: 1px solid rgba(255,140,60,0.12);
+    }
+
+    .card-cyan {
+      background: linear-gradient(135deg, rgba(0,120,255,0.15), rgba(0,201,255,0.1));
+      border: 1px solid rgba(0,201,255,0.3);
+    }
+
+    /* ─── Grid helpers ───────────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+    .grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+    /* ─── Stat cards ─────────────────────────────────────────────────── */
+    .stat-card {
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(0,201,255,0.2);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 800;
+      color: var(--cyan);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.65);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+    }
+
+    .stat-divider {
+      width: 32px;
+      height: 2px;
+      background: rgba(0,201,255,0.35);
+      border-radius: 2px;
+      margin: 0.6rem auto;
+    }
+
+    /* ─── Check icon ─────────────────────────────────────────────────── */
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 1.1rem 1.25rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(0,201,255,0.12);
+      border-radius: 12px;
+    }
+
+    .check-icon {
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      border-radius: 50%;
+      background: rgba(0,201,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .check-icon svg { width: 12px; height: 12px; }
+
+    /* ─── Pipeline step ──────────────────────────────────────────────── */
+    .pipeline {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      flex-wrap: nowrap;
+    }
+
+    .pipeline-step {
+      flex: 1;
+      border-radius: 16px;
+      padding: 1.75rem 1.25rem;
+      text-align: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(0,201,255,0.15);
+      position: relative;
+      transition: transform 0.25s ease;
+    }
+
+    .pipeline-step:hover { transform: translateY(-4px); }
+
+    .pipeline-step .step-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--cyan);
+      opacity: 0.4;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .pipeline-step .step-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 0.6rem;
+    }
+
+    .pipeline-step p {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.5;
+    }
+
+    .pipeline-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 0.4rem;
+      color: var(--cyan);
+      opacity: 0.4;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    /* ─── Quote block ────────────────────────────────────────────────── */
+    .pull-quote {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.4rem, 3vw, 2.2rem);
+      font-weight: 600;
+      font-style: italic;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .pull-quote-light {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.3rem, 2.5vw, 1.9rem);
+      font-weight: 600;
+      font-style: italic;
+      line-height: 1.5;
+      color: var(--dark-text);
+    }
+
+    .quote-mark {
+      font-size: 5rem;
+      line-height: 0.6;
+      color: var(--cyan);
+      opacity: 0.25;
+      font-family: 'Playfair Display', serif;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ─── Bullet lists ───────────────────────────────────────────────── */
+    .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .bullet-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      font-size: 0.95rem;
+    }
+
+    .bullet-list li::before {
+      content: '›';
+      color: var(--cyan);
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: -1px;
+    }
+
+    /* ─── Scrolldown hint ────────────────────────────────────────────── */
+    .scroll-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 3.5rem;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    .scroll-arrow {
+      width: 28px;
+      height: 28px;
+      border: 2px solid rgba(0,201,255,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ─── Card icon ──────────────────────────────────────────────────── */
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(0,201,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .card-icon svg { width: 22px; height: 22px; color: var(--cyan); }
+
+    /* ─── Tag ────────────────────────────────────────────────────────── */
+    .tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      background: rgba(0,201,255,0.12);
+      color: var(--cyan);
+      margin-bottom: 0.75rem;
+    }
+
+    /* ─── Before/after cards ─────────────────────────────────────────── */
+    .before-card {
+      background: #FFF5F5;
+      border: 1px solid rgba(220,53,69,0.15);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: transform 0.25s ease;
+    }
+
+    .before-card:hover { transform: translateY(-4px); }
+
+    .after-card {
+      background: #F0FFF4;
+      border: 1px solid rgba(40,167,69,0.18);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: transform 0.25s ease;
+    }
+
+    .after-card:hover { transform: translateY(-4px); }
+
+    .before-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #c0392b;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .after-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #1a7a34;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .timeline-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .timeline-item:last-child { border-bottom: none; }
+
+    .timeline-period {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #c0392b;
+    }
+
+    .timeline-period-green { color: #1a7a34; }
+
+    .timeline-desc {
+      font-size: 0.92rem;
+      color: var(--dark-text);
+    }
+
+    /* ─── Health issue cards ─────────────────────────────────────────── */
+    .health-card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 3px 16px rgba(0,0,0,0.06);
+      transition: transform 0.25s ease;
+    }
+
+    .health-card:hover { transform: translateY(-4px); }
+
+    .health-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--dark-text);
+      margin-bottom: 0.35rem;
+    }
+
+    .health-desc {
+      font-size: 0.82rem;
+      color: var(--mid-text);
+    }
+
+    .health-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    /* ─── Contact ────────────────────────────────────────────────────── */
+    .contact-card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 20px;
+      padding: 3rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      max-width: 520px;
+      margin: 0 auto;
+      text-align: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .contact-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 28px 80px rgba(0,0,0,0.14);
+    }
+
+    .contact-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .contact-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--dark-text);
+      margin-bottom: 0.25rem;
+    }
+
+    .contact-title {
+      font-size: 0.88rem;
+      color: var(--mid-text);
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-detail {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      color: var(--dark-text);
+      border: 1px solid rgba(0,0,0,0.07);
+      margin-bottom: 0.6rem;
+      background: var(--light-bg);
+      transition: background 0.2s;
+    }
+
+    .contact-detail:hover { background: #e8eeff; }
+
+    .contact-detail svg { width: 16px; height: 16px; color: var(--blue); flex-shrink: 0; }
+    .contact-detail a { color: var(--blue); text-decoration: none; font-weight: 500; }
+    .contact-detail a:hover { text-decoration: underline; }
+
+    .contact-tagline {
+      margin-top: 1.5rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mid-text);
+      font-weight: 600;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────────────── */
+    .deck-footer {
+      background: rgba(0,0,0,0.4);
+      text-align: center;
+      padding: 2rem;
+      border-top: 1px solid rgba(0,201,255,0.1);
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── Distinction section centering ─────────────────────────────── */
+    .distinction-center {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* ─── Subtle gradient overlays ───────────────────────────────────── */
+    .hero-bg {
+      background: linear-gradient(135deg, #060c1a 0%, #0b1426 50%, #0d1830 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      right: -10%;
+      width: 60vw;
+      height: 60vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,120,255,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      bottom: -20%;
+      left: -5%;
+      width: 45vw;
+      height: 45vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,201,255,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─── Hero logo ──────────────────────────────────────────────────── */
+    .hero-logo {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-logo-version {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(1rem, 2.2vw, 1.5rem);
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── Distinction stat box ───────────────────────────────────────── */
+    .distinction-stat {
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      border: 1px solid rgba(0,201,255,0.2);
+      background: rgba(0,201,255,0.04);
+      text-align: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .distinction-stat:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    /* ─── Text color helpers ─────────────────────────────────────────── */
+    .text-cyan   { color: var(--cyan); }
+    .text-blue   { color: var(--blue); }
+    .text-muted  { color: rgba(255,255,255,0.55); }
+    .text-mid    { color: var(--mid-text); }
+    .text-white  { color: #fff; }
+
+    /* ─── Subtitle ───────────────────────────────────────────────────── */
+    .subtitle {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: rgba(255,255,255,0.65);
+      max-width: 600px;
+      margin-top: 1.25rem;
+      line-height: 1.7;
+    }
+
+    .subtitle-dark {
+      font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+      color: var(--mid-text);
+      max-width: 620px;
+      margin-top: 1rem;
+      line-height: 1.7;
+    }
+
+    /* ─── Section result stat ────────────────────────────────────────── */
+    .result-stat {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .result-stat:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+    }
+
+    .result-number {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      color: var(--blue);
+      line-height: 1;
+    }
+
+    .result-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--mid-text);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .grid-4 { grid-template-columns: 1fr 1fr; }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .pipeline { flex-direction: column; }
+      .pipeline-arrow { transform: rotate(90deg); align-self: center; }
+    }
+
+    @media (max-width: 660px) {
+      .grid-2  { grid-template-columns: 1fr; }
+      .grid-2x2{ grid-template-columns: 1fr; }
+      .grid-3  { grid-template-columns: 1fr; }
+      .grid-4  { grid-template-columns: 1fr; }
+      nav { gap: 1rem; padding: 0 1rem; }
+      .nav-brand { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       NAV
+  ══════════════════════════════════════════════════════════════════ -->
+  <nav>
+    <div class="nav-brand">IntelliOptics <span>2.5</span></div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#distinction">Solution</a></li>
+      <li><a href="#capabilities">Capabilities</a></li>
+      <li><a href="#selflearning">Self-Learning</a></li>
+      <li><a href="#specialized">Specialized</a></li>
+      <li><a href="#howitworks">How It Works</a></li>
+      <li><a href="#whyus">Why Us</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       1. HERO
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="hero" class="dark hero-bg">
+    <div class="container" style="position:relative;z-index:1;">
+      <div class="hero-logo">
+        <span class="hero-logo-text">IntelliOptics</span>
+        <span class="hero-logo-version">2.5</span>
+      </div>
+
+      <div class="section-label">AI-Powered Visual Intelligence</div>
+
+      <h1>Your Cameras.<br>Comprehended.</h1>
+
+      <p class="subtitle">
+        Real-time AI detection, camera health monitoring, and operational intelligence — live on Day 1. No new hardware.
+      </p>
+
+      <div class="accent-line"></div>
+
+      <div class="grid-3" style="margin-top:2.5rem;max-width:720px;">
+        <div class="stat-card">
+          <div class="stat-number">Day 1</div>
+          <div class="stat-divider"></div>
+          <div class="stat-label">Live &amp; Monitoring</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">&lt;30<span style="font-size:1.8rem">sec</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat-label">Alert Response Time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">24/7</div>
+          <div class="stat-divider"></div>
+          <div class="stat-label">Automated Coverage</div>
+        </div>
+      </div>
+
+      <div class="scroll-hint">
+        <div class="scroll-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </div>
+        Scroll to Learn More
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       2. THE PROBLEM
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="problem" class="light">
+    <div class="container">
+      <div class="section-label">The Challenge</div>
+      <h2>Most Organizations Don't Know<br>Their Cameras Are Failing</h2>
+      <div class="accent-line" style="background:var(--blue);"></div>
+
+      <div class="grid-2" style="margin-top:2.5rem;">
+
+        <!-- Left — what we hear -->
+        <div class="card card-warm">
+          <div class="tag" style="background:rgba(255,140,60,0.1);color:#c05c10;">What We Hear</div>
+          <ul class="bullet-list" style="gap:1rem;">
+            <li style="color:var(--dark-text);">"We reviewed the footage after the incident — the camera was offline for weeks."</li>
+            <li style="color:var(--dark-text);">"We have 200 cameras and no way to know which ones are actually working right now."</li>
+            <li style="color:var(--dark-text);">"Our team spends hours every week manually checking feeds."</li>
+            <li style="color:var(--dark-text);">"When the auditor asked for footage, it wasn't there."</li>
+            <li style="color:var(--dark-text);">"We had a misaligned camera for months and nobody noticed."</li>
+          </ul>
+        </div>
+
+        <!-- Right — the real cost -->
+        <div class="card card-navy">
+          <div class="tag">The Real Cost</div>
+          <ul class="bullet-list" style="gap:1rem;">
+            <li><span style="color:rgba(255,255,255,0.88);">50% of cameras experience issues in any given year</span></li>
+            <li><span style="color:rgba(255,255,255,0.88);">Coverage gaps go undetected until a critical moment</span></li>
+            <li><span style="color:rgba(255,255,255,0.88);">Manual monitoring cannot scale — and does not sleep</span></li>
+            <li><span style="color:rgba(255,255,255,0.88);">Compliance and liability exposure from missing footage</span></li>
+            <li><span style="color:rgba(255,255,255,0.88);">Security teams reactive instead of proactive</span></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       3. OUR DISTINCTION
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="distinction" class="dark">
+    <div class="container">
+      <div class="distinction-center">
+
+        <div class="section-label">Our Distinction</div>
+
+        <div class="quote-mark">"</div>
+        <p class="pull-quote">
+          We're not more footage — we are the assurance that the footage exists.
+        </p>
+        <div class="accent-line" style="margin:2rem auto;"></div>
+
+        <div class="grid-3" style="margin-top:2rem;">
+          <div class="distinction-stat">
+            <div class="stat-number">Day 1</div>
+            <div class="stat-divider"></div>
+            <div class="stat-label">Fully Operational</div>
+          </div>
+          <div class="distinction-stat">
+            <div class="stat-number">&lt;30<span style="font-size:1.8rem">s</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat-label">Alert Response Time</div>
+          </div>
+          <div class="distinction-stat">
+            <div class="stat-number">24/7</div>
+            <div class="stat-divider"></div>
+            <div class="stat-label">Automated Monitoring</div>
+          </div>
+        </div>
+
+        <p style="margin-top:2.5rem;font-size:1.05rem;color:rgba(255,255,255,0.55);font-style:italic;">
+          IntelliOptics doesn't just record. It watches, understands, and alerts.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       4. WHAT INTELLIOPTICS DOES
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="capabilities" class="light">
+    <div class="container">
+      <div class="section-label">The Solution</div>
+      <h2>Four Integrated Capabilities</h2>
+      <div class="accent-line" style="background:var(--blue);"></div>
+
+      <div class="grid-4" style="margin-top:2.5rem;">
+
+        <!-- 1 -->
+        <div class="card card-light">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              <path d="M8 11h6M11 8v6"/>
+            </svg>
+          </div>
+          <h3>Intelligent Detection</h3>
+          <p class="text-mid" style="font-size:0.9rem;">Identifies objects, people, vehicles, and events. Custom detection rules built for your operation. Fires alerts the moment something occurs — with bounding box visualization on every detection.</p>
+        </div>
+
+        <!-- 2 -->
+        <div class="card card-light">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <h3>Natural Language Analysis</h3>
+          <p class="text-mid" style="font-size:0.9rem;">Ask your cameras questions in plain English. "Is the gate closed?" "Is anyone in the restricted zone?" Reads text, signs, and plates directly from live feeds.</p>
+        </div>
+
+        <!-- 3 -->
+        <div class="card card-light">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M23 7 16 12 23 17V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              <path d="M9 12h.01"/>
+            </svg>
+          </div>
+          <h3>Camera Health Monitoring</h3>
+          <p class="text-mid" style="font-size:0.9rem;">Inspects every camera automatically day and night. Detects blur, darkness, overexposure, and misalignment. Alerts your team before a coverage gap becomes a liability.</p>
+        </div>
+
+        <!-- 4 -->
+        <div class="card card-light">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+            </svg>
+          </div>
+          <h3>Operational Intelligence</h3>
+          <p class="text-mid" style="font-size:0.9rem;">Real-time dashboards across your camera estate. Automated reports on your schedule. Audit logs ready for compliance. Connects to existing workflows without disruption.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       5. DETECTION WITH UNDERSTANDING
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="context" class="dark">
+    <div class="container">
+      <div class="section-label">Contextual AI</div>
+      <h2>Detection with Understanding</h2>
+      <div class="accent-line"></div>
+
+      <div class="grid-2" style="margin-top:2.5rem;">
+
+        <!-- Standard AI -->
+        <div class="card card-warm" style="background:#1a1020;border:1px solid rgba(255,255,255,0.07);">
+          <div class="tag" style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.45);">Standard AI</div>
+          <div style="margin-bottom:1.25rem;">
+            <p style="color:rgba(255,255,255,0.5);font-family:'Playfair Display',serif;font-style:italic;font-size:1.05rem;line-height:1.8;">
+              "Person detected."<br>
+              "Vehicle detected."<br>
+              "Object detected."
+            </p>
+          </div>
+          <p style="color:rgba(255,255,255,0.45);font-size:0.92rem;line-height:1.7;">
+            Your team still has to watch the footage, interpret the alert, and decide what to do.
+          </p>
+          <p style="color:rgba(255,255,255,0.3);font-size:0.88rem;margin-top:1rem;font-style:italic;">
+            Detection without context is just noise.
+          </p>
+        </div>
+
+        <!-- IntelliOptics -->
+        <div class="card card-cyan">
+          <div class="tag">IntelliOptics</div>
+          <div style="margin-bottom:1.25rem;">
+            <ul class="bullet-list">
+              <li style="color:rgba(255,255,255,0.9);">"Is this person an authorized employee?"</li>
+              <li style="color:rgba(255,255,255,0.9);">"Is this vehicle on the approved access list?"</li>
+              <li style="color:rgba(255,255,255,0.9);">"Is the worker wearing required safety equipment?"</li>
+              <li style="color:rgba(255,255,255,0.9);">"Does this scene match what should be happening here?"</li>
+            </ul>
+          </div>
+          <p style="color:rgba(255,255,255,0.55);font-size:0.88rem;font-style:italic;border-top:1px solid rgba(0,201,255,0.2);padding-top:1rem;margin-top:0.5rem;">
+            Operators define the context. IntelliOptics answers it.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       6. SELF-IMPROVING AI
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="selflearning" class="light">
+    <div class="container">
+      <div class="section-label">Active Learning</div>
+      <h2>Your AI Gets Smarter Every Day</h2>
+      <p class="subtitle-dark">
+        No data scientists. No retraining projects. IntelliOptics learns from your team's feedback — automatically.
+      </p>
+      <div class="accent-line" style="background:var(--blue);"></div>
+
+      <!-- 3-step pipeline -->
+      <div class="pipeline" style="margin:2.5rem 0;">
+        <div class="pipeline-step" style="background:#fff;border:1px solid rgba(0,0,0,0.08);color:var(--dark-text);">
+          <div class="step-num">1</div>
+          <div class="step-title" style="color:var(--blue);">Review</div>
+          <p style="color:var(--mid-text);">Your team reviews detections in the dashboard</p>
+        </div>
+        <div class="pipeline-arrow" style="color:var(--blue);opacity:0.5;">›</div>
+        <div class="pipeline-step" style="background:#fff;border:1px solid rgba(0,0,0,0.08);color:var(--dark-text);">
+          <div class="step-num">2</div>
+          <div class="step-title" style="color:var(--blue);">Learn</div>
+          <p style="color:var(--mid-text);">System learns from your feedback automatically</p>
+        </div>
+        <div class="pipeline-arrow" style="color:var(--blue);opacity:0.5;">›</div>
+        <div class="pipeline-step" style="background:#fff;border:1px solid rgba(0,0,0,0.08);color:var(--dark-text);">
+          <div class="step-num">3</div>
+          <div class="step-title" style="color:var(--blue);">Improve</div>
+          <p style="color:var(--mid-text);">Detection accuracy improves continuously</p>
+        </div>
+      </div>
+
+      <div class="grid-4">
+        <div class="card card-light" style="padding:1.5rem;">
+          <div class="card-icon" style="background:rgba(0,120,255,0.08);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+              <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+            </svg>
+          </div>
+          <p style="font-size:0.88rem;color:var(--mid-text);line-height:1.5;">Custom-trained to your cameras, your lighting, your environment</p>
+        </div>
+        <div class="card card-light" style="padding:1.5rem;">
+          <div class="card-icon" style="background:rgba(0,120,255,0.08);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <p style="font-size:0.88rem;color:var(--mid-text);line-height:1.5;">Every detection your team reviews teaches the system</p>
+        </div>
+        <div class="card card-light" style="padding:1.5rem;">
+          <div class="card-icon" style="background:rgba(0,120,255,0.08);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+            </svg>
+          </div>
+          <p style="font-size:0.88rem;color:var(--mid-text);line-height:1.5;">The more you use it, the more accurate it becomes</p>
+        </div>
+        <div class="card card-light" style="padding:1.5rem;">
+          <div class="card-icon" style="background:rgba(0,120,255,0.08);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+              <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+              <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+            </svg>
+          </div>
+          <p style="font-size:0.88rem;color:var(--mid-text);line-height:1.5;">Deploys improved models without any downtime or reinstallation</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       7. SPECIALIZED SOLUTIONS
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="specialized" class="dark">
+    <div class="container">
+      <div class="section-label">Specialized Modules</div>
+      <h2>Purpose-Built for Your Operation</h2>
+      <div class="accent-line"></div>
+
+      <div class="grid-2x2" style="margin-top:2.5rem;">
+
+        <!-- Vehicle ID -->
+        <div class="card card-dark">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+              <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+          </div>
+          <h3 class="text-white">Vehicle Identification</h3>
+          <ul class="bullet-list" style="margin-top:0.75rem;">
+            <li><span class="text-muted">Reads license plates from live or recorded footage</span></li>
+            <li><span class="text-muted">Identifies vehicle type, color, and direction</span></li>
+            <li><span class="text-muted">Instant alerts on flagged vehicles</span></li>
+            <li><span class="text-muted">Access control and fleet monitoring</span></li>
+          </ul>
+        </div>
+
+        <!-- Forensic Search -->
+        <div class="card card-dark">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              <path d="M11 8v6M8 11h6"/>
+            </svg>
+          </div>
+          <h3 class="text-white">Forensic Video Search</h3>
+          <ul class="bullet-list" style="margin-top:0.75rem;">
+            <li><span class="text-muted">Search hours of footage in minutes, not days</span></li>
+            <li><span class="text-muted">Find a person, vehicle, or object across dozens of feeds</span></li>
+            <li><span class="text-muted">Build incident timelines for investigations</span></li>
+            <li><span class="text-muted">No manual scrubbing required</span></li>
+          </ul>
+        </div>
+
+        <!-- Parking -->
+        <div class="card card-dark">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>
+            </svg>
+          </div>
+          <h3 class="text-white">Parking Management</h3>
+          <ul class="bullet-list" style="margin-top:0.75rem;">
+            <li><span class="text-muted">Real-time lot occupancy and entry/exit tracking</span></li>
+            <li><span class="text-muted">Automated alerts for capacity and violations</span></li>
+            <li><span class="text-muted">Usage analytics for operational decisions</span></li>
+            <li><span class="text-muted">Works with your existing cameras</span></li>
+          </ul>
+        </div>
+
+        <!-- Safety -->
+        <div class="card card-dark">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3 class="text-white">Safety &amp; Compliance</h3>
+          <ul class="bullet-list" style="margin-top:0.75rem;">
+            <li><span class="text-muted">PPE and safety equipment detection</span></li>
+            <li><span class="text-muted">Real-time alerts when standards are not met</span></li>
+            <li><span class="text-muted">Continuous monitoring replaces costly manual inspections</span></li>
+            <li><span class="text-muted">Audit-ready OSHA logs</span></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       8. CAMERA HEALTH
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="health" class="light">
+    <div class="container">
+      <div class="section-label">Proactive Monitoring</div>
+      <h2>Know Before It's Too Late</h2>
+      <div class="accent-line" style="background:var(--blue);"></div>
+
+      <div class="grid-2" style="margin-top:2.5rem;align-items:start;">
+
+        <!-- Left text -->
+        <div>
+          <p style="font-size:1.05rem;color:var(--mid-text);line-height:1.8;margin-bottom:1.5rem;">
+            <strong style="color:var(--dark-text);">50% of cameras experience issues in any given year.</strong>
+            Most are discovered only after an incident.
+          </p>
+          <p style="font-size:1rem;color:var(--mid-text);line-height:1.8;margin-bottom:2rem;">
+            IntelliOptics inspects every camera automatically — day and night — and alerts your team before a coverage gap becomes a liability.
+          </p>
+          <div class="card card-light" style="padding:1.5rem;background:linear-gradient(135deg,#eef4ff,#f4f7ff);">
+            <p style="font-size:0.9rem;color:var(--mid-text);font-style:italic;line-height:1.7;">
+              Historical health reports, trend analytics, and proactive alerts — before a gap becomes a liability.
+            </p>
+          </div>
+        </div>
+
+        <!-- Right cards -->
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="health-card">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem;">
+              <div class="health-dot" style="background:#f59e0b;"></div>
+              <div class="health-title">Blur / Focus Loss</div>
+            </div>
+            <div class="health-desc">Detected automatically — alert sent within seconds.</div>
+          </div>
+          <div class="health-card">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem;">
+              <div class="health-dot" style="background:#6366f1;"></div>
+              <div class="health-title">Dark / Offline Feed</div>
+            </div>
+            <div class="health-desc">Coverage gap identified before the footage is needed.</div>
+          </div>
+          <div class="health-card">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem;">
+              <div class="health-dot" style="background:#f97316;"></div>
+              <div class="health-title">Overexposure</div>
+            </div>
+            <div class="health-desc">Glare and washout caught before they hide critical events.</div>
+          </div>
+          <div class="health-card">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem;">
+              <div class="health-dot" style="background:#0078ff;"></div>
+              <div class="health-title">Camera Misalignment</div>
+            </div>
+            <div class="health-desc">Field-of-view drift detected over time, automatically.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       9. HOW IT WORKS
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="howitworks" class="dark">
+    <div class="container">
+      <div class="section-label">Deployment</div>
+      <h2>Simple to Deploy.<br>Powerful from Day One.</h2>
+      <div class="accent-line"></div>
+
+      <div class="pipeline" style="margin:3rem 0;">
+        <div class="pipeline-step">
+          <div class="step-num">1</div>
+          <div class="step-title">Connect</div>
+          <p>Point IntelliOptics at your existing cameras. No new hardware needed.</p>
+        </div>
+        <div class="pipeline-arrow">›</div>
+        <div class="pipeline-step">
+          <div class="step-num">2</div>
+          <div class="step-title">Configure</div>
+          <p>Define what matters in plain language. Custom rules for your environment.</p>
+        </div>
+        <div class="pipeline-arrow">›</div>
+        <div class="pipeline-step">
+          <div class="step-num">3</div>
+          <div class="step-title">Detect</div>
+          <p>IntelliOptics watches every feed, every second, automatically.</p>
+        </div>
+        <div class="pipeline-arrow">›</div>
+        <div class="pipeline-step">
+          <div class="step-num">4</div>
+          <div class="step-title">Alert</div>
+          <p>Instant notifications when something needs your attention.</p>
+        </div>
+        <div class="pipeline-arrow">›</div>
+        <div class="pipeline-step">
+          <div class="step-num">5</div>
+          <div class="step-title">Report</div>
+          <p>Dashboards, trends, and audit logs on your schedule.</p>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:1.25rem 2rem;border-radius:12px;background:rgba(0,201,255,0.05);border:1px solid rgba(0,201,255,0.15);max-width:640px;margin:0 auto;">
+        <p style="color:rgba(255,255,255,0.55);font-size:0.92rem;font-style:italic;">
+          Works with any IP camera system. No replacement. No disruption. No downtime.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       10. TIME TO VALUE
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="timetovalue" class="light">
+    <div class="container">
+      <div class="section-label">Time to Value</div>
+      <h2>Most AI Platforms Take Months.<br>We Take Hours.</h2>
+      <div class="accent-line" style="background:var(--blue);"></div>
+
+      <div class="grid-2" style="margin-top:2.5rem;">
+
+        <!-- Traditional -->
+        <div class="before-card">
+          <div class="before-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+            </svg>
+            Traditional Approach
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-period">Month 1–3</div>
+            <div class="timeline-desc">Scoping, vendor selection, hardware quotes</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-period">Month 3–6</div>
+            <div class="timeline-desc">System installation and configuration</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-period">Month 6–9</div>
+            <div class="timeline-desc">AI training on your specific environment</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-period">Month 9+</div>
+            <div class="timeline-desc">Testing, tuning, and soft launch</div>
+          </div>
+          <div class="timeline-item" style="border-bottom:none;">
+            <div class="timeline-period">Risk</div>
+            <div class="timeline-desc" style="color:#c0392b;">After all that — may still not cover new scenarios.</div>
+          </div>
+        </div>
+
+        <!-- IntelliOptics -->
+        <div class="after-card">
+          <div class="after-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            IntelliOptics 2.5
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-period timeline-period-green">Day 1 Morning</div>
+            <div class="timeline-desc">Connect to your existing cameras</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-period timeline-period-green">Day 1 Afternoon</div>
+            <div class="timeline-desc">Detection rules configured</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-period timeline-period-green">Day 1 Evening</div>
+            <div class="timeline-desc">Live monitoring active</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-period timeline-period-green">Day 2+</div>
+            <div class="timeline-desc">Alerts, reports, and insights flowing</div>
+          </div>
+          <div class="timeline-item" style="border-bottom:none;">
+            <div class="timeline-period timeline-period-green">Result</div>
+            <div class="timeline-desc" style="color:#1a7a34;">Adapts to new scenarios on demand. Nothing else required.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       11. WHY INTELLIOPTICS
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="whyus" class="dark">
+    <div class="container">
+      <div class="section-label">Our Difference</div>
+      <h2>We Built What the Market Was Missing</h2>
+      <div class="accent-line"></div>
+
+      <div class="grid-2" style="margin-top:2.5rem;">
+
+        <div class="card card-dark">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M23 7 16 12 23 17V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+            </svg>
+          </div>
+          <h3 class="text-white">We Don't Replace Your Cameras</h3>
+          <p class="text-muted" style="font-size:0.9rem;margin-top:0.5rem;">An intelligence layer on top of what you already own. No rip-and-replace. Protect your existing investment.</p>
+        </div>
+
+        <div class="card card-dark">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <h3 class="text-white">We Don't Need Months to Train</h3>
+          <p class="text-muted" style="font-size:0.9rem;margin-top:0.5rem;">Live on Day 1. Custom rules configured without a data science team. Start detecting in hours, not quarters.</p>
+        </div>
+
+        <div class="card card-dark">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+          </div>
+          <h3 class="text-white">We Don't Sleep or Get Distracted</h3>
+          <p class="text-muted" style="font-size:0.9rem;margin-top:0.5rem;">24/7 continuous monitoring. Every alert consistent, logged, and delivered in real time — without fatigue or error.</p>
+        </div>
+
+        <div class="card card-dark">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+              <polyline points="17 6 23 6 23 12"/>
+            </svg>
+          </div>
+          <h3 class="text-white">We Grow With Your Operation</h3>
+          <p class="text-muted" style="font-size:0.9rem;margin-top:0.5rem;">Start with one site or one hundred. Add new detection rules anytime without reinstalling or re-deploying.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       12. RESULTS
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="results" class="light">
+    <div class="container">
+      <div class="section-label">Client Results</div>
+      <h2>Real Results. Measurable ROI.</h2>
+      <div class="accent-line" style="background:var(--blue);"></div>
+
+      <!-- Pull quote -->
+      <div style="margin:2.5rem 0;padding:2.5rem;background:#fff;border-radius:20px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 8px 40px rgba(0,0,0,0.07);">
+        <div class="quote-mark" style="color:var(--blue);opacity:0.2;">"</div>
+        <p class="pull-quote-light">
+          IntelliOptics delivered measurable ROI before year one was over. The automated monitoring alone replaced hours of daily manual review. We now have confidence that our cameras are working — all of them, all the time.
+        </p>
+        <p style="margin-top:1.25rem;font-size:0.85rem;font-weight:600;color:var(--mid-text);letter-spacing:0.05em;text-transform:uppercase;">
+          — St. Louis Police Department
+        </p>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid-3" style="margin-top:2rem;">
+        <div class="result-stat">
+          <div class="result-number">$57,000</div>
+          <div class="stat-divider" style="background:rgba(0,120,255,0.25);margin:0.75rem auto;"></div>
+          <div class="result-label">Reduced labor &amp; equipment costs over 3 years</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-number">Day 1</div>
+          <div class="stat-divider" style="background:rgba(0,120,255,0.25);margin:0.75rem auto;"></div>
+          <div class="result-label">Live &amp; monitoring from go-live</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-number">Zero</div>
+          <div class="stat-divider" style="background:rgba(0,120,255,0.25);margin:0.75rem auto;"></div>
+          <div class="result-label">New hardware required</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       13. OUR PROMISE
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="promise" class="dark">
+    <div class="container" style="text-align:center;">
+      <h2>Our Promise</h2>
+      <p class="subtitle" style="margin:1rem auto 0;text-align:center;">
+        We make sure your surveillance is working — when it matters most.
+      </p>
+      <div class="accent-line" style="margin:1.75rem auto;"></div>
+
+      <div class="grid-2x2" style="max-width:900px;margin:0 auto;text-align:left;">
+        <div class="check-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span style="color:rgba(255,255,255,0.82);font-size:0.92rem;">Real-time monitoring across every camera in your estate</span>
+        </div>
+        <div class="check-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span style="color:rgba(255,255,255,0.82);font-size:0.92rem;">Early warnings before coverage gaps become liabilities</span>
+        </div>
+        <div class="check-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span style="color:rgba(255,255,255,0.82);font-size:0.92rem;">Instant alerts — never discover a failure after the fact</span>
+        </div>
+        <div class="check-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span style="color:rgba(255,255,255,0.82);font-size:0.92rem;">Complete audit trail for compliance and investigations</span>
+        </div>
+        <div class="check-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span style="color:rgba(255,255,255,0.82);font-size:0.92rem;">Operational from day one — no disruption to your team</span>
+        </div>
+        <div class="check-item">
+          <div class="check-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span style="color:rgba(255,255,255,0.82);font-size:0.92rem;">Peace of mind when it matters: audits, incidents, and beyond</span>
+        </div>
+      </div>
+
+      <p style="margin-top:3rem;font-size:0.85rem;letter-spacing:0.1em;color:rgba(255,255,255,0.25);text-transform:uppercase;font-weight:500;">
+        IntelliOptics 2.5 — Your cameras. Comprehended.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       14. CONTACT
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="contact" class="light">
+    <div class="container" style="text-align:center;">
+      <div class="section-label">Get Started</div>
+      <h2>Let's Talk</h2>
+      <p class="subtitle-dark" style="margin:0.75rem auto 2.5rem;text-align:center;">
+        Ready to see IntelliOptics in your environment?<br>We'll have you live in a day.
+      </p>
+
+      <div class="contact-card">
+        <div class="contact-avatar">JM</div>
+        <div class="contact-name">Jesse Morgan</div>
+        <div class="contact-title">Co-Founder, 4wardMotions Solutions</div>
+
+        <div class="contact-detail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <a href="mailto:jmorgan@4wardmotions.com">jmorgan@4wardmotions.com</a>
+        </div>
+
+        <div class="contact-detail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          <a href="https://4wardmotions.com" target="_blank" rel="noopener">www.4wardmotions.com</a>
+        </div>
+
+        <div class="contact-tagline">
+          4wardMotions &nbsp;|&nbsp; AI-Powered Visual Intelligence
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════════════════════════ -->
+  <footer class="deck-footer">
+    IntelliOptics 2.5 &nbsp;·&nbsp; 4wardMotions Solutions,Inc &nbsp;·&nbsp; AI-Powered Visual Intelligence &nbsp;·&nbsp; 4WardMotions.com
+  </footer>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       JAVASCRIPT — IntersectionObserver nav highlight
+  ══════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      const navLinks = document.querySelectorAll('#navLinks a');
+
+      // Build a map: href → link element
+      const linkMap = {};
+      navLinks.forEach(function (a) {
+        const href = a.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          linkMap[href.slice(1)] = a;
+        }
+      });
+
+      // Gather all sections that have an id referenced by a nav link
+      const sectionIds = Object.keys(linkMap);
+      const sections = sectionIds.map(function (id) {
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      let activeId = null;
+
+      function setActive(id) {
+        if (id === activeId) return;
+        activeId = id;
+        navLinks.forEach(function (a) { a.classList.remove('active'); });
+        if (id && linkMap[id]) {
+          linkMap[id].classList.add('active');
+          // Scroll nav link into view (horizontal) on small screens
+          linkMap[id].scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+        }
+      }
+
+      const observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              setActive(entry.target.id);
+            }
+          });
+        },
+        {
+          rootMargin: '-10% 0px -75% 0px',
+          threshold: 0
+        }
+      );
+
+      sections.forEach(function (s) { observer.observe(s); });
+
+      // Fallback: activate first section on load
+      if (sections.length > 0) {
+        setActive(sections[0].id);
+      }
+    })();
+  </script>
+
+<footer style="background:#0a0a0a;color:#555;text-align:center;padding:2rem;font-size:0.85rem;font-family:'Inter',sans-serif;letter-spacing:0.05em;">
+  Built by 4WardMotion Solutions, Inc
+</footer>
+</body>
+</html>
