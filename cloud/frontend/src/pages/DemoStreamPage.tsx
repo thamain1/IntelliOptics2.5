@@ -849,7 +849,7 @@ const DemoStreamPage: React.FC = () => {
                             );
                           }
                         }}
-                        className="rounded border-gray-600 text-blue-600 focus:ring-blue-500 bg-gray-700"
+                        className="rounded border-gray-600 text-blue-600 focus:ring-brand-primary bg-gray-700"
                       />
                       <div className="flex flex-col">
                         <span className="text-sm text-gray-200">{det.name}</span>

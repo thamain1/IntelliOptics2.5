@@ -651,7 +651,7 @@ const CameraInspectionPage: React.FC = () => {
                   value={newCamera.hubId}
                   onChange={(e) => setNewCamera({ ...newCamera, hubId: e.target.value })}
                   disabled={savingCamera}
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none"
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-brand-primary outline-none"
                 >
                   {hubs.length === 0 ? (
                     <option value="">No hubs available</option>
@@ -673,7 +673,7 @@ const CameraInspectionPage: React.FC = () => {
                   onChange={(e) => setNewCamera({ ...newCamera, name: e.target.value })}
                   disabled={savingCamera}
                   placeholder="e.g., Front Gate, Loading Dock 3, Lobby Cam"
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none"
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-brand-primary outline-none"
                 />
               </div>
 
@@ -689,7 +689,7 @@ const CameraInspectionPage: React.FC = () => {
                   }}
                   disabled={savingCamera}
                   placeholder="rtsp://user:pass@host:port/path  or  https://...m3u8  or  http://...mjpg"
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none font-mono text-sm"
+                  className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-brand-primary outline-none font-mono text-sm"
                 />
                 {newCamera.url && (
                   <p className="text-xs text-gray-500 mt-2">
@@ -1037,7 +1037,7 @@ const CameraInspectionPage: React.FC = () => {
           placeholder="Search cameras..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          className="flex-1 bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none"
+          className="flex-1 bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 focus:border-brand-primary outline-none"
         />
         <select
           value={filterStatus}

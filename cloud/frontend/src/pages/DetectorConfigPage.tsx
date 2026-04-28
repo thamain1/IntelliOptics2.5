@@ -69,14 +69,14 @@ const Card = ({ title, children }: { title: string, children: React.ReactNode })
 const Input = ({ label, id, ...props }: any) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-400">{label}</label>
-        <input id={id} {...props} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
+        <input id={id} {...props} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm" />
     </div>
 );
 
 const Select = ({ label, id, children, ...props }: any) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-400">{label}</label>
-        <select id={id} {...props} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+        <select id={id} {...props} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm">
             {children}
         </select>
     </div>
@@ -84,7 +84,7 @@ const Select = ({ label, id, children, ...props }: any) => (
 
 const Checkbox = ({ label, id, ...props }: any) => (
     <div className="flex items-center">
-        <input id={id} {...props} type="checkbox" className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-600 rounded" />
+        <input id={id} {...props} type="checkbox" className="focus:ring-brand-primary h-4 w-4 text-blue-600 border-gray-600 rounded" />
         <label htmlFor={id} className="ml-2 block text-sm text-gray-300">{label}</label>
     </div>
 );
@@ -355,7 +355,7 @@ const DetectorConfigPage = () => {
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor="description" className="block text-sm font-medium text-gray-400">Description</label>
-                                    <textarea id="description" {...field} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-24" />
+                                    <textarea id="description" {...field} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm h-24" />
                                 </div>
                             )}
                         />
@@ -370,7 +370,7 @@ const DetectorConfigPage = () => {
                                         {...field}
                                         list="group-suggestions"
                                         placeholder="e.g., Building A Security, Production Line 1"
-                                        className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                        className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm"
                                     />
                                     <datalist id="group-suggestions">
                                         {groupSuggestions.map(g => (
@@ -459,7 +459,7 @@ const DetectorConfigPage = () => {
                                   type="text"
                                   {...field}
                                   placeholder="0.485, 0.456, 0.406"
-                                  className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                  className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">ImageNet defaults shown</p>
                               </div>
@@ -476,7 +476,7 @@ const DetectorConfigPage = () => {
                                   type="text"
                                   {...field}
                                   placeholder="0.229, 0.224, 0.225"
-                                  className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                  className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm"
                                 />
                               </div>
                             )}
@@ -783,7 +783,7 @@ const DetectorConfigPage = () => {
                                               field.onChange(newClassNames);
                                             }}
                                             placeholder="Enter class name"
-                                            className="flex-1 rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
+                                            className="flex-1 rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm px-3 py-2"
                                           />
                                           <button
                                             type="button"
@@ -1162,7 +1162,7 @@ const DetectorAlertsConfig = ({ detectorId }: { detectorId: string }) => {
                                 <textarea
                                     value={(config.alert_emails || []).join('\n')}
                                     onChange={(e) => setConfig({ ...config, alert_emails: e.target.value.split('\n').filter((s: string) => s.trim()) })}
-                                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-24"
+                                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm h-24"
                                     placeholder="security@company.com&#10;ops@company.com"
                                 />
                             </div>
@@ -1194,7 +1194,7 @@ const DetectorAlertsConfig = ({ detectorId }: { detectorId: string }) => {
                                 <textarea
                                     value={config.custom_message || ''}
                                     onChange={(e) => setConfig({ ...config, custom_message: e.target.value })}
-                                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-24"
+                                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm h-24"
                                     placeholder="Person detected on {camera_name} with {confidence} confidence"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">

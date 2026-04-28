@@ -254,7 +254,7 @@ const AdminPage: React.FC = () => {
                   placeholder="user@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
+                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
                   required
                 />
               </div>
@@ -265,7 +265,7 @@ const AdminPage: React.FC = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
+                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
                   required
                   minLength={6}
                 />
@@ -275,7 +275,7 @@ const AdminPage: React.FC = () => {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
+                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm p-2"
                 >
                   <option value="admin">Admin</option>
                   <option value="reviewer">Reviewer</option>
@@ -304,7 +304,7 @@ const AdminPage: React.FC = () => {
                       <select
                         value={u.roles}
                         onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                        className="rounded-md bg-gray-700 border-gray-600 text-white text-sm focus:border-blue-500 focus:ring-blue-500 p-1"
+                        className="rounded-md bg-gray-700 border-gray-600 text-white text-sm focus:border-blue-500 focus:ring-brand-primary p-1"
                       >
                         <option value="admin">Admin</option>
                         <option value="reviewer">Reviewer</option>

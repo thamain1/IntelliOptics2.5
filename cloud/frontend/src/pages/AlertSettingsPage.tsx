@@ -56,13 +56,13 @@ const Card = ({ title, children }: { title: string, children: React.ReactNode })
 const Input = ({ label, id, error, ...props }: any) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-400">{label}</label>
-        <input id={id} {...props} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
+        <input id={id} {...props} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-brand-primary sm:text-sm" />
         {error && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
     </div>
 );
 const Checkbox = ({ label, id, ...props }: any) => (
     <div className="flex items-center">
-        <input id={id} {...props} type="checkbox" className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-600 rounded" />
+        <input id={id} {...props} type="checkbox" className="focus:ring-brand-primary h-4 w-4 text-blue-600 border-gray-600 rounded" />
         <label htmlFor={id} className="ml-2 block text-sm text-gray-300">{label}</label>
     </div>
 );

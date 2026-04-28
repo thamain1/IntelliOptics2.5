@@ -380,7 +380,7 @@ const EscalationQueuePage: React.FC = () => {
             <form onSubmit={submitAnnotation} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Ground Truth Label</label>
-                <select value={label} onChange={(e) => setLabel(e.target.value)} className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                <select value={label} onChange={(e) => setLabel(e.target.value)} className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2">
                   <option value="YES">YES (Correct)</option>
                   <option value="NO">NO (Incorrect)</option>
                   <option value="UNCLEAR">UNCLEAR</option>
@@ -396,7 +396,7 @@ const EscalationQueuePage: React.FC = () => {
                         max="1"
                         value={confidence}
                         onChange={(e) => setConfidence(e.target.value === '' ? '' : Number(e.target.value))}
-                        className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
+                        className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2"
                         placeholder="e.g. 0.95"
                     />
                 </div>
@@ -407,7 +407,7 @@ const EscalationQueuePage: React.FC = () => {
                         min="0"
                         value={count}
                         onChange={(e) => setCount(e.target.value === '' ? '' : Number(e.target.value))}
-                        className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
+                        className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2"
                     />
                 </div>
               </div>
@@ -417,7 +417,7 @@ const EscalationQueuePage: React.FC = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
-                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
+                  className="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm p-2"
                   placeholder="Add context for retraining..."
                 />
               </div>

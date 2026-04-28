@@ -174,7 +174,7 @@ export default function OpenVocabPage() {
                     value={prompts}
                     onChange={e => setPrompts(e.target.value)}
                     placeholder="person, car, fire, red truck..."
-                    className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
+                    className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600 focus:border-brand-primary focus:outline-none"
                   />
                 </div>
                 <div>

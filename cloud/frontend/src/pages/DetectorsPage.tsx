@@ -243,7 +243,7 @@ const DetectorsPage: React.FC = () => {
                     {...register("name")}
                     type="text"
                     placeholder="e.g., Vehicle Detection - Lot A"
-                    className={`w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-blue-500 focus:border-blue-500 ${errors.name ? 'border-red-500' : ''}`}
+                    className={`w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary ${errors.name ? 'border-red-500' : ''}`}
                   />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                 </div>
@@ -253,7 +253,7 @@ const DetectorsPage: React.FC = () => {
                     {...register("query_text")}
                     type="text"
                     placeholder="e.g., Is there a vehicle in the space?"
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                   />
                   <p className="text-[10px] text-gray-500 mt-1 italic">💡 Helps human reviewers understand the context</p>
                 </div>
@@ -264,7 +264,7 @@ const DetectorsPage: React.FC = () => {
                   {...register("description")}
                   rows={2}
                   placeholder="What does this detector do? Where is it used?"
-                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                 />
               </div>
               <div>
@@ -273,7 +273,7 @@ const DetectorsPage: React.FC = () => {
                   {...register("group_name")}
                   type="text"
                   placeholder="e.g., Building A Security, Production Line 1"
-                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                 />
                 <p className="text-[10px] text-gray-500 mt-1 italic">💡 Organize detectors into logical groups</p>
               </div>
@@ -336,7 +336,7 @@ const DetectorsPage: React.FC = () => {
                         <input
                           {...register(`class_names.${index}` as const)}
                           placeholder="Enter class name"
-                          className="flex-1 rounded-md bg-gray-700 border-gray-600 text-white p-2 text-sm focus:ring-blue-500"
+                          className="flex-1 rounded-md bg-gray-700 border-gray-600 text-white p-2 text-sm focus:ring-brand-primary"
                         />
                         <button
                           type="button"
@@ -373,7 +373,7 @@ const DetectorsPage: React.FC = () => {
                     {...register("max_count", { valueAsNumber: true })}
                     placeholder="e.g., 100"
                     min="1"
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                   />
                   <p className="text-[10px] text-gray-500 mt-1 italic">💡 Set upper limit for count validation (alerts if exceeded)</p>
                 </div>
@@ -392,7 +392,7 @@ const DetectorsPage: React.FC = () => {
                     {...register("max_num_bboxes", { valueAsNumber: true })}
                     placeholder="e.g., 50"
                     min="1"
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary focus:border-brand-primary"
                   />
                   <p className="text-[10px] text-gray-500 mt-1 italic">💡 Limit number of detected objects per frame</p>
                 </div>
@@ -436,7 +436,7 @@ const DetectorsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-400 mb-1">Edge Inference Profile</label>
                   <select
                     {...register("edge_inference_profile")}
-                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-blue-500"
+                    className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 focus:ring-brand-primary"
                   >
                     <option value="default">Default (Cloud Escalation Enabled)</option>
                     <option value="offline">Offline Mode (No Cloud Escalation)</option>
@@ -529,7 +529,7 @@ const DetectorsPage: React.FC = () => {
             <select
               value={selectedGroup}
               onChange={(e) => setSelectedGroup(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 focus:outline-none"
+              className="px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-brand-primary focus:outline-none"
             >
               <option value="">All Groups</option>
               {groups.map(g => (

@@ -211,7 +211,7 @@ const DeploymentManagerPage = () => {
               <select
                 value={groupFilter}
                 onChange={(e) => setGroupFilter(e.target.value)}
-                className="bg-gray-700 text-white text-sm rounded px-2 py-1 border border-gray-600 focus:outline-none focus:border-blue-500"
+                className="bg-gray-700 text-white text-sm rounded px-2 py-1 border border-gray-600 focus:outline-none focus:border-brand-primary"
               >
                 <option value="all">All Groups</option>
                 {groups.map((g) => (

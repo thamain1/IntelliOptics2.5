@@ -169,7 +169,7 @@ const QueryHistoryPage: React.FC = () => {
               placeholder="Filter by label..."
               value={labelFilter}
               onChange={(e) => setLabelFilter(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 focus:outline-none w-40"
+              className="px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-brand-primary focus:outline-none w-40"
             />
             {/* Confidence Slider */}
             <div className="flex items-center gap-2">
