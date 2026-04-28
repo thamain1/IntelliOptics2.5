@@ -203,7 +203,9 @@ const DetectorAlertConfigPage: React.FC = () => {
             &larr; Back
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-white">Edit Alert</h1>
+            <h1 className="font-display uppercase tracking-ioWide text-2xl font-bold text-white">
+              Edit <span className="text-brand-primary">Alert</span>
+            </h1>
             <p className="text-gray-400">Configure alert for {detector?.name}</p>
           </div>
         </div>

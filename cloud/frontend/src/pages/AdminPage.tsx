@@ -344,11 +344,11 @@ const AdminPage: React.FC = () => {
             {storageStats ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gray-700 rounded p-4">
-                  <div className="text-2xl font-bold text-white">{storageStats.total_queries.toLocaleString()}</div>
+                  <div className="font-display text-3xl font-bold text-brand-primary">{storageStats.total_queries.toLocaleString()}</div>
                   <div className="text-sm text-gray-400">Total Queries</div>
                 </div>
                 <div className="bg-gray-700 rounded p-4">
-                  <div className="text-2xl font-bold text-white">{storageStats.estimated_size_mb.toFixed(1)} MB</div>
+                  <div className="font-display text-3xl font-bold text-brand-primary">{storageStats.estimated_size_mb.toFixed(1)} MB</div>
                   <div className="text-sm text-gray-400">Est. Storage</div>
                 </div>
                 <div className="bg-gray-700 rounded p-4">

@@ -226,7 +226,9 @@ const DetectorsPage: React.FC = () => {
       {showForm && (
         <div className="bg-brand-bg2 rounded-lg shadow-xl p-8 mb-8 border border-brand-line animate-fadeIn">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">New Detector Configuration</h2>
+            <h2 className="font-display uppercase tracking-ioWide text-2xl font-bold text-white">
+              New <span className="text-brand-primary">Detector</span>
+            </h2>
             <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-gray-300">✕</button>
           </div>
 

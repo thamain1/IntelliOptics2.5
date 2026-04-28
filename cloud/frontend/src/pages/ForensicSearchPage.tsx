@@ -351,15 +351,15 @@ export default function ForensicSearchPage() {
                 {/* Progress */}
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <div className="text-2xl font-bold text-white">{selectedJob.frames_scanned}</div>
+                    <div className="font-display text-3xl font-bold text-brand-primary">{selectedJob.frames_scanned}</div>
                     <div className="text-xs text-gray-500">Frames Scanned</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white">{selectedJob.matches_found}</div>
+                    <div className="font-display text-3xl font-bold text-brand-primary">{selectedJob.matches_found}</div>
                     <div className="text-xs text-gray-500">Matches Found</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white">{selectedJob.progress_pct.toFixed(0)}%</div>
+                    <div className="font-display text-3xl font-bold text-brand-primary">{selectedJob.progress_pct.toFixed(0)}%</div>
                     <div className="text-xs text-gray-500">Progress</div>
                   </div>
                 </div>

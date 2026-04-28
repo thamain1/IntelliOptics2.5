@@ -776,7 +776,9 @@ const CameraInspectionPage: React.FC = () => {
       {/* Settings Panel */}
       {showSettings && config && (
         <div className="bg-brand-bg2 rounded-lg p-6 mb-8 border border-brand-line">
-          <h2 className="text-2xl font-bold text-white mb-6">Inspection Configuration</h2>
+          <h2 className="font-display uppercase tracking-ioWide text-2xl font-bold text-white mb-6">
+            Inspection <span className="text-brand-primary">Configuration</span>
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Left Column */}

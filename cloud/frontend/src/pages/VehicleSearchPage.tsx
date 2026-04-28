@@ -68,7 +68,9 @@ export default function VehicleSearchPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Vehicle Search</h1>
+        <h1 className="font-display uppercase tracking-ioWide text-3xl font-bold text-white">
+          Vehicle <span className="text-brand-primary">Search</span>
+        </h1>
         <button
           onClick={handleExportCSV}
           disabled={vehicles.length === 0}
