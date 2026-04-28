@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
-    libgl1-mesa-glx \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -22,9 +22,6 @@ RUN pip install --no-cache-dir -r requirements-camera-inspection.txt
 
 # Copy worker code
 COPY camera_inspection_worker.py .
-
-# Copy .env file if exists (optional)
-COPY .env* ./ 2>/dev/null || true
 
 # Run worker
 CMD ["python", "camera_inspection_worker.py"]
