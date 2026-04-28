@@ -43,6 +43,8 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 ALERT_FROM_EMAIL = os.getenv("ALERT_FROM_EMAIL", "alerts@intellioptics.com")
 AZURE_BLOB_CONNECTION_STRING = os.getenv("AZURE_BLOB_CONNECTION_STRING")
 AZURE_BLOB_CONTAINER = os.getenv("AZURE_BLOB_CONTAINER", "camera-baselines")
+WORKER_EMAIL = os.getenv("ADMIN_EMAIL", os.getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@intellioptics.com"))
+WORKER_PASSWORD = os.getenv("ADMIN_PASSWORD", os.getenv("BOOTSTRAP_ADMIN_PASSWORD", "admin123"))
 
 
 class CameraInspectionWorker:
@@ -62,6 +64,24 @@ class CameraInspectionWorker:
         self.client = httpx.AsyncClient(timeout=30.0)
         self.sendgrid_client = SendGridAPIClient(SENDGRID_API_KEY) if SENDGRID_API_KEY else None
         self.baseline_cache = {}  # Cache baseline images in memory
+        self._token: Optional[str] = None
+
+    async def _authenticate(self) -> bool:
+        """Login and cache a JWT. Called once at startup and on 401."""
+        try:
+            resp = await self.client.post(
+                f"{self.api_url}/token",
+                data={"username": WORKER_EMAIL, "password": WORKER_PASSWORD},
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+            resp.raise_for_status()
+            self._token = resp.json()["access_token"]
+            self.client.headers.update({"Authorization": f"Bearer {self._token}"})
+            logger.info("Worker authenticated successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Authentication failed: {e}")
+            return False
 
     async def get_inspection_config(self) -> Dict:
         """Get inspection configuration from API."""
@@ -636,14 +656,27 @@ class CameraInspectionWorker:
         """
         logger.info("Camera Inspection Worker started")
 
+        # Authenticate before first cycle; retry until backend is ready
+        while not await self._authenticate():
+            logger.warning("Retrying authentication in 30s...")
+            await asyncio.sleep(30)
+
         while True:
             try:
                 # Get current config to check interval
                 config = await self.get_inspection_config()
                 interval_minutes = config["inspection_interval_minutes"]
 
-                # Run inspection cycle
-                await self.run_inspection_cycle()
+                # Run inspection cycle; re-auth and retry once on 401
+                try:
+                    await self.run_inspection_cycle()
+                except httpx.HTTPStatusError as e:
+                    if e.response.status_code == 401:
+                        logger.warning("Token expired, re-authenticating...")
+                        await self._authenticate()
+                        await self.run_inspection_cycle()
+                    else:
+                        raise
 
                 # Sleep until next cycle
                 sleep_seconds = interval_minutes * 60
