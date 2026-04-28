@@ -574,9 +574,12 @@ const DemoStreamPage: React.FC = () => {
                   type="text"
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
-                  placeholder="https://www.earthcam.com/... or https://www.youtube.com/watch?v=..."
-                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                  placeholder="rtsp://user:pass@host:port/path  ·  https://...m3u8  ·  YouTube/EarthCam URL"
+                  className="w-full rounded-md bg-gray-700 border-gray-600 text-white p-2 font-mono text-sm"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Supports RTSP, RTMP, HLS, MJPEG, direct video, plus YouTube and EarthCam.
+                </p>
               </div>
             )}
 

@@ -13,6 +13,7 @@ from threading import Thread
 from sqlalchemy.orm import Session as DBSession
 
 from ..services.youtube_capture import YouTubeFrameGrabber, MockFrameGrabber
+from ..services.rtsp_capture import RtspFrameGrabber, is_direct_stream_url
 from ..services.inference_service import InferenceService
 from ..utils.supabase_storage import upload_blob
 from ..config import get_settings
@@ -152,7 +153,9 @@ class DemoSessionManager:
     """Manages active video capture sessions."""
 
     def __init__(self):
-        self._active_sessions: Dict[str, YouTubeFrameGrabber] = {}
+        # Holds any of: YouTubeFrameGrabber, RtspFrameGrabber, MockFrameGrabber.
+        # All share the same start(on_frame=...) / stop() interface.
+        self._active_sessions: Dict[str, object] = {}
         self._latest_frames: Dict[str, bytes] = {}  # session_id -> latest JPEG bytes
         self._session_prompts: Dict[str, str] = {}  # session_id -> current prompts (mutable)
 
@@ -343,12 +346,21 @@ class DemoSessionManager:
             else:  # motion mode - for now just use 1 fps (we'll add motion detection later)
                 fps = 1.0
 
-            # Check if we should use mock mode for testing
-            is_mock = youtube_url.lower().startswith(('mock://', 'test://'))
+            # Pick the right grabber based on URL protocol.
+            # - mock://, test://         → MockFrameGrabber (test fixture)
+            # - rtsp://, rtmp://, hls,   → RtspFrameGrabber (ffmpeg direct)
+            #   mjpeg, direct .mp4/.m3u8
+            # - everything else (YouTube, → YouTubeFrameGrabber (streamlink + ffmpeg)
+            #   Twitch, EarthCam, etc.)
+            url_lower = youtube_url.lower()
+            is_mock = url_lower.startswith(('mock://', 'test://'))
 
             if is_mock:
                 logger.info(f"Creating MockFrameGrabber with {fps} fps (test mode)")
                 grabber = MockFrameGrabber(fps=fps)
+            elif is_direct_stream_url(youtube_url):
+                logger.info(f"Creating RtspFrameGrabber with {fps} fps (direct stream)")
+                grabber = RtspFrameGrabber(url=youtube_url, fps=fps)
             else:
                 logger.info(f"Creating YouTubeFrameGrabber with {fps} fps")
                 grabber = YouTubeFrameGrabber(youtube_url=youtube_url, fps=fps)
