@@ -178,7 +178,7 @@ Search hours of video footage with natural language:
 
 **Page**: Forensic Search → Create job → Monitor progress → Review results
 
-### 5. Parking Management (Maven Parking)
+### 5. Parking Management (IntelliPark)
 
 Zone-based parking intelligence:
 

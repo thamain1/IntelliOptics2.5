@@ -50,7 +50,7 @@ Capabilities on stage:
 | 2 | Open-vocab IntelliSearch (YOLOE + VLM fallback for novel prompts) | Demo Stream → IntelliSearch with prompt | VLM = 10–30s thinking time |
 | 3 | Vehicle ID (plate OCR + color + make/model) | `/vehicle-search` | Fast |
 | 4 | Forensic BOLO video search | `/forensic-search` | User will record video on remote |
-| 5 | Maven Parking dashboard | `/parking` | Fast |
+| 5 | IntelliPark dashboard | `/parking` | Fast |
 | 6 | Active learning workflow (label → train → promote) | `/escalation-queue`, `/training` | High-impact for ML-savvy audience |
 | 7 | Moondream VLM Q&A / OCR / detect | `/open-vocab` | 10–30s per call on CPU |
 
@@ -231,7 +231,7 @@ Subsequent calls are 10–20s.
 | 3 | Open-vocab IntelliSearch | `/demo-streams` → IntelliSearch | Type a prompt like "person carrying a backpack" | "Open-vocabulary — no retraining needed for new objects. The visual language model is reasoning about the scene now…" (covers the 10–30s VLM beat) |
 | 4 | Vehicle ID | `/vehicle-search` | Upload `docs/car.jpg` (committed test fixture) | "Plate OCR + color + make/model from a single image. Works for stills, video, or live streams." |
 | 5 | Forensic BOLO search | `/forensic-search` | Submit a query like "silver SUV" against the recorded video | "Search hours of footage in seconds. Critical for post-incident review." |
-| 6 | Maven Parking dashboard | `/parking` | Show occupancy + violations | "Same vision pipeline applied to parking enforcement. Real-time occupancy, automatic violation detection." |
+| 6 | IntelliPark dashboard | `/parking` | Show occupancy + violations | "Same vision pipeline applied to parking enforcement. Real-time occupancy, automatic violation detection." |
 | 7 | Active learning loop | `/escalation-queue` → `/training` | Show the queue, label one, kick a training run | "When the model is uncertain, a human reviews. Labels feed back into training automatically — the system gets smarter every day." |
 
 **Fallbacks if a feature glitches on stage:**
@@ -336,7 +336,7 @@ If the customer asks for a follow-up install on their hardware: the `Install-Int
 script + `.env.template` is the same procedure. The only customizations are:
 - Different Supabase project (or on-prem Postgres) — change `POSTGRES_DSN` and `SUPABASE_*`
 - Different admin email — change `ADMIN_EMAIL`
-- For a **detection-only** client (no Maven Parking / no vehicle ID), an `IO_FEATURES`
+- For a **detection-only** client (no IntelliPark / no vehicle ID), an `IO_FEATURES`
   env-flag system is on the roadmap (see `~/.claude/projects/c--Dev/memory/project_io_feature_flags.md`).
 
 ---

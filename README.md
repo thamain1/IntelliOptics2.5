@@ -153,7 +153,7 @@ Search hours of video footage with natural language:
 - YOLOE batch scan → VLM confirms on candidate frames
 - Example: "Man with red backpack near Lot C around 3PM"
 
-### 5. Parking Management (Maven Parking)
+### 5. Parking Management (IntelliPark)
 
 Zone-based parking intelligence:
 
