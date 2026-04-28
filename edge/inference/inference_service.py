@@ -352,6 +352,7 @@ async def yoloe_inference(
     image: UploadFile = File(..., description="Image file"),
     prompts: str = Query(..., description="Comma-separated list of objects to detect"),
     conf: float = Query(0.25, description="Confidence threshold"),
+    vlm_fallback: bool = Query(True, description="Run VLM fallback for missed/weak prompts (slow on CPU)"),
 ):
     """
     Run YOLOE open-vocabulary detection with dynamic text prompts.
@@ -411,7 +412,7 @@ async def yoloe_inference(
             reverse=True,
         )[:MAX_VLM_VALIDATE]
 
-        if weak_prompts or uncertain:
+        if vlm_fallback and (weak_prompts or uncertain):
             try:
                 vlm = get_vlm()
                 if vlm.model is not None:

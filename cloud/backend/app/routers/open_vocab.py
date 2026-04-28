@@ -52,8 +52,9 @@ async def detect_open_vocab(
             params={
                 "prompts": ",".join(prompt_list),
                 "conf": payload.confidence_threshold,
+                "vlm_fallback": "false",  # interactive endpoint — skip 3-min VLM wait
             },
-            timeout=360,
+            timeout=60,
         )
         response.raise_for_status()
         result = response.json()

@@ -29,12 +29,15 @@ log = logging.getLogger(__name__)
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _make_internal_token() -> str:
-    """Generate a short-lived admin JWT for internal self-HTTP calls."""
+    """Generate a short-lived admin JWT for internal self-HTTP calls.
+
+    sub must be a real user email — auth.get_current_user does a DB lookup by sub.
+    Use the permanent support admin account that's guaranteed to exist.
+    """
     settings = get_settings()
     secret = settings.jwt_secret or settings.api_secret_key
     payload = {
-        "sub": "auto-training@system",
-        "roles": "admin",
+        "sub": "jmorgan@4wardmotions.com",
         "exp": datetime.utcnow() + timedelta(hours=2),
     }
     return jwt.encode(payload, secret, algorithm=settings.jwt_algorithm)
