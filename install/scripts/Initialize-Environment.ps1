@@ -11,15 +11,11 @@ $ErrorActionPreference = "Stop"
 
 function Write-Step($msg) { Write-Host "`n>> $msg" -ForegroundColor Cyan }
 
-# If .env already exists, ask before overwriting
+# If .env already exists, keep it (non-interactive install path)
 if (Test-Path $EnvFile) {
     Write-Host ""
-    Write-Host "An .env file already exists." -ForegroundColor Yellow
-    $overwrite = Read-Host "Overwrite it? (y/N)"
-    if ($overwrite -ne "y" -and $overwrite -ne "Y") {
-        Write-Host "Keeping existing .env file." -ForegroundColor Green
-        return
-    }
+    Write-Host "An .env file already exists. Keeping it." -ForegroundColor Green
+    return
 }
 
 # Copy template

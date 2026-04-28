@@ -187,13 +187,14 @@ services:
     # ---- GPU SUPPORT ----
     # Requires NVIDIA GPU with compute capability >= 7.0
     # (RTX 2060+, Tesla T4+). VLM uses PyTorch which needs CC 7.0+ for fp16.
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # DISABLED: demo machine has AMD iGPU only — no NVIDIA/CUDA path.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
 
   # ---- EDGE POSTGRES (optional) ----
   # Uncomment if you need a local edge database.
