@@ -66,15 +66,12 @@ class RtspFrameGrabber:
         cmd = ["ffmpeg"]
 
         # RTSP-specific: prefer TCP transport (more reliable than UDP through
-        # NAT/firewall), retry on connection drop, sane timeouts.
+        # NAT/firewall). Note: -reconnect* flags are HTTP-only in ffmpeg 7.x
+        # and cause a fatal "Option not found" error on RTSP inputs.
         if url_lower.startswith(("rtsp://", "rtsps://")):
             cmd += [
                 "-rtsp_transport", "tcp",
-                "-timeout", "10000000",        # 10s socket timeout (microseconds) — ffmpeg 7.x renamed -stimeout to -timeout
-                "-reconnect", "1",
-                "-reconnect_at_eof", "1",
-                "-reconnect_streamed", "1",
-                "-reconnect_delay_max", "5",
+                "-timeout", "10000000",   # 10s socket timeout (microseconds)
             ]
         elif url_lower.startswith(("http://", "https://")):
             cmd += [
