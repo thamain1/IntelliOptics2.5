@@ -16,6 +16,9 @@ export default function OpenVocabPage() {
   const [prompts, setPrompts] = useState('');
   const [question, setQuestion] = useState('');
   const [confidence, setConfidence] = useState(0.25);
+  const [segment, setSegment] = useState(false);
+  const [showSegment, setShowSegment] = useState(false);
+  const [samEnriched, setSamEnriched] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [detections, setDetections] = useState<Detection[]>([]);
@@ -48,6 +51,7 @@ export default function OpenVocabPage() {
     if (!imageFile || !prompts.trim()) return;
     setLoading(true);
     setError(null);
+    setSamEnriched(false);
 
     try {
       const imageData = await toBase64(imageFile);
@@ -55,21 +59,26 @@ export default function OpenVocabPage() {
         prompts: prompts,
         confidence_threshold: confidence,
         image_data: imageData,
+        segment: segment,
       });
 
       const dets: Detection[] = (res.data.detections || []).map((d: any) => ({
         label: d.label,
         confidence: d.confidence,
         bbox: d.bbox,
+        mask_polygon: d.mask_polygon ?? undefined,
       }));
 
       setDetections(dets);
+      setSamEnriched(res.data.sam_enriched ?? false);
+      // Auto-enable polygon view when SAM data arrives
+      if (res.data.sam_enriched) setShowSegment(true);
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message);
     } finally {
       setLoading(false);
     }
-  }, [imageFile, prompts, confidence]);
+  }, [imageFile, prompts, confidence, segment]);
 
   const handleQuery = useCallback(async () => {
     if (!imageFile || !question.trim()) return;
@@ -156,6 +165,7 @@ export default function OpenVocabPage() {
                   fps={5}
                   showLabels={true}
                   showConfidence={true}
+                  showSegment={showSegment}
                 />
               </div>
             </div>
@@ -191,12 +201,42 @@ export default function OpenVocabPage() {
                     className="w-full"
                   />
                 </div>
+                {/* SAM segment toggle */}
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <div
+                      onClick={() => setSegment(v => !v)}
+                      className={`w-9 h-5 rounded-full transition-colors flex items-center px-0.5 ${segment ? 'bg-brand-primary' : 'bg-gray-600'}`}
+                    >
+                      <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${segment ? 'translate-x-4' : 'translate-x-0'}`} />
+                    </div>
+                    <span className="text-sm text-gray-400">
+                      Pixel Segment <span className="text-gray-600 text-xs">(SAM +40ms)</span>
+                    </span>
+                  </label>
+                  {samEnriched && (
+                    <div className="inline-flex border border-brand-line text-xs">
+                      <button
+                        onClick={() => setShowSegment(false)}
+                        className={`px-3 py-1 font-display uppercase tracking-ioWide font-bold border-r border-brand-line transition-colors ${!showSegment ? 'bg-brand-primary text-black' : 'text-brand-textDim hover:text-brand-primary'}`}
+                      >
+                        Box
+                      </button>
+                      <button
+                        onClick={() => setShowSegment(true)}
+                        className={`px-3 py-1 font-display uppercase tracking-ioWide font-bold transition-colors ${showSegment ? 'bg-brand-primary text-black' : 'text-brand-textDim hover:text-brand-primary'}`}
+                      >
+                        Mask
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={handleDetect}
                   disabled={loading || !imageFile || !prompts.trim()}
                   className="w-full bg-brand-primary hover:bg-brand-primaryH disabled:bg-gray-600 disabled:text-gray-400 text-black font-display uppercase tracking-ioWide text-sm font-bold py-3 transition-colors"
                 >
-                  {loading ? 'Detecting...' : 'Run Detection'}
+                  {loading ? (segment ? 'Detecting + Segmenting...' : 'Detecting...') : 'Run Detection'}
                 </button>
               </>
             ) : (

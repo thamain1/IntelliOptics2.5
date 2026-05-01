@@ -4,6 +4,7 @@ export interface Detection {
   label: string;
   confidence: number;
   bbox: number[]; // [x1, y1, x2, y2] normalized 0-1
+  mask_polygon?: number[][]; // [[x, y], ...] normalized 0-1 — SAM output
 }
 
 interface LiveBboxOverlayProps {
@@ -14,6 +15,7 @@ interface LiveBboxOverlayProps {
   showConfidence?: boolean;
   mirrored?: boolean;
   colorMap?: Record<string, string>;
+  showSegment?: boolean; // when true, draw SAM polygon instead of bbox
 }
 
 const DEFAULT_COLORS = [
@@ -38,6 +40,7 @@ const LiveBboxOverlay: React.FC<LiveBboxOverlayProps> = ({
   showConfidence = true,
   mirrored = false,
   colorMap,
+  showSegment = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
@@ -84,17 +87,34 @@ const LiveBboxOverlay: React.FC<LiveBboxOverlayProps> = ({
       const bh = (y2 - y1) * h;
 
       const color = getColor(det.label, colorMap);
+      const hasPoly = showSegment && det.mask_polygon && det.mask_polygon.length >= 3;
 
-      // Draw box
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(bx, by, bw, bh);
+      if (hasPoly) {
+        // Draw SAM polygon
+        const pts = det.mask_polygon!;
+        ctx.beginPath();
+        const px0 = mirrored ? (1 - pts[0][0]) * w : pts[0][0] * w;
+        ctx.moveTo(px0, pts[0][1] * h);
+        for (let i = 1; i < pts.length; i++) {
+          const px = mirrored ? (1 - pts[i][0]) * w : pts[i][0] * w;
+          ctx.lineTo(px, pts[i][1] * h);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = color + '30';
+        ctx.fill();
+      } else {
+        // Draw bounding box
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bx, by, bw, bh);
+        ctx.fillStyle = color + '20';
+        ctx.fillRect(bx, by, bw, bh);
+      }
 
-      // Draw fill
-      ctx.fillStyle = color + '20';
-      ctx.fillRect(bx, by, bw, bh);
-
-      // Draw label
+      // Label — anchor to top-left of bbox regardless of mode
       if (showLabels) {
         const labelText = showConfidence
           ? `${det.label} ${(det.confidence * 100).toFixed(0)}%`
@@ -105,16 +125,13 @@ const LiveBboxOverlay: React.FC<LiveBboxOverlayProps> = ({
         const labelH = 18;
         const labelW = metrics.width + 8;
 
-        // Label background
         ctx.fillStyle = color;
         ctx.fillRect(bx, by - labelH, labelW, labelH);
-
-        // Label text
         ctx.fillStyle = '#ffffff';
         ctx.fillText(labelText, bx + 4, by - 5);
       }
     }
-  }, [videoRef, showLabels, showConfidence, mirrored, colorMap]);
+  }, [videoRef, showLabels, showConfidence, mirrored, colorMap, showSegment]);
 
   useEffect(() => {
     const interval = 1000 / fps;

@@ -53,8 +53,9 @@ async def detect_open_vocab(
                 "prompts": ",".join(prompt_list),
                 "conf": payload.confidence_threshold,
                 "vlm_fallback": "false",  # interactive endpoint — skip 3-min VLM wait
+                "segment": "true" if payload.segment else "false",
             },
-            timeout=60,
+            timeout=90,
         )
         response.raise_for_status()
         result = response.json()
@@ -64,6 +65,7 @@ async def detect_open_vocab(
                 label=d["label"],
                 confidence=d["confidence"],
                 bbox=d["bbox"],
+                mask_polygon=d.get("mask_polygon"),
             )
             for d in result.get("detections", [])
         ]
@@ -72,6 +74,7 @@ async def detect_open_vocab(
             detections=detections,
             prompts_used=prompt_list,
             latency_ms=result.get("latency_ms", 0),
+            sam_enriched=result.get("sam_enriched", False),
         )
 
     except requests.RequestException as e:

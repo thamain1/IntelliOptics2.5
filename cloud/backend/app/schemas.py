@@ -821,6 +821,7 @@ class OpenVocabQueryCreate(BaseModel):
     prompts: str = Field(..., description="Comma-separated object prompts")
     confidence_threshold: float = Field(0.25, ge=0.0, le=1.0)
     image_data: Optional[str] = None  # Base64 encoded image
+    segment: bool = False  # Request SAM pixel-precise mask polygons
 
 
 class OpenVocabDetectionOut(BaseModel):
@@ -828,6 +829,7 @@ class OpenVocabDetectionOut(BaseModel):
     label: str
     confidence: float
     bbox: List[float]  # [x1, y1, x2, y2]
+    mask_polygon: Optional[List[List[float]]] = None  # [[x,y],...] normalized 0-1
 
 
 class OpenVocabResultOut(BaseModel):
@@ -835,6 +837,7 @@ class OpenVocabResultOut(BaseModel):
     detections: List[OpenVocabDetectionOut]
     prompts_used: List[str]
     latency_ms: int = 0
+    sam_enriched: bool = False
 
 
 class VLMQueryCreate(BaseModel):
