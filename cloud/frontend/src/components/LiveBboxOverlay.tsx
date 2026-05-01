@@ -90,7 +90,7 @@ const LiveBboxOverlay: React.FC<LiveBboxOverlayProps> = ({
       const hasPoly = showSegment && det.mask_polygon && det.mask_polygon.length >= 3;
 
       if (hasPoly) {
-        // Draw SAM polygon
+        // Draw SAM polygon — thicker stroke + brighter fill to distinguish from bbox
         const pts = det.mask_polygon!;
         ctx.beginPath();
         const px0 = mirrored ? (1 - pts[0][0]) * w : pts[0][0] * w;
@@ -101,10 +101,18 @@ const LiveBboxOverlay: React.FC<LiveBboxOverlayProps> = ({
         }
         ctx.closePath();
         ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
-        ctx.fillStyle = color + '30';
+        ctx.fillStyle = color + '40';
         ctx.fill();
+        // Small vertex dots so the polygon shape is obvious
+        ctx.fillStyle = color;
+        for (const pt of pts) {
+          const px = mirrored ? (1 - pt[0]) * w : pt[0] * w;
+          ctx.beginPath();
+          ctx.arc(px, pt[1] * h, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
       } else {
         // Draw bounding box
         ctx.strokeStyle = color;
