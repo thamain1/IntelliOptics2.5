@@ -78,9 +78,6 @@ def download_model_from_blob(blob_path: str, detector_id: str, model_type: str) 
     Returns:
         Path to downloaded model file
     """
-    if not AZ_CONN_STR:
-        raise ValueError("AZURE_STORAGE_CONNECTION_STRING not configured")
-
     # Create local cache path: /app/models/{detector_id}/{model_type}/model.onnx
     local_dir = MODEL_CACHE_DIR / detector_id / model_type
     local_dir.mkdir(parents=True, exist_ok=True)
