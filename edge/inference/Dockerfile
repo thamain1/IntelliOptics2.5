@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget \
 
 RUN mkdir -p /sam-checkpoint && \
     wget -q --retry-connrefused --tries=3 -O /sam-checkpoint/mobile_sam.pt \
-    https://github.com/ChaoningZhang/MobileSAM/releases/download/v0.0.1/mobile_sam.pt \
+    "https://huggingface.co/dhkim2810/MobileSAM/resolve/main/mobile_sam.pt" \
     || echo "SAM checkpoint download failed — enrichment disabled at runtime (non-fatal)"
 
 # ── Stage 3: Moondream VLM Pre-Download ────────────────────
@@ -67,8 +67,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
 
-# SAM enrichment package — optional, install failure does not break the service
-RUN pip install --no-cache-dir "mobile-sam>=0.3.0" \
+# SAM enrichment packages — optional, install failure does not break the service
+# mobile-sam is not on PyPI; install from source zip. timm is a required dep.
+RUN pip install --no-cache-dir timm \
+    && pip install --no-cache-dir \
+       "https://github.com/ChaoningZhang/MobileSAM/archive/refs/heads/master.zip" \
     || echo "mobile-sam install failed — SAM enrichment disabled (non-fatal)"
 
 # Copy ONNX model + vocabulary from exporter stage
