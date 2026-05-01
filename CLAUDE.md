@@ -1,12 +1,12 @@
-# IntelliOptics 2.0 - Project Context for Claude
+# IntelliOptics 2.5 - Project Context for Claude
 
 ## Repository & Local Path
-- **GitHub**: https://github.com/thamain1/IntelliOptics-2.0.git
-- **Local Path**: `C:\dev\IntelliOptics 2.0`
+- **GitHub**: https://github.com/thamain1/IntelliOptics2.5.git
+- **Local Path**: `C:\Dev\intellioptics_2.5`
 - **Branch**: `main`
 
 ## Overview
-IntelliOptics 2.0 is an **edge-first AI inspection platform** for security, manufacturing, and visual detection. It uses ONNX models running on-device (edge) with confidence-based escalation to cloud-based human review. All inference is **local-only** — cloud is Supabase (DB/storage) + SendGrid/Twilio (alerts) only.
+IntelliOptics 2.5 is an **edge-first AI inspection platform** for security, manufacturing, and visual detection. It uses ONNX models running on-device (edge) with confidence-based escalation to cloud-based human review. All inference is **local-only** — cloud is Supabase (DB/storage) + SendGrid/Twilio (alerts) only.
 
 ## Architecture
 

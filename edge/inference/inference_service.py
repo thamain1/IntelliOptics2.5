@@ -1,5 +1,5 @@
 """
-IntelliOptics 2.0 - Inference Service
+IntelliOptics 2.5 - Inference Service
 Multi-detector ONNX inference with Primary + OODD ground truth models
 """
 
@@ -51,7 +51,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="IntelliOptics Inference Service", version="2.0", lifespan=lifespan)
+app = FastAPI(title="IntelliOptics Inference Service", version="2.5", lifespan=lifespan)
 
 # ====================
 # Model Loading
