@@ -26,24 +26,28 @@ DEFAULT_MODEL_DIR = os.getenv("YOLOE_MODEL_DIR", "/models/yoloworld")
 
 
 class Detection:
-    """Single detection result."""
+    """Single detection result — bbox in pixel coords; mask_polygon in normalized [0,1] coords."""
 
     def __init__(self, label: str, confidence: float, bbox: list[float]):
         self.label = label
         self.confidence = confidence
         self.bbox = bbox  # [x1, y1, x2, y2] pixel coords
+        self.mask_polygon: list[list[float]] | None = None  # set by SAM enrichment
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "label": self.label,
             "confidence": self.confidence,
             "bbox": self.bbox,
         }
+        if self.mask_polygon is not None:
+            d["mask_polygon"] = self.mask_polygon
+        return d
 
     def to_normalized(self, img_width: int, img_height: int) -> dict:
-        """Return bbox in normalized 0-1 coordinates."""
+        """Return bbox in normalized 0-1 coordinates. mask_polygon already normalized."""
         x1, y1, x2, y2 = self.bbox
-        return {
+        d = {
             "label": self.label,
             "confidence": self.confidence,
             "bbox": [
@@ -53,6 +57,9 @@ class Detection:
                 y2 / img_height,
             ],
         }
+        if self.mask_polygon is not None:
+            d["mask_polygon"] = self.mask_polygon
+        return d
 
 
 class YOLOEInference:

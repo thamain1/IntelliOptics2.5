@@ -33,3 +33,6 @@ python-dotenv==1.0.0
 
 # Utilities
 cachetools==5.3.2  # For model caching
+
+# SAM Segment Enrichment — installed separately in Dockerfile (non-fatal RUN || echo)
+# Do NOT add mobile-sam here; a failed pip install would break the entire image build.

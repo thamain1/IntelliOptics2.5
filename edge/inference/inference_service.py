@@ -45,6 +45,7 @@ async def lifespan(app: FastAPI):
     await asyncio.gather(
         loop.run_in_executor(None, get_yoloe),
         loop.run_in_executor(None, get_vlm),
+        loop.run_in_executor(None, lambda: get_sam() or None),  # non-fatal; skips if checkpoint absent
     )
     logger.info("Models pre-loaded — inference service ready.")
     yield
@@ -327,6 +328,7 @@ async def yoloworld_inference(
 
 yoloe_instance = None
 vlm_instance = None
+sam_instance = None
 
 
 def get_yoloe():
@@ -347,12 +349,26 @@ def get_vlm():
     return vlm_instance
 
 
+def get_sam():
+    """Load SAM model (lazy initialization — non-fatal if unavailable)."""
+    global sam_instance
+    if sam_instance is None:
+        try:
+            from sam_inference import get_sam_model
+            sam_instance = get_sam_model()
+        except Exception as e:
+            logger.warning(f"SAM initialization failed: {e} — segment enrichment disabled")
+            sam_instance = None
+    return sam_instance
+
+
 @app.post("/yoloe")
 async def yoloe_inference(
     image: UploadFile = File(..., description="Image file"),
     prompts: str = Query(..., description="Comma-separated list of objects to detect"),
     conf: float = Query(0.25, description="Confidence threshold"),
     vlm_fallback: bool = Query(True, description="Run VLM fallback for missed/weak prompts (slow on CPU)"),
+    segment: bool = Query(False, description="Enrich detections with SAM pixel-precise mask polygons"),
 ):
     """
     Run YOLOE open-vocabulary detection with dynamic text prompts.
@@ -454,12 +470,29 @@ async def yoloe_inference(
             except Exception as vlm_err:
                 logger.warning(f"VLM processing failed: {vlm_err}")
 
+        # SAM segment enrichment (opt-in via ?segment=true)
+        sam_used = False
+        if segment:
+            sam = get_sam()
+            if sam is not None:
+                sam_start = time.perf_counter()
+                bboxes = [d.bbox for d in detections]
+                polygons = sam.segment_from_bboxes(image_np, bboxes)
+                for det, poly in zip(detections, polygons):
+                    det.mask_polygon = poly
+                latency_ms += (time.perf_counter() - sam_start) * 1000
+                sam_used = True
+                logger.info(f"SAM enriched {len(detections)} detections")
+            else:
+                logger.info("SAM unavailable — returning detections without masks")
+
         return JSONResponse({
             "detections": [d.to_normalized(pil_image.width, pil_image.height) for d in detections],
             "prompts_used": prompt_list,
             "latency_ms": int(latency_ms),
             "vlm_fallback": vlm_used,
             "vlm_validated": vlm_validated,
+            "sam_enriched": sam_used,
         })
 
     except HTTPException:
@@ -467,6 +500,63 @@ async def yoloe_inference(
     except Exception as e:
         logger.error(f"YOLOE inference error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ====================
+# SAM Segment Endpoint
+# ====================
+
+@app.post("/segment")
+async def segment_endpoint(
+    image: UploadFile = File(..., description="Image file"),
+    bboxes: str = Query(..., description='JSON array of normalized [x1,y1,x2,y2] boxes, e.g. [[0.1,0.2,0.4,0.6]]'),
+):
+    """
+    Produce pixel-precise mask polygons for supplied bounding boxes using SAM.
+
+    Input bboxes are normalized [0-1]. Output polygons are normalized [0-1].
+    Used by Eagle Eye Analyst Workbench for click-to-segment evidence tagging
+    and by Eagle Eye ingestion to convert detections into GeoJSON footprints.
+
+    Returns 503 if SAM checkpoint not loaded (check /health for sam_loaded status).
+    """
+    import json as _json
+    import time
+
+    sam = get_sam()
+    if sam is None:
+        raise HTTPException(
+            status_code=503,
+            detail="SAM model not loaded. Ensure mobile_sam.pt is at SAM_MODEL_DIR and mobile-sam is installed.",
+        )
+
+    try:
+        raw_boxes = _json.loads(bboxes)
+        if not isinstance(raw_boxes, list) or not raw_boxes:
+            raise HTTPException(status_code=400, detail="bboxes must be a non-empty JSON array")
+    except _json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="bboxes is not valid JSON")
+
+    image_bytes = await image.read()
+    pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    image_np = np.array(pil_image)
+    w, h = pil_image.width, pil_image.height
+
+    # Denormalize to pixel coords for SAM
+    pixel_boxes = [
+        [b[0] * w, b[1] * h, b[2] * w, b[3] * h]
+        for b in raw_boxes
+    ]
+
+    start = time.perf_counter()
+    polygons = sam.segment_from_bboxes(image_np, pixel_boxes)
+    latency_ms = int((time.perf_counter() - start) * 1000)
+
+    return JSONResponse({
+        "polygons": polygons,   # [[x,y],...] normalized 0-1, one per input bbox
+        "count": len(polygons),
+        "latency_ms": latency_ms,
+    })
 
 
 # ====================
@@ -593,6 +683,7 @@ async def health_check():
         "cached_models": len(model_cache),
         "yoloe_loaded": yoloe_instance is not None,
         "vlm_loaded": vlm_instance is not None,
+        "sam_loaded": sam_instance is not None and sam_instance.loaded,
     }
 
 

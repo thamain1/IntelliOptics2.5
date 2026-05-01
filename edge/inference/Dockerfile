@@ -25,7 +25,19 @@ RUN pip install --no-cache-dir \
 COPY tools/export_onnx.py /export/export_onnx.py
 RUN python export_onnx.py --output /export/models/
 
-# ── Stage 2: Moondream VLM Pre-Download ────────────────────
+# ── Stage 2: MobileSAM Checkpoint Download ─────────────────
+# mobile_sam.pt ~10MB — pre-baked so runtime has no internet dependency
+FROM python:3.11-slim AS sam-downloader
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /sam-checkpoint && \
+    wget -q --retry-connrefused --tries=3 -O /sam-checkpoint/mobile_sam.pt \
+    https://github.com/ChaoningZhang/MobileSAM/releases/download/v0.0.1/mobile_sam.pt \
+    || echo "SAM checkpoint download failed — enrichment disabled at runtime (non-fatal)"
+
+# ── Stage 3: Moondream VLM Pre-Download ────────────────────
 FROM python:3.11-slim AS vlm-downloader
 
 RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu \
@@ -38,7 +50,7 @@ AutoModelForCausalLM.from_pretrained( \
     'vikhyatk/moondream2', revision='2025-06-21', \
     trust_remote_code=True, cache_dir='/vlm-models')"
 
-# ── Stage 3: Runtime ──────────────────────────────────────
+# ── Stage 4: Runtime ──────────────────────────────────────
 FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1 \
@@ -55,11 +67,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
 
+# SAM enrichment package — optional, install failure does not break the service
+RUN pip install --no-cache-dir "mobile-sam>=0.3.0" \
+    || echo "mobile-sam install failed — SAM enrichment disabled (non-fatal)"
+
 # Copy ONNX model + vocabulary from exporter stage
 COPY --from=exporter /export/models/ /models/yoloworld/
 
 # Copy pre-downloaded Moondream VLM from downloader stage
 COPY --from=vlm-downloader /vlm-models/ /vlm-models/
+
+# Copy MobileSAM checkpoint from downloader stage
+COPY --from=sam-downloader /sam-checkpoint/ /models/sam/
 
 # Copy application code
 COPY inference_service.py /app/inference_service.py
@@ -67,6 +86,7 @@ COPY yoloe_inference.py /app/yoloe_inference.py
 COPY vlm_inference.py /app/vlm_inference.py
 COPY vehicle_id.py /app/vehicle_id.py
 COPY forensic_search.py /app/forensic_search.py
+COPY sam_inference.py /app/sam_inference.py
 
 # Create model directory for custom detector models
 RUN mkdir -p /models
